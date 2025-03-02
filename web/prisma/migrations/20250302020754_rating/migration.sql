@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Tool" ADD COLUMN     "rating" INTEGER NOT NULL DEFAULT 0;

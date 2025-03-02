@@ -1,0 +1,14 @@
+services:
+  aitoolhub-db:
+    image: postgres
+    restart: on-failure
+    container_name: aitoolhub-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - db-data:/var/lib/postgresql/data
+volumes:
+  db-data:
