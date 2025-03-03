@@ -28,6 +28,6 @@ jobs:
 
       - name: Deploy Email Workers
         run: |
-          railway up -d -s "bigpp"
+          railway up -d -s "toolhubai"
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
