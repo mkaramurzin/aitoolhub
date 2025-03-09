@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
@@ -20,6 +21,7 @@ import { Tool } from "@prisma/client";
 import { Check, Image, Loader2, Monitor } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+
 const FormSchema = z.object({
   name: z.string(),
   description: z.string(),
@@ -28,6 +30,7 @@ const FormSchema = z.object({
   tags: z.array(z.string()),
   logoImageId: z.string().uuid(),
   homepageScreenshotImageId: z.string().uuid(),
+  price: z.enum(["free", "starting_free", "paid"]),
   toolId: z.string().uuid().optional(),
 });
 
@@ -255,6 +258,43 @@ export function NewSubmitClientPage({ tool }: NewSubmitClientPageProps) {
             {/* Pricing */}
             <div className="flex w-full flex-col space-y-6 rounded-md bg-primary/5 p-4">
               <span className="text-xl">Pricing</span>
+              <FormField
+                control={form.control}
+                name="price"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex flex-col space-y-1"
+                      >
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="free" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Free</FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="starting_free" />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            Both free and paid plans
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="paid" />
+                          </FormControl>
+                          <FormLabel className="font-normal">Paid</FormLabel>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <div className="flex w-full justify-end">
