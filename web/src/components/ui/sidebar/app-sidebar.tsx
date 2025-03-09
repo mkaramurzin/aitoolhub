@@ -12,30 +12,46 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
+  Home,
+  Info,
   PanelLeftClose,
   PanelLeftOpen,
-  Plane,
   Search,
-  TrendingUp,
+  SquarePlus,
 } from "lucide-react";
 import { useSidebar } from "../sidebar";
 import { SidebarFootContent } from "../sidebar-footer-content";
 
 const items = [
   {
-    title: "Search",
+    title: "Magic Search",
     url: "/search",
     icon: Search,
   },
   {
-    title: "Trending",
-    url: "/trending",
-    icon: TrendingUp,
+    title: "Home",
+    url: "/search",
+    icon: Home,
+  },
+  // {
+  //   title: "Trending",
+  //   url: "/trending",
+  //   icon: TrendingUp,
+  // },
+  // {
+  //   title: "Just Launched",
+  //   url: "/new",
+  //   icon: Plane,
+  // },
+  {
+    title: "Submit & Advertise",
+    url: "/submit",
+    icon: SquarePlus,
   },
   {
-    title: "Just Launched",
-    url: "/new",
-    icon: Plane,
+    title: "Contact Us",
+    url: "/contact-us",
+    icon: Info,
   },
   // {
   //   title: "Settings",

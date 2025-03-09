@@ -1,7 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import {
+  authenticatedProcedure,
+  createTRPCRouter,
+  publicProcedure,
+} from "../trpc";
 
 export const toolsRouter = createTRPCRouter({
   fetch: publicProcedure
@@ -287,4 +291,30 @@ export const toolsRouter = createTRPCRouter({
     }
     return { success: true };
   }),
+  fetchOwned: authenticatedProcedure
+    .input(z.object({}))
+    .query(async ({ ctx }) => {
+      const tools = await ctx.db.tool.findMany({
+        where: {
+          ownerId: ctx.user.id,
+        },
+      });
+      return { tools };
+    }),
+  upsert: authenticatedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        description: z.string(),
+        url: z.string().url(),
+        primaryTag: z.string(),
+        tags: z.array(z.string()),
+        logoImageId: z.string().uuid(),
+        homepageScreenshotImageId: z.string().uuid(),
+        toolId: z.string().uuid().optional(),
+      }),
+    )
+    .mutation(async ({}) => {
+      return {};
+    }),
 });

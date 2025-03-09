@@ -23,6 +23,7 @@ model User {
   accounts         Account[]
   Review           Review[]
   UserVote         UserVote[]
+  Tool             Tool[]
 
   @@unique([email])
   @@map("user")
@@ -113,8 +114,10 @@ model Tool {
   description String
   url         String
   image       String
+  ownerId     String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @default(now()) @updatedAt
+  User        User?      @relation(fields: [ownerId], references: [id])
   ToolTags    ToolTags[]
   Review      Review[]
 }

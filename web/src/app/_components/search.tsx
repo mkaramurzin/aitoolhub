@@ -88,7 +88,7 @@ export function SearchResultsPage({
                 <a
                   href={`/tools/${tool.id}`}
                   key={tool.id}
-                  className="group flex w-full flex-col rounded-md border border-border bg-primary/10 p-4 hover:bg-primary/20"
+                  className="group flex w-full flex-col rounded-md border border-border bg-card p-4 hover:border-primary"
                 >
                   {/* Image and name */}
                   <div className="mb-4 flex gap-4">
@@ -103,7 +103,7 @@ export function SearchResultsPage({
                           {tool.name}
                         </span>
 
-                        <div className="flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-primary">
+                        <div className="flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-primary">
                           <Star className={cn("size-4 fill-primary")} />
                           <span>
                             {Number(tool.rating) % 1 === 0
@@ -121,6 +121,7 @@ export function SearchResultsPage({
                   <div className="flex flex-wrap gap-4">
                     {tool.ToolTags.flatMap((tt) => tt.Tag).map((tag) => (
                       <Badge
+                        variant={"secondary"}
                         key={tag.name}
                         className="cursor-pointer"
                         onClick={(e) => {

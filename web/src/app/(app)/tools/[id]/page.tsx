@@ -18,7 +18,7 @@ export default async function ToolsPage(props: {
   const { tool } = await api.tools.fetch({ id });
   const { reviews, count } = await api.reviews.fetchAll({
     toolId: id,
-    page: Number(page),
+    page: page ? Number(page) : 1,
   });
 
   return (
