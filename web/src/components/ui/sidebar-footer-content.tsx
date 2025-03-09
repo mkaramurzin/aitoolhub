@@ -16,7 +16,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { env } from "@/env";
 import { authClient } from "@/lib/auth-client";
 import { RiGoogleFill } from "@remixicon/react";
 import { ChevronsUpDown, LogOut } from "lucide-react";
@@ -157,7 +156,7 @@ export function SidebarFootContent({
                   onClick={() => {
                     authClient.signIn.social({
                       provider: "google",
-                      callbackURL: env.NEXT_PUBLIC_BETTER_AUTH_URL,
+                      callbackURL: window.location.href,
                     });
                   }}
                   className="flex cursor-pointer items-center gap-2"
