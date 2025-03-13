@@ -99,7 +99,7 @@ export function SearchResultsPage({
                     />
                     <div className="flex w-full flex-col">
                       <div className="mb-2 flex w-full items-center justify-between">
-                        <span className="w-fit cursor-pointer text-xl underline-offset-1 hover:underline">
+                        <span className="w-fit cursor-pointer underline-offset-1 hover:underline">
                           {tool.name}
                         </span>
 
@@ -112,7 +112,7 @@ export function SearchResultsPage({
                           </span>
                         </div>
                       </div>
-                      <span className="text-muted-foreground">
+                      <span className="line-clamp-3 text-sm text-muted-foreground">
                         {tool.description}
                       </span>
                     </div>
@@ -135,6 +135,8 @@ export function SearchResultsPage({
                         {tag.name}
                       </Badge>
                     ))}
+
+                    {tool.ToolTags.length > 4}
                   </div>
                 </a>
               ))}

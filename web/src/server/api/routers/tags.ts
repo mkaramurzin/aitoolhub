@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
-
 export const tagsRouter = createTRPCRouter({
   fetchPopular: publicProcedure.query(async ({ ctx }) => {
     const tags = await ctx.db.tag.findMany({

@@ -45,7 +45,7 @@ const items = [
   // },
   {
     title: "Submit & Advertise",
-    url: "/submit",
+    url: "/submissions",
     icon: SquarePlus,
   },
   {

@@ -22,11 +22,14 @@
     "preview": "next build && next start",
     "start": "next start",
     "stripe": "stripe listen --forward-to localhost:3000/api/webhooks/stripe",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "s3": "node ./s3/s3.js"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^0.1.6",
     "@ai-sdk/openai": "^1.1.9",
+    "@aws-sdk/client-s3": "^3.758.0",
+    "@aws-sdk/s3-presigned-post": "^3.758.0",
     "@hookform/resolvers": "^3.10.0",
     "@openrouter/ai-sdk-provider": "^0.1.0",
     "@prisma/client": "^5.14.0",
@@ -68,6 +71,7 @@
     "@trpc/client": "^11.0.0-rc.446",
     "@trpc/react-query": "^11.0.0-rc.446",
     "@trpc/server": "^11.0.0-rc.446",
+    "@types/s3rver": "^3.7.4",
     "@types/three": "^0.172.0",
     "ai": "^4.1.13",
     "better-auth": "^1.1.15",
@@ -93,6 +97,7 @@
     "react-markdown": "^9.0.3",
     "react-resizable-panels": "^2.1.7",
     "recharts": "^2.15.0",
+    "s3rver": "^3.7.1",
     "server-only": "^0.0.1",
     "sonner": "^1.7.2",
     "stripe": "^17.6.0",
@@ -101,6 +106,7 @@
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.172.0",
     "twitter-api-sdk": "^1.2.1",
+    "uuidv4": "^6.2.13",
     "vaul": "^1.1.2",
     "zod": "^3.24.1",
     "zustand": "^5.0.3"

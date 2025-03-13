@@ -14,6 +14,8 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     BETTER_AUTH_URL: z.string().url(),
+    AWS_ACCESS_KEY_ID: z.string(),
+    AWS_SECRET_ACCESS_KEY: z.string(),
   },
 
   /**
@@ -25,6 +27,9 @@ export const env = createEnv({
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
     NEXT_PUBLIC_BETTER_AUTH_URL: z.string().url(),
     NEXT_PUBLIC_BASE_URL: z.string().url(),
+    NEXT_PUBLIC_S3_IMAGE_URL: z.string().url(),
+    NEXT_PUBLIC_S3_BUCKET_NAME: z.string(),
+    NEXT_PUBLIC_S3_BUCKET_ENDPOINT: z.string().url(),
   },
 
   /**
@@ -39,6 +44,11 @@ export const env = createEnv({
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    NEXT_PUBLIC_S3_IMAGE_URL: process.env.NEXT_PUBLIC_S3_IMAGE_URL,
+    NEXT_PUBLIC_S3_BUCKET_NAME: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
+    NEXT_PUBLIC_S3_BUCKET_ENDPOINT: process.env.NEXT_PUBLIC_S3_BUCKET_ENDPOINT,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

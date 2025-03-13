@@ -107,23 +107,27 @@ model UserVote {
 }
 
 model Tool {
-  id          String     @id
-  name        String
-  rating      Float      @default(0)
-  pricing     String     @default("")
-  description String
-  url         String
-  image       String
-  ownerId     String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @default(now()) @updatedAt
-  User        User?      @relation(fields: [ownerId], references: [id])
-  ToolTags    ToolTags[]
-  Review      Review[]
+  id            String     @id @default(uuid())
+  name          String
+  rating        Float      @default(0)
+  pricing       String     @default("")
+  description   String
+  url           String
+  image         String
+  logoImageUrl  String?
+  screenshotUrl String?
+  ownerId       String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @default(now()) @updatedAt
+  User          User?      @relation(fields: [ownerId], references: [id])
+  ToolTags      ToolTags[]
+  Review        Review[]
+
+  @@index([name])
 }
 
 model ToolTags {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   toolId    String
   tag       String
   createdAt DateTime @default(now()) @db.Timestamptz

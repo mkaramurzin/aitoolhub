@@ -1,5 +1,7 @@
+import { tools } from "@/lib/ai_tools";
 import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import {
   authenticatedProcedure,
@@ -307,14 +309,145 @@ export const toolsRouter = createTRPCRouter({
         name: z.string(),
         description: z.string(),
         url: z.string().url(),
-        primaryTag: z.string(),
         tags: z.array(z.string()),
-        logoImageId: z.string().uuid(),
-        homepageScreenshotImageId: z.string().uuid(),
-        toolId: z.string().uuid().optional(),
+        logoImageUrl: z.string().url(),
+        screenshotUrl: z.string().url(),
+        pricing: z.string(),
+        id: z.string().uuid().optional(),
       }),
     )
-    .mutation(async ({}) => {
+    .mutation(async ({ input, ctx }) => {
+      const tool = await ctx.db.tool.upsert({
+        where: {
+          id: input.id ?? uuidv4(),
+        },
+        create: {
+          name: input.name,
+          description: input.description,
+          url: input.url,
+          image: input.logoImageUrl,
+          ownerId: ctx.user.id,
+          logoImageUrl: input.logoImageUrl,
+          screenshotUrl: input.screenshotUrl,
+          pricing: input.pricing,
+        },
+        update: {
+          name: input.name,
+          description: input.description,
+          url: input.url,
+          image: input.logoImageUrl,
+          logoImageUrl: input.logoImageUrl,
+          screenshotUrl: input.screenshotUrl,
+          pricing: input.pricing,
+        },
+        include: {
+          ToolTags: true,
+        },
+      });
+
+      // Get current tags for the tool from the upsert result
+      const existingTags = tool.ToolTags.map((tt) => tt.tag);
+
+      // Identify removed tags and decrement uses + remove association
+      const tagsToRemove = existingTags.filter(
+        (tag) => !input.tags.includes(tag),
+      );
+      for (const tag of tagsToRemove) {
+        await ctx.db.tag.update({
+          where: { name: tag },
+          data: { uses: { decrement: 1 } },
+        });
+        await ctx.db.toolTags.delete({
+          where: {
+            toolId_tag: { toolId: tool.id, tag },
+          },
+        });
+      }
+
+      // Identify new tags and upsert them, increment uses + create association
+      const tagsToAdd = input.tags.filter((tag) => !existingTags.includes(tag));
+      for (const tag of tagsToAdd) {
+        await ctx.db.tag.upsert({
+          where: { name: tag },
+          create: {
+            name: tag,
+            uses: 1,
+          },
+          update: {
+            uses: { increment: 1 },
+          },
+        });
+        await ctx.db.toolTags.upsert({
+          where: {
+            toolId_tag: {
+              tag: tag,
+              toolId: tool.id,
+            },
+          },
+          create: {
+            tag: tag,
+            toolId: tool.id,
+          },
+          update: {},
+        });
+      }
+
       return {};
+    }),
+  gentoolsandtags: publicProcedure
+    .input(z.object({}))
+    .mutation(async ({ ctx }) => {
+      for (const id in tools) {
+        // @ts-ignore
+        const tool = tools[id] as any;
+
+        // //create tool
+        try {
+          const newTool = await ctx.db.tool.create({
+            data: {
+              description: tool.description,
+              name: tool.tool_name,
+              url: tool["Link to tool"],
+              image: tool.logo_url,
+              pricing: tool.pricing ?? "No data",
+            },
+          });
+          console.log(tool.tool_name);
+
+          if (typeof tool.other_tags === "string") continue;
+          // @ts-ignore
+          for (const tag of tool.other_tags) {
+            // console.log(tag);
+            await ctx.db.tag.upsert({
+              where: {
+                name: tag,
+              },
+              create: {
+                name: tag,
+              },
+              update: {
+                uses: {
+                  increment: 1,
+                },
+              },
+            });
+            await ctx.db.toolTags.upsert({
+              where: {
+                toolId_tag: {
+                  tag: tag,
+                  toolId: newTool.id,
+                },
+              },
+              create: {
+                tag: tag,
+                toolId: newTool.id,
+              },
+              update: {},
+            });
+          }
+        } catch {}
+      }
+
+      return;
     }),
 });
