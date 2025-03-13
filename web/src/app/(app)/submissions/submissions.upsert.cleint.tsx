@@ -230,6 +230,25 @@ export function SubmissionsUpsertPage({
                 {tagSearchQuery.data &&
                   tagSearchQuery.data?.tags.length > 0 && (
                     <>
+                      {!tagSearchQuery.data?.tags.find(
+                        (tag) => tag.name === tagSearch,
+                      ) && (
+                        <div
+                          onClick={() => {
+                            setTagSearch("");
+                            addTag(tagSearch);
+                          }}
+                          className={cn(
+                            "flex cursor-pointer items-center justify-between rounded-sm p-2 hover:bg-primary/10",
+                            formTags.includes(tagSearch) &&
+                              "cursor-not-allowed bg-primary/5 text-muted-foreground",
+                          )}
+                        >
+                          <span className="capitalize">
+                            Create new tag: {tagSearch}
+                          </span>
+                        </div>
+                      )}
                       {tagSearchQuery.data?.tags.map((tag) => (
                         <div
                           onClick={() => {
