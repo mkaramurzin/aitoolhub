@@ -11,5 +11,12 @@ export default async function SubmissionsPage(props: SubmissionsPageProps) {
     return <FullScreenSignIn />;
   }
   const { tools } = await api.tools.fetchOwned({});
-  return <SubmissionsClientPage tools={tools} />;
+  return (
+    <SubmissionsClientPage
+      tools={tools.map((tool) => ({
+        tool: tool,
+        tags: tool.ToolTags.flatMap((tt) => tt.Tag),
+      }))}
+    />
+  );
 }

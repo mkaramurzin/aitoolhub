@@ -300,6 +300,13 @@ export const toolsRouter = createTRPCRouter({
         where: {
           ownerId: ctx.user.id,
         },
+        include: {
+          ToolTags: {
+            include: {
+              Tag: true,
+            },
+          },
+        },
       });
       return { tools };
     }),
@@ -450,4 +457,38 @@ export const toolsRouter = createTRPCRouter({
 
       return;
     }),
+  count: publicProcedure.query(async ({ ctx }) => {
+    const count = await ctx.db.tool.count();
+    return { count };
+  }),
+  defaultTools: publicProcedure.query(async ({ ctx }) => {
+    const newTools = await ctx.db.tool.findMany({
+      include: {
+        ToolTags: {
+          include: {
+            Tag: true,
+          },
+        },
+      },
+      take: 12,
+      orderBy: { createdAt: "desc" },
+    });
+
+    const trendingTools = await ctx.db.tool.findMany({
+      include: {
+        ToolTags: {
+          include: {
+            Tag: true,
+          },
+        },
+      },
+      take: 5,
+      orderBy: { rating: "desc" },
+    });
+
+    return {
+      newTools,
+      trendingTools,
+    };
+  }),
 });

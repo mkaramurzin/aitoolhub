@@ -116,7 +116,7 @@ export function ToolsClientPage({
                   <a
                     href={tool.url}
                     target="_blank"
-                    className={cn(buttonVariants(), "flex gap-2")}
+                    className={cn(buttonVariants(), "mb-2 flex gap-2")}
                   >
                     <span>Try it now</span>
                     <ExternalLink className="size-4" />
@@ -129,7 +129,7 @@ export function ToolsClientPage({
 
               {/* Rating */}
               <div className="mb-4 flex items-center gap-1 text-primary">
-                <Star className="size-5 fill-primary" />
+                <Star className="size-5 fill-yellow-500 text-yellow-500" />
                 <span className="text-sm">
                   {Number(tool.rating).toFixed(1)}
                 </span>
@@ -173,7 +173,7 @@ export function ToolsClientPage({
                     className={cn(
                       "size-5 cursor-pointer",
                       star <= rating
-                        ? "fill-primary text-primary"
+                        ? "fill-yellow-500 text-yellow-500"
                         : "fill-muted text-muted",
                     )}
                     onClick={() => form.setValue("rating", star)}
@@ -292,7 +292,7 @@ function UserReview({
               className={cn(
                 "size-4",
                 star <= review.rating
-                  ? "fill-primary text-primary"
+                  ? "fill-yellow-500 text-yellow-500"
                   : "fill-muted text-muted",
               )}
             />

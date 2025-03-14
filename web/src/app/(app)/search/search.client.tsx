@@ -6,6 +6,8 @@ import { Tag } from "@prisma/client";
 
 export type SearchClientPageProps = {
   tags?: Tag[];
+  toolCount: number;
+  orderBy?: "trending" | "new";
 };
 
 export function SearchClientPage(props: SearchClientPageProps) {
@@ -13,8 +15,12 @@ export function SearchClientPage(props: SearchClientPageProps) {
   const isMobile = useIsMobile();
   return (
     <div className="flex h-full w-full flex-col items-center">
-      <div className="flex w-full max-w-3xl flex-1 justify-center pt-4">
-        <SearchPage tags={props.tags} />
+      <div className="flex w-full flex-1 justify-center pt-4">
+        <SearchPage
+          tags={props.tags}
+          toolCount={props.toolCount}
+          orderBy={props.orderBy}
+        />
       </div>
 
       <div></div>

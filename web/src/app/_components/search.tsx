@@ -1,18 +1,22 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { usePagination } from "@/hooks/use-pagination";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Tag } from "@prisma/client";
-import { Loader2, Search, Star } from "lucide-react";
+import { Loader2, Mail, Search, Star, TrendingUp } from "lucide-react";
 import millify from "millify";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
+import { SubscribeEmailCapture } from "./subscribe-email-capture";
+import ToolCard from "./tool-card";
 export type SearchPageProps = {
   tags?: Tag[];
+  toolCount: number;
+  orderBy?: "trending" | "new";
 };
 
 export function SearchPage(props: SearchPageProps) {
@@ -24,31 +28,38 @@ export function SearchPage(props: SearchPageProps) {
   const [query, setQuery] = useQueryState("query", { shallow: false });
 
   return (
-    <>
-      {(!tags || tags.length < 1) && !query ? (
-        <EmptySearchPage tags={props.tags} />
+    <div className="flex w-full flex-col items-center py-10">
+      {(!tags || tags.length < 1) && !query && !props.orderBy ? (
+        <EmptySearchPage tags={props.tags} toolCount={props.toolCount} />
       ) : (
-        <SearchResultsPage />
+        <SearchResultsPage
+          toolCount={props.toolCount}
+          orderBy={props.orderBy}
+        />
       )}
-    </>
+    </div>
   );
 }
 
 export function SearchResultsPage({
   showSearch = true,
+  toolCount,
   orderBy,
 }: {
   showSearch?: boolean;
   orderBy?: "trending" | "new";
+  toolCount: number;
 }) {
   // Query states for tags, query string, and page number
   const [tags, setTags] = useQueryState("tags", {
     shallow: false,
+    history: "push",
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
   const [query, setQuery] = useQueryState("query", { shallow: false });
   const [page, setPage] = useQueryState("page", {
     shallow: false,
+    history: "push",
     parse: (v) => parseInt(v),
   });
 
@@ -70,13 +81,11 @@ export function SearchResultsPage({
   });
 
   return (
-    <div className="flex w-full flex-col">
+    <div className="flex w-full max-w-3xl flex-col">
       {showSearch && (
-        <div className="mb-4 flex w-full gap-6 px-4">
-          <SearchBox />
-          <Button className="flex h-12 w-12">
-            <Search />
-          </Button>
+        <div className="mb-6 flex w-full flex-col gap-6 px-4">
+          <SearchBox toolCount={toolCount} />
+          <SelectedTags />
         </div>
       )}
 
@@ -85,60 +94,12 @@ export function SearchResultsPage({
           <div className="flex w-full flex-col items-center px-4">
             <div className="grid w-full grid-cols-1 gap-2 lg:grid-cols-2">
               {toolsQuery.data.tools.map((tool) => (
-                <a
+                <ToolCard
                   href={`/tools/${tool.id}`}
+                  tool={tool}
                   key={tool.id}
-                  className="group flex w-full flex-col rounded-md border border-border bg-card p-4 hover:border-primary"
-                >
-                  {/* Image and name */}
-                  <div className="mb-4 flex gap-4">
-                    <img
-                      src={tool.image}
-                      alt={tool.name}
-                      className="size-12 rounded-md"
-                    />
-                    <div className="flex w-full flex-col">
-                      <div className="mb-2 flex w-full items-center justify-between">
-                        <span className="w-fit cursor-pointer underline-offset-1 hover:underline">
-                          {tool.name}
-                        </span>
-
-                        <div className="flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-primary">
-                          <Star className={cn("size-4 fill-primary")} />
-                          <span>
-                            {Number(tool.rating) % 1 === 0
-                              ? Number(tool.rating).toFixed(0)
-                              : Number(tool.rating).toFixed(1)}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="line-clamp-3 text-sm text-muted-foreground">
-                        {tool.description}
-                      </span>
-                    </div>
-                  </div>
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-4">
-                    {tool.ToolTags.flatMap((tt) => tt.Tag).map((tag) => (
-                      <Badge
-                        variant={"secondary"}
-                        key={tag.name}
-                        className="cursor-pointer"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          if (!tags?.includes(tag.name)) {
-                            setTags([...(tags ?? []), tag.name]);
-                          }
-                        }}
-                      >
-                        {tag.name}
-                      </Badge>
-                    ))}
-
-                    {tool.ToolTags.length > 4}
-                  </div>
-                </a>
+                  tags={tool.ToolTags.flatMap((tag) => tag.Tag)}
+                />
               ))}
             </div>
           </div>
@@ -165,14 +126,16 @@ export function SearchResultsPage({
   );
 }
 
-function SearchBox() {
+function SearchBox({ toolCount }: { toolCount: number }) {
   const [search, setSearch] = useState("");
   const [tags, setTags] = useQueryState("tags", {
     shallow: false,
+    history: "push",
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
   const [page, setPage] = useQueryState("page", {
     shallow: false,
+    history: "push",
     parse: (v) => parseInt(v),
   });
   const router = useRouter();
@@ -207,9 +170,10 @@ function SearchBox() {
   }, [search]);
   return (
     <div className="relative flex w-full">
-      <div className="flex w-full flex-col gap-4">
+      <div className="relative flex w-full flex-col items-center">
         <Input
-          className="h-12 w-full px-4"
+          className="h-12 w-full rounded-full pl-12 pr-4"
+          placeholder={`Search ${toolCount} AI tools...`}
           value={search}
           //on press enter
           onKeyDown={(e) => {
@@ -224,7 +188,9 @@ function SearchBox() {
           }}
         />
 
-        <SelectedTags />
+        <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
+          <Search className="h-5 w-5" />
+        </div>
       </div>
 
       <div
@@ -258,7 +224,7 @@ function SearchBox() {
         {tagSearch.data && tagSearch.data?.tags.length > 0 && (
           <>
             <div className="sticky left-0 top-0 border-b border-border bg-accent p-2 text-sm">
-              Tags
+              Categories
             </div>
             {tagSearch.data?.tags.map((tag) => (
               <div
@@ -288,10 +254,103 @@ function SearchBox() {
   );
 }
 
+function SearchOptions({ openSubmission }: { openSubmission?: () => void }) {
+  const [page, setPage] = useQueryState("page", {
+    shallow: false,
+    history: "push",
+    parse: (v) => parseInt(v),
+  });
+  const [orderBy, setOrderBy] = useQueryState("orderBy", {
+    shallow: false,
+    history: "push",
+  });
+  return (
+    <div className="flex flex-wrap justify-center gap-4">
+      {[
+        {
+          id: "new",
+          icon: {
+            component: Star,
+            className: "text-yellow-500 ",
+          },
+          text: "New Tools",
+          onClick: () => {
+            setPage(1);
+            setOrderBy("new");
+          },
+        },
+        {
+          id: "trending",
+          icon: {
+            component: TrendingUp,
+            className: "text-emerald-500 fill-emerald-500",
+          },
+          text: "Trending",
+          onClick: () => {
+            setPage(1);
+            setOrderBy("trending");
+          },
+        },
+        // {
+        //   icon: {
+        //     component: Heart,
+        //     className: "text-red-500",
+        //   },
+        //   text: "Our Picks",
+        // },
+        {
+          id: "subscribe",
+          icon: {
+            component: Mail,
+            className: "text-blue-500",
+          },
+          text: "Subscribe",
+          onClick: () => {},
+        },
+      ].map((item) => {
+        const tagButton = (
+          <Badge
+            variant={"secondary"}
+            className={cn(
+              "secondary flex cursor-pointer gap-2 rounded-full px-3 py-1",
+            )}
+            key={item.id}
+            onClick={item.onClick}
+          >
+            <item.icon.component
+              className={cn("size-5", item.icon.className)}
+            />
+            <span
+              className={cn(
+                "text-lg font-normal",
+                item.id === orderBy && "text-white",
+              )}
+            >
+              {item.text}
+            </span>
+          </Badge>
+        );
+        if (item.id === "subscribe") {
+          return (
+            <Dialog key={item.id}>
+              <DialogTrigger asChild>{tagButton}</DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <SubscribeEmailCapture />
+              </DialogContent>
+            </Dialog>
+          );
+        }
+        return tagButton;
+      })}
+    </div>
+  );
+}
+
 export function SelectedTags() {
   const router = useRouter();
   const [tags, setTags] = useQueryState("tags", {
     shallow: false,
+    history: "push",
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
   return (
@@ -318,36 +377,56 @@ export function SelectedTags() {
   );
 }
 
-function EmptySearchPage(props: { tags?: Tag[] }) {
-  const [tags, setTags] = useQueryState("tags", {
-    shallow: false,
-    parse: (v) => v.split(","),
-  });
+function EmptySearchPage(props: { tags?: Tag[]; toolCount: number }) {
+  const defaultToolsQuery = api.tools.defaultTools.useQuery();
 
   return (
-    <div className="flex h-full w-full max-w-3xl flex-1 flex-grow flex-col justify-center gap-6 px-6">
-      <span className="text-3xl">{`There's an AI for that.`}</span>
+    <div className="flex h-full w-full flex-1 flex-grow flex-col items-center justify-center gap-6 px-6">
+      <span className="w-full max-w-3xl text-3xl">{`There's an AI for that.`}</span>
 
-      <div className="flex w-full gap-6">
-        <SearchBox />
-
-        <Button className="flex h-12 w-12">
-          <Search />
-        </Button>
+      <div className="flex w-full max-w-3xl gap-6">
+        <SearchBox toolCount={props.toolCount} />
       </div>
+      <SearchOptions />
 
-      <div className="flex w-full flex-wrap gap-4">
-        {props.tags?.map((tag) => (
-          <Badge
-            onClick={() => {
-              setTags([tag.name]);
-            }}
-            key={tag.name}
-            className="flex cursor-pointer capitalize"
-          >
-            {tag.name}
-          </Badge>
-        ))}
+      <div className="flex w-full max-w-5xl flex-col gap-4 md:flex-row">
+        {/* new */}
+        <div className="flex w-full flex-col md:w-1/2 lg:w-2/3">
+          <span className="mb-4 flex items-center gap-2 text-xl">
+            <Star className="size-5 text-yellow-500" />
+            New Tools
+          </span>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            {defaultToolsQuery.data?.newTools.map((tool) => (
+              <ToolCard
+                href={`/tools/${tool.id}`}
+                tool={tool}
+                key={tool.id}
+                tags={tool.ToolTags.flatMap((tag) => tag.Tag)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* trending */}
+        <div className="flex w-full flex-col md:w-1/2 lg:w-1/3">
+          <span className="mb-4 flex items-center gap-2 self-end text-xl">
+            <TrendingUp className="size-5 fill-emerald-500 text-emerald-500" />
+            Trending Tools
+          </span>
+
+          <div className="grid grid-cols-1 gap-4">
+            {defaultToolsQuery.data?.trendingTools.map((tool) => (
+              <ToolCard
+                href={`/tools/${tool.id}`}
+                tool={tool}
+                key={tool.id}
+                tags={tool.ToolTags.flatMap((tag) => tag.Tag)}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

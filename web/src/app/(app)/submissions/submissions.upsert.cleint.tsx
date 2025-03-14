@@ -96,7 +96,7 @@ export function SubmissionsUpsertPage({
       <div className="flex w-full max-w-3xl flex-col justify-center space-y-6 p-4">
         <div className="flex w-full flex-col gap-6">
           {/* Back Button */}
-          <BackButton link="/submit" label="Back to Tools" />
+          <BackButton link="/submissions" label="Back to Tools" />
 
           <div className="flex flex-col gap-2">
             <span className="text-2xl font-semibold">Submit Your AI Tool</span>

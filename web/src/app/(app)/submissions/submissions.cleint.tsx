@@ -1,12 +1,13 @@
 "use client";
 
+import ToolCard from "@/app/_components/tool-card";
 import { Button } from "@/components/ui/button";
-import { Tool } from "@prisma/client";
+import { Tag, Tool } from "@prisma/client";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export type SubmissionsClientPageProps = {
-  tools: Tool[];
+  tools: { tool: Tool; tags: Tag[] }[];
 };
 
 export function SubmissionsClientPage({ tools }: SubmissionsClientPageProps) {
@@ -17,12 +18,12 @@ export function SubmissionsClientPage({ tools }: SubmissionsClientPageProps) {
       <div className="flex w-full max-w-3xl flex-col justify-center p-6">
         <div className="flex w-full flex-col gap-6">
           <div className="mb-6 flex w-full justify-between">
-            <span className="text-2xl">Tools</span>
+            <span className="text-2xl">My Tools</span>
 
             <Button
               className="flex gap-2"
               onClick={() => {
-                router.push("/submit/new");
+                router.push("/submissions/new");
               }}
             >
               <Plus />
@@ -45,7 +46,7 @@ export function SubmissionsClientPage({ tools }: SubmissionsClientPageProps) {
                 <Button
                   className="flex gap-2"
                   onClick={() => {
-                    router.push("/submit/new");
+                    router.push("/submissions/new");
                   }}
                 >
                   <Plus />
@@ -54,23 +55,18 @@ export function SubmissionsClientPage({ tools }: SubmissionsClientPageProps) {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3">
-              {tools.map((tool) => (
-                <ToolsCard tool={tool} />
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              {tools.map((item) => (
+                <ToolCard
+                  href={`/submissions/${item.tool.id}/update`}
+                  tool={item.tool}
+                  tags={item.tags}
+                />
               ))}
             </div>
           )}
         </div>
       </div>
     </div>
-  );
-}
-
-function ToolsCard({ tool }: { tool: Tool }) {
-  return (
-    <a
-      href={`/submissions/${tool.id}/update`}
-      className="flex cursor-pointer flex-col rounded-md border border-border p-4 hover:bg-primary/30"
-    ></a>
   );
 }
