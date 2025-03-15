@@ -35,6 +35,7 @@ export const toolsRouter = createTRPCRouter({
         query: z.string().optional(),
         page: z.number().optional().default(1),
         orderBy: z.enum(["trending", "new"]).optional(),
+        take: z.number().max(50).optional().default(10),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -114,8 +115,8 @@ export const toolsRouter = createTRPCRouter({
               },
             },
           },
-          take: 10,
-          skip: (input.page - 1) * 10,
+          take: input.take,
+          skip: (input.page - 1) * input.take,
           ...(input.orderBy
             ? {
                 orderBy:

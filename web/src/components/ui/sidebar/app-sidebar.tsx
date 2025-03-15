@@ -12,7 +12,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {
-  Home,
   Info,
   PanelLeftClose,
   PanelLeftOpen,
@@ -24,15 +23,15 @@ import { SidebarFootContent } from "../sidebar-footer-content";
 
 const items = [
   {
-    title: "Magic Search",
+    title: "Search",
     url: "/search",
     icon: Search,
   },
-  {
-    title: "Home",
-    url: "/search",
-    icon: Home,
-  },
+  // {
+  //   title: "Home",
+  //   url: "/search",
+  //   icon: Home,
+  // },
   // {
   //   title: "Trending",
   //   url: "/trending",

@@ -50,6 +50,7 @@ export function SearchResultsPage({
   orderBy?: "trending" | "new";
   toolCount: number;
 }) {
+  const PAGE_SIZE = 18;
   // Query states for tags, query string, and page number
   const [tags, setTags] = useQueryState("tags", {
     shallow: false,
@@ -69,10 +70,11 @@ export function SearchResultsPage({
     query: query ?? undefined,
     tags: tags ?? undefined,
     orderBy,
+    take: PAGE_SIZE,
   });
 
   const totalCount = toolsQuery.data?.count ?? 0;
-  const totalPages = Math.ceil(totalCount / 10);
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const { pages, showLeftEllipsis, showRightEllipsis } = usePagination({
     currentPage: page ?? 1,
@@ -81,9 +83,9 @@ export function SearchResultsPage({
   });
 
   return (
-    <div className="flex w-full max-w-3xl flex-col">
+    <div className="flex w-full max-w-5xl flex-col items-center">
       {showSearch && (
-        <div className="mb-6 flex w-full flex-col gap-6 px-4">
+        <div className="mb-6 flex w-full max-w-3xl flex-col gap-6 px-4">
           <SearchBox toolCount={toolCount} />
           <SelectedTags />
         </div>
@@ -92,7 +94,7 @@ export function SearchResultsPage({
       {toolsQuery.data && toolsQuery.data.tools.length > 0 ? (
         <>
           <div className="flex w-full flex-col items-center px-4">
-            <div className="grid w-full grid-cols-1 gap-2 lg:grid-cols-2">
+            <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {toolsQuery.data.tools.map((tool) => (
                 <ToolCard
                   href={`/tools/${tool.id}`}
