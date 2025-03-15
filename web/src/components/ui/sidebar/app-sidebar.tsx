@@ -12,21 +12,21 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { Info, Menu, Search, SquarePlus } from "lucide-react";
+import { Home, Info, Menu, SquarePlus } from "lucide-react";
 import { useSidebar } from "../sidebar";
 import { SidebarFootContent } from "../sidebar-footer-content";
 
 const items = [
-  {
-    title: "Search",
-    url: "/search",
-    icon: Search,
-  },
   // {
-  //   title: "Home",
+  //   title: "Search",
   //   url: "/search",
-  //   icon: Home,
+  //   icon: Search,
   // },
+  {
+    title: "Home",
+    url: "/search",
+    icon: Home,
+  },
   // {
   //   title: "Trending",
   //   url: "/trending",
