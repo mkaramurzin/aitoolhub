@@ -1,10 +1,10 @@
 import "@/styles/globals.css";
 
+import { TRPCReactProvider } from "@/trpc/react";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-
-import { TRPCReactProvider } from "@/trpc/react";
 
 export const metadata: Metadata = {
   title: "AiToolHub.co",
@@ -20,8 +20,9 @@ export default function RootLayout({
       lang="en"
       className={`${GeistSans.variable} scrollbar scrollbar-track-background scrollbar-thumb-background hover:scrollbar-thumb-primary`}
     >
-      <body>
+      <body suppressHydrationWarning>
         <TRPCReactProvider>
+          <GoogleAnalytics gaId="G-8XJGQFYQZG" />
           <NuqsAdapter>{children}</NuqsAdapter>
         </TRPCReactProvider>
       </body>

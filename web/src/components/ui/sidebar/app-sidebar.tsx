@@ -11,13 +11,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import {
-  Info,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Search,
-  SquarePlus,
-} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Info, Menu, Search, SquarePlus } from "lucide-react";
 import { useSidebar } from "../sidebar";
 import { SidebarFootContent } from "../sidebar-footer-content";
 
@@ -68,20 +63,31 @@ export function AppSidebar({
     image?: string;
   };
 }) {
-  const { toggleSidebar, open } = useSidebar();
+  const { toggleSidebar, open, setOpen } = useSidebar();
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar
+      collapsible="icon"
+      variant="floating"
+      onMouseEnter={() => {
+        setOpen(true);
+      }}
+      onMouseLeave={() => {
+        setOpen(false);
+      }}
+    >
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              className="w-fit"
+              className="w-fit [&>svg]:size-5"
               onClick={() => {
                 toggleSidebar();
               }}
             >
-              {open ? <PanelLeftClose /> : <PanelLeftOpen />}
+              <div className={cn(open ? "" : "-ml-1")}>
+                <Menu />
+              </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -92,7 +98,11 @@ export function AppSidebar({
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton
+                    size={"lg"}
+                    asChild
+                    className="[&>svg]:size-5 group-data-[collapsible=icon]:[&>svg]:ml-1.5"
+                  >
                     <a href={item.url}>
                       <item.icon />
                       <span>{item.title}</span>

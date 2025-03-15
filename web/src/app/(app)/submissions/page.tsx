@@ -1,5 +1,6 @@
 import { FullScreenSignIn } from "@/components/sign-in";
 import { api } from "@/trpc/server";
+import { redirect } from "next/navigation";
 import { SubmissionsClientPage } from "./submissions.cleint";
 
 export type SubmissionsPageProps = {};
@@ -11,6 +12,11 @@ export default async function SubmissionsPage(props: SubmissionsPageProps) {
     return <FullScreenSignIn />;
   }
   const { tools } = await api.tools.fetchOwned({});
+
+  if (tools.length < 1) {
+    redirect("/submissions/new");
+  }
+
   return (
     <SubmissionsClientPage
       tools={tools.map((tool) => ({

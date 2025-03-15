@@ -69,7 +69,14 @@ export function SubmissionsUpsertPage({
           pricing: tool.pricing,
           id: tool.id,
         }
-      : { tags: [] },
+      : {
+          name: "",
+          description: "",
+          url: "",
+          tags: [],
+          logoImageUrl: "",
+          screenshotUrl: "",
+        },
   });
 
   const submit = api.tools.upsert.useMutation({
