@@ -1,6 +1,6 @@
 import { FullScreenSignIn } from "@/components/sign-in";
 import { api } from "@/trpc/server";
-import { SubmissionsUpsertPage } from "../../submissions.upsert.cleint";
+import { SubmissionsUpsertPage } from "../../submissions.upsert.client";
 
 type tParams = Promise<{
   id: string;

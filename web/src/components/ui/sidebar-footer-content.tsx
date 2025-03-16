@@ -17,6 +17,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
+import { useSidebarStore } from "@/store/useSideBarStore";
 import { RiGoogleFill } from "@remixicon/react";
 import { ChevronsUpDown, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -30,14 +31,19 @@ export function SidebarFootContent({
     avatar: string;
   };
 }) {
-  const { isMobile, open } = useSidebar();
+  const { isMobile, open, setOpen } = useSidebar();
   const router = useRouter();
+  const { setForceOpen } = useSidebarStore();
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         {user ? (
-          <DropdownMenu>
+          <DropdownMenu
+            onOpenChange={(open) => {
+              setForceOpen(open);
+            }}
+          >
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"

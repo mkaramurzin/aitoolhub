@@ -354,7 +354,7 @@ export function SubmissionsUpsertPage({
                         </FormItem>
                         <FormItem className="flex items-center space-x-3 space-y-0">
                           <FormControl>
-                            <RadioGroupItem value="starting_free" />
+                            <RadioGroupItem value="free-paid" />
                           </FormControl>
                           <FormLabel className="font-normal">
                             Both free and paid plans

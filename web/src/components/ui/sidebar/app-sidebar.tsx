@@ -12,6 +12,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { useSidebarStore } from "@/store/useSideBarStore";
 import { Home, Info, Menu, SquarePlus } from "lucide-react";
 import { useSidebar } from "../sidebar";
 import { SidebarFootContent } from "../sidebar-footer-content";
@@ -64,6 +65,7 @@ export function AppSidebar({
   };
 }) {
   const { toggleSidebar, open, setOpen } = useSidebar();
+  const { forceOpen } = useSidebarStore();
 
   return (
     <Sidebar
@@ -73,6 +75,7 @@ export function AppSidebar({
         setOpen(true);
       }}
       onMouseLeave={() => {
+        if (forceOpen) return;
         setOpen(false);
       }}
     >

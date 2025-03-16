@@ -1,7 +1,7 @@
 import { FullScreenSignIn } from "@/components/sign-in";
 import { api } from "@/trpc/server";
 import { redirect } from "next/navigation";
-import { SubmissionsClientPage } from "./submissions.cleint";
+import { SubmissionsClientPage } from "./submissions.client";
 
 export type SubmissionsPageProps = {};
 

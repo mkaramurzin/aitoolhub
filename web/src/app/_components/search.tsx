@@ -1,12 +1,14 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { usePagination } from "@/hooks/use-pagination";
 import { cn } from "@/lib/utils";
+import { useFilterDrawer } from "@/store/useFilterDrawer";
 import { api } from "@/trpc/react";
 import { Tag } from "@prisma/client";
-import { Loader2, Mail, Search, Star, TrendingUp } from "lucide-react";
+import { Filter, Loader2, Mail, Search, Star, TrendingUp } from "lucide-react";
 import millify from "millify";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
@@ -63,12 +65,18 @@ export function SearchResultsPage({
     history: "push",
     parse: (v) => parseInt(v),
   });
+  const [pricing, setPricing] = useQueryState("pricing", {
+    shallow: false,
+    history: "push",
+    parse: (v) => (["free", "paid", "free-paid"].includes(v) ? v : undefined),
+  });
 
   // Call the API with page number, query and tags
   const toolsQuery = api.tools.fetchAll.useQuery({
     page: page ?? 1,
     query: query ?? undefined,
     tags: tags ?? undefined,
+    pricing: pricing ?? undefined,
     orderBy,
     take: PAGE_SIZE,
   });
@@ -85,10 +93,13 @@ export function SearchResultsPage({
   return (
     <div className="flex w-full max-w-5xl flex-col items-center">
       {showSearch && (
-        <div className="mb-6 flex w-full max-w-3xl flex-col gap-6 px-4">
-          <SearchBox toolCount={toolCount} />
-          <SelectedTags />
-        </div>
+        <>
+          <div className="mb-6 flex w-full max-w-3xl flex-col gap-6 px-4">
+            <SearchBox toolCount={toolCount} />
+          </div>
+          <SearchOptions />
+          <div className="my-4"></div>
+        </>
       )}
 
       {toolsQuery.data && toolsQuery.data.tools.length > 0 ? (
@@ -130,6 +141,7 @@ export function SearchResultsPage({
 
 function SearchBox({ toolCount }: { toolCount: number }) {
   const [search, setSearch] = useState("");
+  const { setOpen: setFilterDrawerOpen } = useFilterDrawer();
   const [tags, setTags] = useQueryState("tags", {
     shallow: false,
     history: "push",
@@ -171,7 +183,7 @@ function SearchBox({ toolCount }: { toolCount: number }) {
     }
   }, [search]);
   return (
-    <div className="relative flex w-full">
+    <div className="relative flex w-full items-center">
       <div className="relative flex w-full flex-col items-center">
         <Input
           className="h-12 w-full rounded-full pl-12 pr-4"
@@ -252,11 +264,23 @@ function SearchBox({ toolCount }: { toolCount: number }) {
           </div>
         )}
       </div>
+
+      {/* Filter */}
+      <Button
+        onClick={() => {
+          setFilterDrawerOpen(true);
+        }}
+        variant={"secondary"}
+        size="lg"
+        className="ml-4 flex h-12 w-12 p-0"
+      >
+        <Filter />
+      </Button>
     </div>
   );
 }
 
-function SearchOptions({ openSubmission }: { openSubmission?: () => void }) {
+function SearchOptions() {
   const [page, setPage] = useQueryState("page", {
     shallow: false,
     history: "push",

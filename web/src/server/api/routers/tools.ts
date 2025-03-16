@@ -35,26 +35,27 @@ export const toolsRouter = createTRPCRouter({
         query: z.string().optional(),
         page: z.number().optional().default(1),
         orderBy: z.enum(["trending", "new"]).optional(),
+        pricing: z.string().optional(),
         take: z.number().max(50).optional().default(10),
       }),
     )
     .query(async ({ input, ctx }) => {
       // Build filters for tags and search query
-      const filters = input.tags
+      const tagFilters = input.tags
         ? input.tags.map((tag) => ({
             ToolTags: { some: { Tag: { name: tag } } },
           }))
         : undefined;
 
       let where;
-      if (filters && input.query) {
+      if (tagFilters && input.query) {
         // When both filters and query exist, require that all filters match AND
         // either the name or description contains the query.
         where = {
           OR: [
             {
               AND: [
-                ...filters,
+                ...tagFilters,
                 {
                   name: {
                     contains: input.query,
@@ -65,7 +66,7 @@ export const toolsRouter = createTRPCRouter({
             },
             {
               AND: [
-                ...filters,
+                ...tagFilters,
                 {
                   description: {
                     contains: input.query,
@@ -76,10 +77,10 @@ export const toolsRouter = createTRPCRouter({
             },
           ],
         };
-      } else if (filters) {
+      } else if (tagFilters) {
         // Only filters provided: all filter conditions must match.
         where = {
-          AND: [...filters],
+          AND: [...tagFilters],
         };
       } else if (input.query) {
         // Only a search query provided: match either name or description.
@@ -103,6 +104,17 @@ export const toolsRouter = createTRPCRouter({
         // No filters or query provided.
         where = {};
       }
+
+      // NEW: Incorporate pricing filter if provided.
+      if (input.pricing) {
+        if (Object.keys(where).length === 0) {
+          where = { pricing: input.pricing };
+        } else {
+          where = { AND: [where, { pricing: input.pricing }] };
+        }
+      }
+
+      console.log(where);
 
       // Run both the paginated query and the count query in parallel
       const [tools, totalCount] = await Promise.all([
