@@ -124,6 +124,9 @@ model Tool {
   Review        Review[]
 
   @@index([name])
+  @@index([pricing])
+  @@index([description])
+  @@index([rating])
 }
 
 model ToolTags {
