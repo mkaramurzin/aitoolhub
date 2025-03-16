@@ -17,7 +17,6 @@ import { SubscribeEmailCapture } from "./subscribe-email-capture";
 import ToolCard from "./tool-card";
 export type SearchPageProps = {
   tags?: Tag[];
-  toolCount: number;
   orderBy?: "trending" | "new";
 };
 
@@ -32,12 +31,9 @@ export function SearchPage(props: SearchPageProps) {
   return (
     <div className="flex w-full flex-col items-center py-10">
       {(!tags || tags.length < 1) && !query && !props.orderBy ? (
-        <EmptySearchPage tags={props.tags} toolCount={props.toolCount} />
+        <EmptySearchPage tags={props.tags} />
       ) : (
-        <SearchResultsPage
-          toolCount={props.toolCount}
-          orderBy={props.orderBy}
-        />
+        <SearchResultsPage orderBy={props.orderBy} />
       )}
     </div>
   );
@@ -45,12 +41,10 @@ export function SearchPage(props: SearchPageProps) {
 
 export function SearchResultsPage({
   showSearch = true,
-  toolCount,
   orderBy,
 }: {
   showSearch?: boolean;
   orderBy?: "trending" | "new";
-  toolCount: number;
 }) {
   const PAGE_SIZE = 18;
   // Query states for tags, query string, and page number
@@ -95,7 +89,7 @@ export function SearchResultsPage({
       {showSearch && (
         <>
           <div className="mb-6 flex w-full max-w-3xl flex-col gap-6 px-4">
-            <SearchBox toolCount={toolCount} />
+            <SearchBox />
           </div>
           <SearchOptions />
           <div className="my-4"></div>
@@ -139,7 +133,7 @@ export function SearchResultsPage({
   );
 }
 
-function SearchBox({ toolCount }: { toolCount: number }) {
+function SearchBox() {
   const [search, setSearch] = useState("");
   const { setOpen: setFilterDrawerOpen } = useFilterDrawer();
   const [tags, setTags] = useQueryState("tags", {
@@ -187,7 +181,7 @@ function SearchBox({ toolCount }: { toolCount: number }) {
       <div className="relative flex w-full flex-col items-center">
         <Input
           className="h-12 w-full rounded-full pl-12 pr-4"
-          placeholder={`Search ${toolCount} AI tools...`}
+          placeholder={`Search AI tools...`}
           value={search}
           //on press enter
           onKeyDown={(e) => {
@@ -403,7 +397,7 @@ export function SelectedTags() {
   );
 }
 
-function EmptySearchPage(props: { tags?: Tag[]; toolCount: number }) {
+function EmptySearchPage(props: { tags?: Tag[] }) {
   const defaultToolsQuery = api.tools.defaultTools.useQuery();
 
   return (
@@ -411,7 +405,7 @@ function EmptySearchPage(props: { tags?: Tag[]; toolCount: number }) {
       <span className="w-full max-w-3xl text-3xl">{`There's an AI for that.`}</span>
 
       <div className="flex w-full max-w-3xl gap-6">
-        <SearchBox toolCount={props.toolCount} />
+        <SearchBox />
       </div>
       <SearchOptions />
 
