@@ -91,9 +91,22 @@ export function ToolsClientPage({
     paginationItemsToDisplay: 5,
   });
 
+  function getPricing(p: string) {
+    switch (p) {
+      case "free":
+        return "Free";
+      case "paid":
+        return "Paid";
+      case "free-paid":
+        return "Freemium";
+      default:
+        return tool.pricing;
+    }
+  }
+
   return (
     <div className="flex h-full w-full justify-center">
-      <div className="flex h-full w-full max-w-3xl flex-col items-center space-y-4 p-4">
+      <div className="flex h-full w-full max-w-3xl flex-col items-center space-y-4 p-4 pt-10">
         {/* tool */}
         <div
           key={tool.id}
@@ -153,7 +166,9 @@ export function ToolsClientPage({
 
           <div className="flex w-full gap-4">
             <span>Model</span>
-            <span className="text-muted-foreground">{tool.pricing}</span>
+            <span className="text-muted-foreground">
+              {getPricing(tool.pricing)}
+            </span>
           </div>
         </div>
 

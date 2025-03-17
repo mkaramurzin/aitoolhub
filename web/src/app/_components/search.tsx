@@ -3,18 +3,25 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { PaginationBar } from "@/components/ui/pagination-bar";
+import FilterDrawer from "@/components/ui/sidebar/filters-side-bar";
 import { usePagination } from "@/hooks/use-pagination";
 import { cn } from "@/lib/utils";
 import { useFilterDrawer } from "@/store/useFilterDrawer";
 import { api } from "@/trpc/react";
 import { Tag } from "@prisma/client";
 import { Filter, Loader2, Mail, Search, Star, TrendingUp } from "lucide-react";
-import millify from "millify";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
 import { SubscribeEmailCapture } from "./subscribe-email-capture";
 import ToolCard from "./tool-card";
+
+const placeholders = [
+  "Build a website",
+  "Automate my accounting",
+  "Create User Generated Content",
+];
+
 export type SearchPageProps = {
   tags?: Tag[];
   orderBy?: "trending" | "new";
@@ -35,6 +42,8 @@ export function SearchPage(props: SearchPageProps) {
       ) : (
         <SearchResultsPage orderBy={props.orderBy} />
       )}
+
+      <FilterDrawer />
     </div>
   );
 }
@@ -88,7 +97,9 @@ export function SearchResultsPage({
     <div className="flex w-full max-w-5xl flex-col items-center">
       {showSearch && (
         <>
-          <div className="mb-6 flex w-full max-w-3xl flex-col gap-6 px-4">
+          <SearchTitle />
+          <div className="my-3"></div>
+          <div className="mb-6 flex w-full max-w-xl flex-col gap-6 px-4">
             <SearchBox />
           </div>
           <SearchOptions />
@@ -125,7 +136,7 @@ export function SearchResultsPage({
           {toolsQuery.isPending ? (
             <Loader2 className="size-4 animate-spin" />
           ) : (
-            <span className="text-3xl">No tools found.</span>
+            <span className="text-3xl text-muted">No tools found.</span>
           )}
         </div>
       )}
@@ -135,7 +146,11 @@ export function SearchResultsPage({
 
 function SearchBox() {
   const [search, setSearch] = useState("");
-  const { setOpen: setFilterDrawerOpen } = useFilterDrawer();
+  const { setOpen: setFilterDrawerOpen, open: filterDrawerOpen } =
+    useFilterDrawer();
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+
   const [tags, setTags] = useQueryState("tags", {
     shallow: false,
     history: "push",
@@ -147,27 +162,41 @@ function SearchBox() {
     parse: (v) => parseInt(v),
   });
   const router = useRouter();
-  const [query, setQuery] = useQueryState("query", { shallow: false });
+  const [query, setQuery] = useQueryState("query", {
+    shallow: true,
+    defaultValue: "",
+  });
   const [showResults, setShowResults] = useState(false);
-  const tagSearch = api.tags.search.useQuery(
-    {
-      query: search,
-    },
-    {
-      enabled: search.length > 0,
-      refetchOnWindowFocus: false,
-    },
-  );
+  // const tagSearch = api.tags.search.useQuery(
+  //   {
+  //     query: search,
+  //   },
+  //   {
+  //     enabled: search.length > 0,
+  //     refetchOnWindowFocus: false,
+  //   },
+  // );
 
-  const toolSearch = api.tools.search.useQuery(
-    {
-      query: search,
-    },
-    {
-      enabled: search.length > 2,
-      refetchOnWindowFocus: false,
-    },
-  );
+  // const toolSearch = api.tools.search.useQuery(
+  //   {
+  //     query: search,
+  //   },
+  //   {
+  //     enabled: search.length > 2,
+  //     refetchOnWindowFocus: false,
+  //   },
+  // );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setPlaceholderIndex((current) => (current + 1) % placeholders.length);
+        setIsTransitioning(false);
+      }, 150);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (search.length > 0) {
@@ -176,32 +205,47 @@ function SearchBox() {
       setShowResults(false);
     }
   }, [search]);
+
+  useEffect(() => {
+    if (query) {
+      setSearch(query);
+    }
+  }, [query]);
+
   return (
     <div className="relative flex w-full items-center">
       <div className="relative flex w-full flex-col items-center">
-        <Input
-          className="h-12 w-full rounded-full pl-12 pr-4"
-          placeholder={`Search AI tools...`}
-          value={search}
-          //on press enter
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              setShowResults(false);
-              setQuery(search);
-              setPage(1);
-            }
-          }}
-          onChange={(e) => {
-            setSearch(e.target.value);
-          }}
-        />
-
-        <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center">
-          <Search className="h-5 w-5" />
+        <div className="group relative w-full">
+          <div className="absolute -inset-px hidden rounded-md bg-primary opacity-20 blur-md transition-all duration-1000 group-hover:-inset-1 group-hover:opacity-40 group-hover:duration-200"></div>
+          <Input
+            className="relative h-12 w-full border-none bg-secondary pl-4 pr-4 outline-none focus-visible:ring-0"
+            value={search}
+            placeholder="Image generation"
+            //on press enter
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setShowResults(false);
+                setQuery(search);
+                setPage(1);
+              }
+            }}
+            onChange={(e) => {
+              setSearch(e.target.value);
+            }}
+          />
+          <div
+            className={`pointer-events-none absolute left-0 top-0 flex hidden h-full w-full items-center px-5 text-gray-500 ${search.length > 0 ? "hidden" : "block"}`}
+          >
+            <span
+              className={`transition-all duration-150 ${isTransitioning ? "translate-y-[-40%] opacity-0" : "translate-y-0 opacity-100"}`}
+            >
+              {placeholders[placeholderIndex]}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div
+      {/* <div
         className={cn(
           "absolute left-0 top-14 z-10 max-h-[300px] min-h-10 w-full overflow-y-scroll rounded-md border border-border bg-background shadow-md transition-all duration-300 scrollbar scrollbar-track-background scrollbar-thumb-background hover:scrollbar-thumb-primary",
           showResults
@@ -257,16 +301,32 @@ function SearchBox() {
             <Loader2 className="size-4 animate-spin" />
           </div>
         )}
-      </div>
+      </div> */}
+
+      {/* Search */}
+      <Button
+        onClick={() => {
+          setQuery(search);
+          setPage(1);
+        }}
+        variant={"secondary"}
+        size="lg"
+        className="ml-4 flex h-12 w-14 p-0"
+      >
+        <Search />
+      </Button>
 
       {/* Filter */}
       <Button
-        onClick={() => {
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (filterDrawerOpen) return;
           setFilterDrawerOpen(true);
         }}
         variant={"secondary"}
         size="lg"
-        className="ml-4 flex h-12 w-12 p-0"
+        className="ml-4 flex h-12 w-14 p-0"
       >
         <Filter />
       </Button>
@@ -342,7 +402,7 @@ function SearchOptions() {
             />
             <span
               className={cn(
-                "text-lg font-normal",
+                "text-base font-normal",
                 item.id === orderBy && "text-white",
               )}
             >
@@ -397,14 +457,22 @@ export function SelectedTags() {
   );
 }
 
+function SearchTitle() {
+  return (
+    <span className="flex w-full max-w-3xl justify-center gap-1 text-center text-3xl">
+      <span className=" ">{`With AI I want to`}</span>
+      <span className="text-primary">...</span>
+    </span>
+  );
+}
+
 function EmptySearchPage(props: { tags?: Tag[] }) {
   const defaultToolsQuery = api.tools.defaultTools.useQuery();
 
   return (
-    <div className="flex h-full w-full flex-1 flex-grow flex-col items-center justify-center gap-6 px-6">
-      <span className="w-full max-w-3xl text-3xl">{`There's an AI for that.`}</span>
-
-      <div className="flex w-full max-w-3xl gap-6">
+    <div className="flex h-full w-full flex-1 flex-grow flex-col items-center justify-center gap-8 px-6">
+      <SearchTitle />
+      <div className="flex w-full max-w-xl gap-6">
         <SearchBox />
       </div>
       <SearchOptions />

@@ -16,6 +16,7 @@ export const env = createEnv({
     BETTER_AUTH_URL: z.string().url(),
     AWS_ACCESS_KEY_ID: z.string(),
     AWS_SECRET_ACCESS_KEY: z.string(),
+    OPENAI_API_KEY: z.string(),
   },
 
   /**
@@ -37,6 +38,7 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
     DATABASE_URL: process.env.DATABASE_URL,

@@ -65,7 +65,7 @@ function FilterDrawer({}: React.PropsWithChildren<FilterDrawerProps>) {
     <div
       ref={drawerRef}
       className={cn(
-        "fixed top-0 z-20 h-full w-[300px] border border-l border-border bg-background duration-300 ease-in-out",
+        "fixed top-0 z-20 h-full w-[300px] border border-b-0 border-l border-t-0 border-border bg-background duration-300 ease-in-out",
         open ? "right-0" : "right-[-300px]",
       )}
     >

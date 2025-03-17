@@ -135,7 +135,11 @@ export function SidebarFootContent({
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <DropdownMenu>
+          <DropdownMenu
+            onOpenChange={(open) => {
+              setForceOpen(open);
+            }}
+          >
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size="lg"
