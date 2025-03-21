@@ -11,15 +11,30 @@ import { z } from "zod";
 import { adminProcedure, createTRPCRouter } from "../trpc";
 
 // Maximum number of concurrent requests to process at once
-const MAX_CONCURRENT_REQUESTS = 5;
+const MAX_CONCURRENT_REQUESTS = 100;
 
 export const parserRouter = createTRPCRouter({
+  deleteStuff: adminProcedure.mutation(async ({ ctx }) => {
+    await ctx.db.tool.updateMany({
+      where: {},
+      data: {
+        logoImageUrl: null,
+      },
+    });
+  }),
   syncImages: adminProcedure.mutation(async ({ ctx }) => {
-    const tools = await ctx.db.tool.findMany({ take: 10 });
+    const tools = await ctx.db.tool.findMany({
+      where: {
+        image: {
+          contains: "theresanaiforthat",
+          mode: "insensitive",
+        },
+      },
+    });
 
     for (let i = 0; i < tools.length; i += MAX_CONCURRENT_REQUESTS) {
       const batch = tools.slice(i, i + MAX_CONCURRENT_REQUESTS);
-
+      console.log(`Processing batch ${i / MAX_CONCURRENT_REQUESTS + 1}`);
       await Promise.all(
         batch.map(async (tool) => {
           if (!tool.image) return;

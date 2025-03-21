@@ -8,7 +8,7 @@ export type AdminClientPageProps = {};
 function AdminClientPage({}: AdminClientPageProps) {
   const parseMutation = api.groomer.parse.useMutation({});
   const syncImagesMutation = api.groomer.syncImages.useMutation({});
-
+  const deleteStuffMutation = api.groomer.deleteStuff.useMutation({});
   const createEmbeddingMutation = api.tools.createEmbeddings.useMutation({});
   return (
     <div className="flex h-full w-full items-center justify-center">
@@ -19,6 +19,15 @@ function AdminClientPage({}: AdminClientPageProps) {
         }}
       >
         {syncImagesMutation.isPending ? "Syncing..." : "Sync Images"}
+      </Button>
+
+      <Button
+        disabled={deleteStuffMutation.isPending}
+        onClick={() => {
+          deleteStuffMutation.mutate();
+        }}
+      >
+        {deleteStuffMutation.isPending ? "Deleting..." : "Delete Stuff"}
       </Button>
 
       <Button
