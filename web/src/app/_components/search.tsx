@@ -202,8 +202,13 @@ function SearchBox() {
   return (
     <div className="relative flex w-full items-center">
       <div className="relative flex w-full flex-col items-center">
-        <div className="group relative w-full">
-          <div className="absolute -inset-px hidden rounded-md bg-primary opacity-20 blur-md transition-all duration-1000 group-hover:-inset-1 group-hover:opacity-40 group-hover:duration-200"></div>
+        <div
+          className={cn(
+            "group relative w-full transition-all duration-300",
+            search.includes(" ") && "glow-box",
+          )}
+        >
+          {/* <div className="absolute -inset-px hidden rounded-md bg-primary opacity-20 blur-md transition-all duration-1000 group-hover:-inset-1 group-hover:opacity-40 group-hover:duration-200"></div> */}
           <Input
             className="relative h-12 w-full border-none bg-secondary pl-4 pr-4 outline-none focus-visible:ring-0"
             value={search}

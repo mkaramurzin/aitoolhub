@@ -108,3 +108,49 @@
   field-sizing: content;
 }
 
+
+@keyframes fadeInGlow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes animateGlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.glow-box::after {
+  position: absolute;
+  content: "";
+  top: 1px;
+  left: 0;
+  right: 0;
+  z-index: -1;
+  height: 100%;
+  width: 100%;
+  transform: scale(1.01) translateZ(0);
+  filter: blur(10px);
+  background: linear-gradient(
+    to left,
+    #ff5770,
+    #e4428d,
+    #c42da8,
+    #9e16c3,
+    #6501de,
+    #9e16c3,
+    #c42da8,
+    #e4428d,
+    #ff5770
+  );
+  background-size: 200% 200%;
+  /* Combine the fade in and continuous glow animations */
+  animation: fadeInGlow .5s forwards, animateGlow 3s linear infinite;
+}
