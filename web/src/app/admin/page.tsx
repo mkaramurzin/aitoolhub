@@ -5,7 +5,7 @@ export type AdminPageProps = {};
 
 async function AdminPage({}: AdminPageProps) {
   const { user } = await api.users.self();
-  if (!user || user.email !== "dylancronkhite1@gmail.com") {
+  if (!user || user.role !== "admin") {
     return <>No Access</>;
   }
 

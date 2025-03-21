@@ -12,7 +12,6 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { db } from "@/server/db";
-import { User } from "@prisma/client";
 
 /**
  * 1. CONTEXT
@@ -105,7 +104,6 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 });
 
 const enforceUserIsAuthed = t.middleware(async ({ ctx, next, path }) => {
-  let returnUser: User;
   if (!ctx.user) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -120,24 +118,41 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next, path }) => {
     });
   }
 
-  let user = await db.user.findUnique({
-    where: {
-      id: ctx.user.id,
+  return next({
+    ctx: {
+      ...ctx,
+      user: ctx.user,
+      session: ctx.session,
     },
   });
+});
 
-  if (!user) {
+const enforceAdmin = t.middleware(async ({ ctx, next, path }) => {
+  if (!ctx.user) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "Your account does not exist. Please sign up again.",
+      message: "You must be logged in to access this resource.",
     });
   }
-  returnUser = user;
+
+  if (!ctx.session) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Your session is invalid. Please log in again.",
+    });
+  }
+
+  if (ctx.user.role !== "admin") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "You do not have permission to access this resource.",
+    });
+  }
 
   return next({
     ctx: {
       ...ctx,
-      user: returnUser,
+      user: ctx.user,
       session: ctx.session,
     },
   });
@@ -152,3 +167,6 @@ const enforceUserIsAuthed = t.middleware(async ({ ctx, next, path }) => {
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
 export const authenticatedProcedure = t.procedure.use(enforceUserIsAuthed);
+export const adminProcedure = t.procedure
+  .use(enforceUserIsAuthed)
+  .use(enforceAdmin);

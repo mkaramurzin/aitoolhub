@@ -1,6 +1,6 @@
 services:
   aitoolhub-db:
-    image: postgres
+    image: pgvector/pgvector:pg16
     restart: on-failure
     container_name: aitoolhub-db
     ports:

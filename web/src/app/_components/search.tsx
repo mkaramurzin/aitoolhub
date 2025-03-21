@@ -75,14 +75,20 @@ export function SearchResultsPage({
   });
 
   // Call the API with page number, query and tags
-  const toolsQuery = api.tools.fetchAll.useQuery({
-    page: page ?? 1,
-    query: query ?? undefined,
-    tags: tags ?? undefined,
-    pricing: pricing ?? undefined,
-    orderBy,
-    take: PAGE_SIZE,
-  });
+  const toolsQuery = api.tools.fetchAll.useQuery(
+    {
+      page: page ?? 1,
+      query: query ?? undefined,
+      tags: tags ?? undefined,
+      pricing: pricing ?? undefined,
+      orderBy,
+      take: PAGE_SIZE,
+      magicSearch: query?.includes(" "),
+    },
+    {
+      refetchOnWindowFocus: false,
+    },
+  );
 
   const totalCount = toolsQuery.data?.count ?? 0;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
@@ -167,25 +173,6 @@ function SearchBox() {
     defaultValue: "",
   });
   const [showResults, setShowResults] = useState(false);
-  // const tagSearch = api.tags.search.useQuery(
-  //   {
-  //     query: search,
-  //   },
-  //   {
-  //     enabled: search.length > 0,
-  //     refetchOnWindowFocus: false,
-  //   },
-  // );
-
-  // const toolSearch = api.tools.search.useQuery(
-  //   {
-  //     query: search,
-  //   },
-  //   {
-  //     enabled: search.length > 2,
-  //     refetchOnWindowFocus: false,
-  //   },
-  // );
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -220,7 +207,6 @@ function SearchBox() {
           <Input
             className="relative h-12 w-full border-none bg-secondary pl-4 pr-4 outline-none focus-visible:ring-0"
             value={search}
-            placeholder="Image generation"
             //on press enter
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -234,7 +220,7 @@ function SearchBox() {
             }}
           />
           <div
-            className={`pointer-events-none absolute left-0 top-0 flex hidden h-full w-full items-center px-5 text-gray-500 ${search.length > 0 ? "hidden" : "block"}`}
+            className={`pointer-events-none absolute left-0 top-0 flex h-full w-full items-center px-5 text-gray-500 ${search.length > 0 ? "hidden" : "block"}`}
           >
             <span
               className={`transition-all duration-150 ${isTransitioning ? "translate-y-[-40%] opacity-0" : "translate-y-0 opacity-100"}`}
@@ -244,64 +230,6 @@ function SearchBox() {
           </div>
         </div>
       </div>
-
-      {/* <div
-        className={cn(
-          "absolute left-0 top-14 z-10 max-h-[300px] min-h-10 w-full overflow-y-scroll rounded-md border border-border bg-background shadow-md transition-all duration-300 scrollbar scrollbar-track-background scrollbar-thumb-background hover:scrollbar-thumb-primary",
-          showResults
-            ? "translate-y-0 opacity-100"
-            : "pointer-events-none -translate-y-2 opacity-0",
-        )}
-      >
-        {toolSearch.data && toolSearch.data?.tools.length > 0 && (
-          <>
-            <div className="sticky left-0 top-0 border-b border-border bg-accent p-2 text-sm">
-              Tools
-            </div>
-            {toolSearch.data?.tools.map((tool) => (
-              <div
-                onClick={() => {
-                  setSearch("");
-                  setQuery(tool.name);
-                }}
-                key={tool.name}
-                className="m-1 flex cursor-pointer items-center justify-between rounded-sm p-2 hover:bg-primary/10"
-              >
-                <span className="capitalize">{tool.name}</span>
-              </div>
-            ))}
-          </>
-        )}
-
-        {tagSearch.data && tagSearch.data?.tags.length > 0 && (
-          <>
-            <div className="sticky left-0 top-0 border-b border-border bg-accent p-2 text-sm">
-              Categories
-            </div>
-            {tagSearch.data?.tags.map((tag) => (
-              <div
-                onClick={() => {
-                  setSearch("");
-                  setTags([tag.name]);
-                }}
-                key={tag.name}
-                className="m-1 flex cursor-pointer items-center justify-between rounded-sm p-2 hover:bg-primary/10"
-              >
-                <span className="capitalize">{tag.name}</span>
-                <span className="text-sm text-muted-foreground">
-                  {millify(tag.uses)}
-                </span>
-              </div>
-            ))}
-          </>
-        )}
-
-        {tagSearch.isPending && (
-          <div className="flex h-full w-full items-center justify-center p-6">
-            <Loader2 className="size-4 animate-spin" />
-          </div>
-        )}
-      </div> */}
 
       {/* Search */}
       <Button

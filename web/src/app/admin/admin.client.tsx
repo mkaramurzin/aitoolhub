@@ -6,26 +6,39 @@ import { api } from "@/trpc/react";
 export type AdminClientPageProps = {};
 
 function AdminClientPage({}: AdminClientPageProps) {
-  const createTagsMutation = api.tools.gentoolsandtags.useMutation({});
+  const parseMutation = api.groomer.parse.useMutation({});
+  const syncImagesMutation = api.groomer.syncImages.useMutation({});
 
-  const groomerMutation = api.groomer.parse.useMutation({});
+  const createEmbeddingMutation = api.tools.createEmbeddings.useMutation({});
   return (
     <div className="flex h-full w-full items-center justify-center">
       <Button
+        disabled={syncImagesMutation.isPending}
         onClick={() => {
-          createTagsMutation.mutate({});
+          syncImagesMutation.mutate();
         }}
       >
-        Create Tools
+        {syncImagesMutation.isPending ? "Syncing..." : "Sync Images"}
       </Button>
 
       <Button
-        disabled={groomerMutation.isPending}
+        disabled={parseMutation.isPending}
         onClick={() => {
-          groomerMutation.mutate({});
+          parseMutation.mutate({});
         }}
       >
-        {groomerMutation.isPending ? "Grooming..." : "Groom"}
+        {parseMutation.isPending ? "Grooming..." : "Groom"}
+      </Button>
+
+      <Button
+        disabled={createEmbeddingMutation.isPending}
+        onClick={() => {
+          createEmbeddingMutation.mutate({
+            text: "Hello world",
+          });
+        }}
+      >
+        {createEmbeddingMutation.isPending ? "Creating..." : "Create Embedding"}
       </Button>
     </div>
   );

@@ -18,6 +18,11 @@ function ToolCard({
     history: "push",
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
+  const [page, setPage] = useQueryState("page", {
+    shallow: false,
+    history: "push",
+    parse: (v) => parseInt(v),
+  });
   return (
     <a
       href={href}
@@ -26,7 +31,15 @@ function ToolCard({
     >
       {/* Image and name */}
       <div className="mb-4 flex gap-4">
-        <img src={tool.image} alt={tool.name} className="size-12 rounded-md" />
+        {tool.image && tool.image.length > 0 ? (
+          <img
+            src={tool.image}
+            alt={tool.name}
+            className="size-12 rounded-md"
+          />
+        ) : (
+          <div className="h-12 min-h-12 w-12 min-w-12 rounded-md bg-secondary"></div>
+        )}
         <div className="flex w-full flex-col">
           <div className="mb-2 flex w-full items-center justify-between">
             <span className="w-fit cursor-pointer underline-offset-1 hover:underline">
@@ -57,6 +70,7 @@ function ToolCard({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              setPage(1);
               if (!filterTags?.includes(tag.name)) {
                 setFilterTags([...(filterTags ?? []), tag.name]);
               }

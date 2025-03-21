@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { env } from "@/env";
+import { useAreYouSure } from "@/hooks/use-are-you-sure";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,6 +27,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+
 const FormSchema = z.object({
   name: z.string(),
   description: z.string(),
@@ -56,6 +58,14 @@ export function SubmissionsUpsertPage({
       refetchOnWindowFocus: false,
     },
   );
+  const { AreYouSure, setShowAreYouSure } = useAreYouSure({});
+
+  const deleteToolMutation = api.tools.delete.useMutation({
+    onSuccess: () => {
+      router.push("/submissions");
+    },
+  });
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: tool
@@ -100,6 +110,17 @@ export function SubmissionsUpsertPage({
   }
   return (
     <div className="flex flex-col items-center">
+      <AreYouSure
+        title="Are you sure?"
+        description="This action cannot be undone."
+        onConfirm={async () => {
+          if (!tool) return;
+          deleteToolMutation.mutate({ id: tool.id });
+        }}
+        onCancel={async () => {
+          setShowAreYouSure(false);
+        }}
+      />
       <div className="flex w-full max-w-3xl flex-col justify-center space-y-6 p-4">
         <div className="flex w-full flex-col gap-6">
           {/* Back Button */}
@@ -375,6 +396,33 @@ export function SubmissionsUpsertPage({
             </div>
 
             <div className="flex w-full justify-end">
+              {tool && (
+                <Button
+                  variant="destructive"
+                  className="mr-4"
+                  type="button"
+                  disabled={deleteToolMutation.isPending}
+                  size={"lg"}
+                  onClick={() => {
+                    setShowAreYouSure(true);
+                  }}
+                >
+                  <span
+                    className={cn(
+                      deleteToolMutation.isPending
+                        ? "opacity-0"
+                        : "opacity-100",
+                    )}
+                  >
+                    Delete
+                  </span>
+
+                  {deleteToolMutation.isPending && (
+                    <Loader2 className="absolute size-4 animate-spin" />
+                  )}
+                </Button>
+              )}
+
               <Button
                 disabled={submit.isPending}
                 type="submit"

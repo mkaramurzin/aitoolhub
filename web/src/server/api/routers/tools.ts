@@ -1,9 +1,12 @@
 import { tools } from "@/lib/ai_tools";
+import { openai } from "@ai-sdk/openai";
 import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { embed } from "ai";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import {
+  adminProcedure,
   authenticatedProcedure,
   createTRPCRouter,
   publicProcedure,
@@ -37,9 +40,56 @@ export const toolsRouter = createTRPCRouter({
         orderBy: z.enum(["trending", "new"]).optional(),
         pricing: z.string().optional(),
         take: z.number().max(50).optional().default(10),
+        magicSearch: z.boolean().optional().default(false),
       }),
     )
     .query(async ({ input, ctx }) => {
+      // if magic search
+      if (input.magicSearch) {
+        const { embedding } = await embed({
+          model: openai.embedding("text-embedding-3-small"),
+          value: `With AI I want to ${input.query}`,
+        });
+
+        const [results, countResult] = await Promise.all([
+          ctx.db.$queryRaw`
+          SELECT id, vector::text
+          FROM "Tool"
+          WHERE vector IS NOT NULL
+            AND vector <=> ${embedding}::vector < 0.5
+            AND "deletedAt" IS NULL
+          ORDER BY vector <=> ${embedding}::vector
+          LIMIT ${input.take}
+          OFFSET ${(input.page - 1) * input.take}
+            ` as Promise<{ id: string; vector: string }[]>,
+          ctx.db.$queryRaw`
+          SELECT COUNT(*)::int as count
+          FROM "Tool"
+          WHERE vector IS NOT NULL
+            AND vector <=> ${embedding}::vector < 0.5
+            AND "deletedAt" IS NULL
+            ` as Promise<{ count: number }[]>,
+        ]);
+        const totalCount = countResult[0]?.count ?? 0;
+
+        const tools = await ctx.db.tool.findMany({
+          where: {
+            id: {
+              in: results.map((result) => result.id),
+            },
+          },
+          include: {
+            ToolTags: {
+              include: {
+                Tag: true,
+              },
+            },
+          },
+        });
+
+        return { tools, count: totalCount };
+      }
+
       // Build filters for tags and search query
       const tagFilters = input.tags
         ? input.tags.map((tag) => ({
@@ -113,13 +163,13 @@ export const toolsRouter = createTRPCRouter({
           where = { AND: [where, { pricing: input.pricing }] };
         }
       }
-
-      console.log(where);
-
       // Run both the paginated query and the count query in parallel
       const [tools, totalCount] = await Promise.all([
         ctx.db.tool.findMany({
-          where,
+          where: {
+            ...where,
+            deletedAt: null,
+          },
           include: {
             ToolTags: {
               include: {
@@ -162,156 +212,55 @@ export const toolsRouter = createTRPCRouter({
       });
       return { tools };
     }),
-  seed: publicProcedure.mutation(async ({ ctx }) => {
-    const tags = [
-      "productivity",
-      "design",
-      "development",
-      "web",
-      "mobile",
-      "api",
-      "database",
-      "security",
-      "testing",
-      "deployment",
-      "accessibility",
-      "agile",
-      "analytics",
-      "angular",
-      "architecture",
-      "artificial intelligence",
-      "automation",
-      "aws",
-      "azure",
-      "backend",
-      "big data",
-      "blockchain",
-      "caching",
-      "cd",
-      "ci",
-      "cloud",
-      "cms",
-      "containers",
-      "continuous integration",
-      "continuous delivery",
-      "cross platform",
-      "css",
-      "data science",
-      "debugging",
-      "devops",
-      "docker",
-      "encryption",
-      "express",
-      "firewall",
-      "firebase",
-      "frontend",
-      "fullstack",
-      "git",
-      "github actions",
-      "google cloud",
-      "graphql",
-      "helm",
-      "html",
-      "iot",
-      "java",
-      "javascript",
-      "jest",
-      "jwt",
-      "kotlin",
-      "kubernetes",
-      "lambda",
-      "linux",
-      "linting",
-      "logging",
-      "machine learning",
-      "microfrontends",
-      "microservices",
-      "monitoring",
-      "node",
-      "npm",
-      "oauth",
-      "openapi",
-      "performance",
-      "pipeline",
-      "pnpm",
-      "postgres",
-      "python",
-      "react",
-      "react native",
-      "redis",
-      "refactoring",
-      "rest",
-      "ruby",
-      "rust",
-      "sass",
-      "scalability",
-      "serverless",
-      "selenium",
-      "seo",
-      "svelte",
-      "swagger",
-      "swift",
-      "typescript",
-      "ui",
-      "ux",
-      "version control",
-      "virtualization",
-      "vue",
-      "webassembly",
-      "webdriver",
-      "webpack",
-      "wordpress",
-      "xcode",
-      "yaml",
-      "zuul",
-    ];
+  magicSearch: publicProcedure
+    .input(
+      z.object({
+        query: z.string(),
+        page: z.number().optional().default(1),
+        take: z.number().max(50).optional().default(10),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      const { embedding } = await embed({
+        model: openai.embedding("text-embedding-3-small"),
+        value: `With AI I want to ${input.query}`,
+      });
 
-    // Seed the Tag table
-    await ctx.db.tag.createMany({
-      data: tags.map((name) => ({
-        name,
-        uses: 0,
-      })),
-      skipDuplicates: true,
-    });
+      const results = (await ctx.db.$queryRaw`
+              SELECT id, vector::text
+              FROM "Tool"
+              WHERE vector IS NOT NULL
+                AND vector <=> ${embedding}::vector < 0.5
+                AND deletedAt IS NULL
+              ORDER BY vector <=> ${embedding}::vector
+              LIMIT ${input.take}
+              OFFSET ${(input.page - 1) * input.take}
+          `) as { id: string; vector: string }[];
 
-    // Create 100 tools with random associated tags (1-3 per tool)
-    for (let i = 0; i < 100; i++) {
-      const numTags = Math.floor(Math.random() * 3) + 1;
-      const toolTags: string[] = [];
-      const usedIndices = new Set<number>();
-
-      while (toolTags.length < numTags) {
-        const idx = Math.floor(Math.random() * tags.length);
-        if (!usedIndices.has(idx)) {
-          usedIndices.add(idx);
-          toolTags.push(tags[idx]!);
-        }
-      }
-
-      await ctx.db.tool.create({
-        data: {
-          id: crypto.randomUUID(),
-          name: `Tool ${i + 1}`,
-          description: `This is a description for Tool ${i + 1}.`,
-          url: `https://example.com/tool${i + 1}`,
-          image: `https://picsum.photos/seed/tool${i + 1}/200/200`,
+      const tools = await ctx.db.tool.findMany({
+        where: {
+          id: {
+            in: results.map((result) => result.id),
+          },
+        },
+        include: {
           ToolTags: {
-            create: toolTags.map((tagName) => ({
-              Tag: { connect: { name: tagName } },
-            })),
+            include: {
+              Tag: true,
+            },
           },
         },
       });
-    }
-    return { success: true };
-  }),
+
+      return { tools };
+    }),
   fetchOwned: authenticatedProcedure
     .input(z.object({}))
     .query(async ({ ctx }) => {
       const tools = await ctx.db.tool.findMany({
         where: {
           ownerId: ctx.user.id,
+          deletedAt: null,
         },
         include: {
           ToolTags: {
@@ -412,6 +361,24 @@ export const toolsRouter = createTRPCRouter({
         });
       }
 
+      const prompt = `
+        Name: ${tool.name};
+        Description: ${tool.description};
+        Tags: ${tagsToAdd.join(", ")};
+        Pricing: ${tool.pricing};
+      `;
+
+      const { embedding } = await embed({
+        model: openai.embedding("text-embedding-3-small"),
+        value: prompt.trim(),
+      });
+
+      await ctx.db.$executeRaw`
+        UPDATE "Tool"
+        SET vector = ${embedding}::vector
+        WHERE id = ${tool.id}
+      `;
+
       return {};
     }),
   gentoolsandtags: publicProcedure
@@ -476,6 +443,9 @@ export const toolsRouter = createTRPCRouter({
   }),
   defaultTools: publicProcedure.query(async ({ ctx }) => {
     const newTools = await ctx.db.tool.findMany({
+      where: {
+        deletedAt: null,
+      },
       include: {
         ToolTags: {
           include: {
@@ -488,6 +458,9 @@ export const toolsRouter = createTRPCRouter({
     });
 
     const trendingTools = await ctx.db.tool.findMany({
+      where: {
+        deletedAt: null,
+      },
       include: {
         ToolTags: {
           include: {
@@ -504,4 +477,56 @@ export const toolsRouter = createTRPCRouter({
       trendingTools,
     };
   }),
+  createEmbeddings: adminProcedure
+    .input(z.object({}))
+    .mutation(async ({ ctx }) => {
+      const tools = await ctx.db.tool.findMany({
+        include: { ToolTags: true },
+        skip: 1000,
+      });
+
+      const batchSize = 15; // define desired batch size
+      for (let i = 0; i < tools.length; i += batchSize) {
+        const batch = tools.slice(i, i + batchSize);
+        await Promise.all(
+          batch.map(async (tool) => {
+            const prompt = `
+              Name: ${tool.name};
+              Description: ${tool.description};
+              Tags: ${tool.ToolTags.map((tt) => tt.tag).join(", ")};
+              Pricing: ${tool.pricing};
+            `;
+
+            const { embedding } = await embed({
+              model: openai.embedding("text-embedding-3-small"),
+              value: prompt.trim(),
+            });
+
+            await ctx.db.$executeRaw`
+              UPDATE "Tool"
+              SET vector = ${embedding}::vector
+              WHERE id = ${tool.id}
+            `;
+          }),
+        );
+        console.log(`Batch ${i / batchSize + 1} processed.`);
+      }
+    }),
+  delete: authenticatedProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const tool = await ctx.db.tool.findUnique({
+        where: { id: input.id, ownerId: ctx.user.id },
+      });
+      if (!tool) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Tool not found" });
+      }
+      await ctx.db.tool.update({
+        where: { id: input.id },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+      return {};
+    }),
 });
