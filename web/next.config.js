@@ -33,6 +33,14 @@ const config = {
             },
         ];
     },
+    async rewrites() {
+        return [
+            {
+            source: '/',
+            destination: '/search', // Internally maps / to /search
+            },
+        ];
+    },
 };
 
 export default config;
