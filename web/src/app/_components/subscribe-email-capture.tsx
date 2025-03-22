@@ -50,7 +50,7 @@ export function SubscribeEmailCapture(props: EmailCaptureProps) {
 
         <span className="text-muted-foreground">
           Stay tuned for the latest AI tool, trends, and innovations. Get
-          curated updates straught to your inbox.
+          curated updates straight to your inbox.
         </span>
         <div className="flex flex-col items-center gap-2">
           {!success ? (
