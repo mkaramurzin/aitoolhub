@@ -27,10 +27,11 @@ model User {
   UserVote         UserVote[]
   Tool             Tool[]
 
-  role       String?
-  banned     Boolean?
-  banReason  String?
-  banExpires DateTime?
+  role          String?
+  banned        Boolean?
+  banReason     String?
+  banExpires    DateTime?
+  SearchHistory SearchHistory[]
 
   @@unique([email])
   @@map("user")
@@ -183,4 +184,16 @@ model ContactUs {
   message          String
   createdAt        DateTime @default(now()) @db.Timestamptz
   updatedAt        DateTime @default(now()) @updatedAt @db.Timestamptz
+}
+
+model SearchHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  query     String
+  tags      String[]
+  pricing   String
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  User User? @relation(fields: [userId], references: [id])
 }

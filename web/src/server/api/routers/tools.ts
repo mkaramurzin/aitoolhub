@@ -44,6 +44,15 @@ export const toolsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input, ctx }) => {
+      await ctx.db.searchHistory.create({
+        data: {
+          query: input.query ?? "",
+          userId: ctx.user?.id,
+          tags: input.tags ?? [],
+          pricing: input.pricing ?? "",
+        },
+      });
+
       // if magic search
       if (input.magicSearch) {
         const { embedding } = await embed({
