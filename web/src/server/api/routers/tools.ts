@@ -70,7 +70,14 @@ export const toolsRouter = createTRPCRouter({
             : Prisma.empty;
         const tagsCondition =
           input.tags && input.tags.length > 0
-            ? Prisma.sql`AND tg.name IN (${Prisma.join(input.tags)})`
+            ? Prisma.sql`AND t.id IN (
+                  SELECT tt."toolId"
+                  FROM "ToolTags" tt
+                  JOIN "Tag" tg ON tt."tag" = tg.name
+                  WHERE tg.name IN (${Prisma.join(input.tags)})
+                  GROUP BY tt."toolId"
+                  HAVING COUNT(DISTINCT tg.name) = ${input.tags.length}
+                )`
             : Prisma.empty;
 
         // Updated raw query for fetching tool IDs (and their vectors)
