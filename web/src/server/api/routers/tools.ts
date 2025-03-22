@@ -57,35 +57,53 @@ export const toolsRouter = createTRPCRouter({
       if (input.magicSearch) {
         const { embedding } = await embed({
           model: openai.embedding("text-embedding-3-small"),
-          value: `With AI I want to ${input.query}`,
+          value: `With AI I want to ${input.query}}`,
         });
 
+        // Build dynamic SQL snippets using Prisma.sql helpers
+        const pricingCondition = input.pricing
+          ? Prisma.sql`AND t.pricing = ${input.pricing}`
+          : Prisma.empty;
+        const tagsJoin =
+          input.tags && input.tags.length > 0
+            ? Prisma.sql`JOIN "ToolTags" tt ON t.id = tt."toolId" JOIN "Tag" tg ON tt."tag" = tg.name`
+            : Prisma.empty;
+        const tagsCondition =
+          input.tags && input.tags.length > 0
+            ? Prisma.sql`AND tg.name IN (${Prisma.join(input.tags)})`
+            : Prisma.empty;
+
+        // Updated raw query for fetching tool IDs (and their vectors)
         const [results, countResult] = await Promise.all([
           ctx.db.$queryRaw`
-          SELECT id, vector::text
-          FROM "Tool"
-          WHERE vector IS NOT NULL
-            AND vector <=> ${embedding}::vector < 0.5
-            AND "deletedAt" IS NULL
-          ORDER BY vector <=> ${embedding}::vector
-          LIMIT ${input.take}
-          OFFSET ${(input.page - 1) * input.take}
-            ` as Promise<{ id: string; vector: string }[]>,
+            SELECT DISTINCT t.id, t.vector::text, t.vector <=> ${embedding}::vector as distance
+            FROM "Tool" t
+            ${tagsJoin}
+            WHERE t.vector IS NOT NULL
+              AND t.vector <=> ${embedding}::vector < 0.5
+              AND t."deletedAt" IS NULL
+              ${pricingCondition}
+              ${tagsCondition}
+            ORDER BY distance
+            LIMIT ${input.take}
+            OFFSET ${(input.page - 1) * input.take}
+          ` as Promise<{ id: string; vector: string; distance: number }[]>,
           ctx.db.$queryRaw`
-          SELECT COUNT(*)::int as count
-          FROM "Tool"
-          WHERE vector IS NOT NULL
-            AND vector <=> ${embedding}::vector < 0.5
-            AND "deletedAt" IS NULL
-            ` as Promise<{ count: number }[]>,
+            SELECT COUNT(DISTINCT t.id)::int as count
+            FROM "Tool" t
+            ${tagsJoin}
+            WHERE t.vector IS NOT NULL
+              AND t.vector <=> ${embedding}::vector < 0.5
+              AND t."deletedAt" IS NULL
+              ${pricingCondition}
+              ${tagsCondition}
+          ` as Promise<{ count: number }[]>,
         ]);
         const totalCount = countResult[0]?.count ?? 0;
 
         const tools = await ctx.db.tool.findMany({
           where: {
-            id: {
-              in: results.map((result) => result.id),
-            },
+            id: { in: results.map((result) => result.id) },
           },
           include: {
             ToolTags: {
