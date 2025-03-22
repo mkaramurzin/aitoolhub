@@ -5,6 +5,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import PageViewTracker from "./_components/page-view-tracker";
 
 export const metadata: Metadata = {
   title: "AiToolHub.co",
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <TRPCReactProvider>
           <GoogleAnalytics gaId="G-8XJGQFYQZG" />
+          <PageViewTracker gaId="G-8XJGQFYQZG" />
           <NuqsAdapter>{children}</NuqsAdapter>
         </TRPCReactProvider>
       </body>
