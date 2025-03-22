@@ -97,6 +97,7 @@
     "react-hook-form": "^7.54.2",
     "react-markdown": "^9.0.3",
     "react-resizable-panels": "^2.1.7",
+    "react-swipeable": "^7.0.2",
     "recharts": "^2.15.0",
     "s3rver": "^3.7.1",
     "server-only": "^0.0.1",

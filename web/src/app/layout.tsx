@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} scrollbar scrollbar-track-background scrollbar-thumb-background hover:scrollbar-thumb-primary`}
+      className={`${GeistSans.variable} overflow-x-hidden scrollbar scrollbar-track-background scrollbar-thumb-background hover:scrollbar-thumb-primary`}
     >
       <body suppressHydrationWarning>
         <TRPCReactProvider>
