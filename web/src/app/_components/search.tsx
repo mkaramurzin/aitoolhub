@@ -19,7 +19,7 @@ import ToolCard from "./tool-card";
 const placeholders = [
   "Build a website",
   "Automate my accounting",
-  "Create User Generated Content",
+  "Design 3D models",
 ];
 
 export type SearchPageProps = {
@@ -259,8 +259,14 @@ function SearchBox() {
         }}
         variant={"secondary"}
         size="lg"
-        className="ml-4 flex h-12 w-14 p-0"
+        className="relative ml-4 flex h-12 w-14 p-0"
       >
+        {/* if has filter show bubble */}
+        {tags && tags.length > 0 && (
+          <span className="absolute -right-2 -top-2 size-5 rounded-full bg-primary px-1">
+            {tags.length}
+          </span>
+        )}
         <Filter />
       </Button>
     </div>

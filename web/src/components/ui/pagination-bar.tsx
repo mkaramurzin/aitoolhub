@@ -25,7 +25,7 @@ export function PaginationBar({
   setPage,
 }: PaginationBarProps) {
   return (
-    <div className="mt-6 flex items-center justify-between gap-3 px-8 pb-4">
+    <div className="w-ull mt-6 flex flex-col items-center justify-between gap-3 px-8 pb-4 sm:flex-row">
       <p className="flex-1 whitespace-nowrap text-sm text-muted-foreground">
         Page <span className="text-foreground">{page}</span> of{" "}
         <span className="text-foreground">{totalPages}</span>

@@ -65,11 +65,11 @@ function FilterDrawer({}: React.PropsWithChildren<FilterDrawerProps>) {
     <div
       ref={drawerRef}
       className={cn(
-        "fixed top-0 z-20 h-full w-[300px] border border-b-0 border-l border-t-0 border-border bg-background duration-300 ease-in-out",
+        "fixed top-0 z-20 h-dvh w-[300px] min-w-[300px] overflow-y-auto border border-b-0 border-l border-t-0 border-border bg-background duration-300 ease-in-out",
         open ? "right-0" : "right-[-300px]",
       )}
     >
-      <div className="flex h-16 w-full items-center justify-between border-b border-border bg-background px-4">
+      <div className="sticky top-0 flex h-16 w-full items-center justify-between border-b border-border bg-background px-4">
         <span className="text-lg font-semibold">Filters</span>
         {(tags.length > 0 || pricing !== "") && (
           <Button

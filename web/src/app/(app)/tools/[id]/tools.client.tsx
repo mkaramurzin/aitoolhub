@@ -106,7 +106,7 @@ export function ToolsClientPage({
 
   return (
     <div className="flex h-full w-full justify-center">
-      <div className="flex h-full w-full max-w-3xl flex-col items-center space-y-4 p-4 pt-10">
+      <div className="flex h-full w-full max-w-3xl flex-col items-center space-y-4 p-4 sm:pt-10">
         <a
           href={tool.url}
           target="_blank"
