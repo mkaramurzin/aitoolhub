@@ -212,7 +212,7 @@ function SearchBox() {
           <Input
             className="relative h-12 w-full border-none bg-secondary pl-4 pr-4 outline-none focus-visible:ring-0"
             value={search}
-            //on press enter
+            maxLength={100}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 setShowResults(false);

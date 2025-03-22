@@ -35,7 +35,7 @@ export const toolsRouter = createTRPCRouter({
     .input(
       z.object({
         tags: z.array(z.string()).optional(),
-        query: z.string().optional(),
+        query: z.string().max(100).optional(),
         page: z.number().optional().default(1),
         orderBy: z.enum(["trending", "new"]).optional(),
         pricing: z.string().optional(),

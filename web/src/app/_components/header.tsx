@@ -1,5 +1,4 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu } from "lucide-react";
@@ -16,9 +15,14 @@ export function Header(props: HeaderProps) {
   return (
     <div className="flex h-14 w-full items-center gap-4 px-4 py-3">
       {open ? null : (
-        <Button onClick={toggleSidebar} variant={"ghost"} size="icon">
-          <Menu className="size-4" />
-        </Button>
+        <div
+          className="p-1 pt-4"
+          onClick={() => {
+            toggleSidebar();
+          }}
+        >
+          <Menu className="size-6 [&>svg]:h-5 [&>svg]:w-5" />
+        </div>
       )}
     </div>
   );

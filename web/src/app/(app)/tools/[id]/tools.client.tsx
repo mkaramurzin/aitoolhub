@@ -107,13 +107,25 @@ export function ToolsClientPage({
   return (
     <div className="flex h-full w-full justify-center">
       <div className="flex h-full w-full max-w-3xl flex-col items-center space-y-4 p-4 pt-10">
+        <a
+          href={tool.url}
+          target="_blank"
+          className={cn(
+            buttonVariants(),
+            "mb-2 flex h-12 w-full gap-2 sm:hidden",
+          )}
+        >
+          <span>Try it now</span>
+          <ExternalLink className="size-4" />
+        </a>
+
         {/* tool */}
         <div
           key={tool.id}
           className="group flex w-full flex-col rounded-md border-border bg-primary/10 p-4"
         >
-          {/* Image and name */}
-          <div className="mb-4 flex gap-4">
+          {/* Image and name desktop */}
+          <div className="mb-4 hidden gap-4 sm:flex">
             <img
               src={tool.image}
               alt={tool.name}
@@ -157,6 +169,45 @@ export function ToolsClientPage({
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Image and name mobile */}
+          <div className="mb-4 flex flex-col gap-4 sm:hidden">
+            <div className="flex gap-4">
+              <img
+                src={tool.image}
+                alt={tool.name}
+                className="size-20 rounded-md"
+              />
+              <div className="flex w-full flex-col">
+                <div className="mb-2 flex flex-col">
+                  <div className="flex justify-between">
+                    <span className="w-fit cursor-pointer text-2xl underline-offset-1 hover:underline">
+                      {tool.name}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Rating */}
+                <div className="mb-4 flex items-center gap-1 text-primary">
+                  <Star className="size-5 fill-yellow-500 text-yellow-500" />
+                  <span className="text-sm">
+                    {Number(tool.rating).toFixed(1)}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div className="flex flex-wrap gap-4">
+              {tags.map((tag) => (
+                <Badge key={tag.name} className="cursor-pointer">
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>
+
+            <span className="text-muted-foreground">{tool.description}</span>
           </div>
         </div>
 
