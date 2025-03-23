@@ -42,9 +42,7 @@ export type ToolsClientPageProps = {
 };
 
 const FormSchema = z.object({
-  content: z.string().min(2, {
-    message: "Review must be at least 2 characters.",
-  }),
+  content: z.string(),
   rating: z.number().int().min(1).max(5),
   toolId: z.string().uuid(),
 });
@@ -255,7 +253,7 @@ export function ToolsClientPage({
                     <FormControl>
                       <Textarea
                         className="content"
-                        placeholder="Share your experience..."
+                        placeholder="Optionally, share your experience..."
                         {...field}
                       />
                     </FormControl>

@@ -41,9 +41,7 @@ export const reviewsRouter = createTRPCRouter({
   create: authenticatedProcedure
     .input(
       z.object({
-        content: z.string().min(2, {
-          message: "Review must be at least 2 characters.",
-        }),
+        content: z.string(),
         rating: z.number().int().min(1).max(5),
         toolId: z.string().uuid(),
       }),

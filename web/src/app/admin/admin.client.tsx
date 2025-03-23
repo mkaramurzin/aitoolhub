@@ -10,6 +10,7 @@ function AdminClientPage({}: AdminClientPageProps) {
   const syncImagesMutation = api.groomer.syncImages.useMutation({});
   const deleteStuffMutation = api.groomer.deleteStuff.useMutation({});
   const createEmbeddingMutation = api.tools.createEmbeddings.useMutation({});
+  const asdf = api.groomer.scrapeTaaftLinks.useMutation({});
   return (
     <div className="flex h-full w-full items-center justify-center">
       <Button
@@ -48,6 +49,15 @@ function AdminClientPage({}: AdminClientPageProps) {
         }}
       >
         {createEmbeddingMutation.isPending ? "Creating..." : "Create Embedding"}
+      </Button>
+
+      <Button
+        disabled={asdf.isPending}
+        onClick={() => {
+          asdf.mutate();
+        }}
+      >
+        {asdf.isPending ? "Removing..." : "Removing Taaft Links"}
       </Button>
     </div>
   );

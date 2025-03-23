@@ -201,4 +201,34 @@ export const parserRouter = createTRPCRouter({
 
     return { success: true };
   }),
+  scrapeTaaftLinks: adminProcedure.mutation(async ({ ctx }) => {
+    const tools = await ctx.db.tool.findMany({
+      where: {
+        url: {
+          contains: "ref=taaft&utm_source=taaft&utm_medium=referral",
+          mode: "insensitive",
+        },
+      },
+    });
+
+    // for each, remove the search params and update the tool
+    for (const tool of tools) {
+      const url = new URL(tool.url);
+      url.searchParams.delete("ref");
+      url.searchParams.delete("utm_source");
+      url.searchParams.delete("utm_medium");
+
+      await ctx.db.tool.update({
+        where: {
+          id: tool.id,
+        },
+        data: {
+          url: url.toString(),
+        },
+      });
+    }
+
+    console.log(tools.length);
+    return {};
+  }),
 });
