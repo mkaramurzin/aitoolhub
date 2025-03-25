@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Review, Tag, Tool } from "@prisma/client";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 
 import {
   ExternalLink,
@@ -413,7 +413,7 @@ function UserReview({
 
         {/* time */}
         <span className="text-sm text-muted-foreground">
-          {format(new Date(review.createdAt), "yyyy-MM-dd")}
+        {`${formatDistanceToNow(new Date(review.createdAt))} ago`}
         </span>
       </div>
     </div>
