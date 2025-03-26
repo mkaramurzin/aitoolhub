@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Review, Tag, Tool } from "@prisma/client";
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 
 import {
   ExternalLink,
@@ -68,6 +68,12 @@ export function ToolsClientPage({
     },
   });
 
+  const adminDeleteMutation = api.tools.adminDelete.useMutation({
+    onSuccess: () => {
+      router.back();
+    },
+  });
+
   const reviewMutation = api.reviews.create.useMutation({
     onSuccess: () => {
       router.refresh();
@@ -116,6 +122,35 @@ export function ToolsClientPage({
           <span>Try it now</span>
           <ExternalLink className="size-4" />
         </a>
+
+        {userData?.user && userData?.user.role === "admin" && (
+          <div className="group flex w-full flex-col rounded-md border-border bg-primary/10 p-4">
+            <span className="mb-4 text-xl">Admin</span>
+            <div className="flex w-full gap-4">
+              <Button
+                disabled={adminDeleteMutation.isPending}
+                onClick={() => {
+                  adminDeleteMutation.mutate({ id: tool.id });
+                }}
+                type="button"
+                className="relative flex items-center justify-center"
+                variant="destructive"
+              >
+                <span
+                  className={cn(
+                    adminDeleteMutation.isPending ? "opacity-0" : "opacity-100",
+                  )}
+                >
+                  Delete
+                </span>
+
+                {adminDeleteMutation.isPending && (
+                  <Loader2 className="absolute size-4 animate-spin" />
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* tool */}
         <div
@@ -413,7 +448,7 @@ function UserReview({
 
         {/* time */}
         <span className="text-sm text-muted-foreground">
-        {`${formatDistanceToNow(new Date(review.createdAt))} ago`}
+          {`${formatDistanceToNow(new Date(review.createdAt))} ago`}
         </span>
       </div>
     </div>

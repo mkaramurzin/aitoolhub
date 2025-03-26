@@ -563,4 +563,15 @@ export const toolsRouter = createTRPCRouter({
       });
       return {};
     }),
+  adminDelete: adminProcedure
+    .input(z.object({ id: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.tool.update({
+        where: { id: input.id },
+        data: {
+          deletedAt: new Date(),
+        },
+      });
+      return {};
+    }),
 });
