@@ -136,6 +136,7 @@ model Tool {
   User          User?                        @relation(fields: [ownerId], references: [id])
   ToolTags      ToolTags[]
   Review        Review[]
+  ToolAnalytics ToolAnalytics?
 
   @@index([name])
   @@index([pricing])
@@ -196,4 +197,15 @@ model SearchHistory {
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz
 
   User User? @relation(fields: [userId], references: [id])
+}
+
+model ToolAnalytics {
+  toolId         String   @id
+  views          Int      @default(0)
+  shareClicks    Int      @default(0)
+  tryItNowClicks Int      @default(0)
+  createdAt      DateTime @default(now()) @db.Timestamptz
+  updatedAt      DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  Tool Tool @relation(fields: [toolId], references: [id])
 }

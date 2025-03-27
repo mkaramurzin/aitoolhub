@@ -21,6 +21,11 @@ export default async function ToolsPage(props: {
     page: page ? Number(page) : 1,
   });
 
+  await api.tools.analytics.increment({
+    id,
+    views: true,
+  });
+
   return (
     <ToolsClientPage
       reviewsCount={count}

@@ -11,8 +11,10 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "../trpc";
+import { toolAnalyticsRouter } from "./toolAnalytics";
 
 export const toolsRouter = createTRPCRouter({
+  analytics: toolAnalyticsRouter,
   fetch: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input, ctx }) => {
