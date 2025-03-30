@@ -75,7 +75,7 @@ function UpsertCollectionsClientPage({
   const toolsQuery = api.tools.fetchAll.useQuery(
     {
       page: 1,
-      take: 3,
+      take: 10,
       magicSearch: false,
       query,
     },
