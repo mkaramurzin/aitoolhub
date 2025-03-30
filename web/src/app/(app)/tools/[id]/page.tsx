@@ -26,6 +26,8 @@ export default async function ToolsPage(props: {
     views: true,
   });
 
+  const { favorite } = await api.tools.favorites.fetch({ toolId: id });
+
   return (
     <ToolsClientPage
       reviewsCount={count}
@@ -37,6 +39,7 @@ export default async function ToolsPage(props: {
       }))}
       tool={tool}
       tags={tool.ToolTags.flatMap((tt) => tt.Tag)}
+      isFavorite={Boolean(favorite)}
     />
   );
 }

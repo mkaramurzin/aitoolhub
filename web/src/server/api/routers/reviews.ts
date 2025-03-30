@@ -93,8 +93,6 @@ export const reviewsRouter = createTRPCRouter({
         },
       });
 
-      console.log({ averageRating });
-
       return { review };
     }),
   rate: authenticatedProcedure
@@ -168,9 +166,12 @@ export const reviewsRouter = createTRPCRouter({
 
       return { vote };
     }),
-  fetchVotesMadeBySelf: authenticatedProcedure
+  fetchVotesMadeBySelf: publicProcedure
     .input(z.object({ toolId: z.string().uuid() }))
     .query(async ({ input, ctx }) => {
+      if (!ctx.user) {
+        return { votes: [] };
+      }
       const votes = await ctx.db.userVote.findMany({
         where: {
           userId: ctx.user.id,

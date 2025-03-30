@@ -11,10 +11,14 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "../trpc";
+import { collectionsRouter } from "./collections";
+import { favoritesRouter } from "./favorites";
 import { toolAnalyticsRouter } from "./toolAnalytics";
 
 export const toolsRouter = createTRPCRouter({
+  collections: collectionsRouter,
   analytics: toolAnalyticsRouter,
+  favorites: favoritesRouter,
   fetch: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input, ctx }) => {
@@ -230,23 +234,6 @@ export const toolsRouter = createTRPCRouter({
       ]);
 
       return { tools, count: totalCount };
-    }),
-  search: publicProcedure
-    .input(z.object({ query: z.string() }))
-    .query(async ({ input, ctx }) => {
-      const tools = await ctx.db.tool.findMany({
-        where: {
-          OR: [
-            { name: { contains: input.query, mode: "insensitive" } },
-            { description: { contains: input.query, mode: "insensitive" } },
-          ],
-        },
-        take: 10,
-        orderBy: {
-          name: "asc",
-        },
-      });
-      return { tools };
     }),
   magicSearch: publicProcedure
     .input(
@@ -489,7 +476,7 @@ export const toolsRouter = createTRPCRouter({
           },
         },
       },
-      take: 12,
+      take: 20,
       orderBy: { createdAt: "desc" },
     });
 
@@ -504,7 +491,7 @@ export const toolsRouter = createTRPCRouter({
           },
         },
       },
-      take: 5,
+      take: 20,
       orderBy: { rating: "desc" },
     });
 

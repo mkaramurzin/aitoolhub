@@ -1,6 +1,6 @@
 import { FullScreenSignIn } from "@/components/sign-in";
 import { api } from "@/trpc/server";
-import { SubmissionsUpsertPage } from "../submissions.upsert.client";
+import { SubmissionsUpsertPage } from "../upsert.submissions.client";
 
 export type SubmitPageProps = {};
 

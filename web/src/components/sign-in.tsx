@@ -27,7 +27,7 @@ export function FullScreenSignIn(props: FullScreenSignInProps) {
         }}
         type="button"
       >
-        Sign in to submit
+        Sign in to visit this page
       </Button>{" "}
     </div>
   );

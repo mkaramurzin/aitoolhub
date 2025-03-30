@@ -19,6 +19,7 @@ import { Review, Tag, Tool } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 
 import {
+  Bookmark,
   ExternalLink,
   Loader2,
   Star,
@@ -39,6 +40,7 @@ export type ToolsClientPageProps = {
     };
   }[];
   reviewsCount: number;
+  isFavorite: boolean;
 };
 
 const FormSchema = z.object({
@@ -52,6 +54,7 @@ export function ToolsClientPage({
   tags,
   reviews,
   reviewsCount,
+  isFavorite,
 }: ToolsClientPageProps) {
   const router = useRouter();
   const [page, setPage] = useQueryState("page", {
@@ -81,6 +84,22 @@ export function ToolsClientPage({
     },
   });
 
+  const addToFavoritesMutation = api.tools.favorites.upsert.useMutation({
+    onSuccess: () => {
+      router.refresh();
+    },
+  });
+
+  const removeFromFavoritesMutation = api.tools.favorites.delete.useMutation({
+    onSuccess: () => {
+      router.refresh();
+    },
+  });
+
+  const tryItNowTrackingMutation = api.tools.analytics.increment.useMutation(
+    {},
+  );
+
   function onSubmit(data: z.infer<typeof FormSchema>) {
     reviewMutation.mutate(data);
   }
@@ -108,20 +127,60 @@ export function ToolsClientPage({
     }
   }
 
+  function favoritesButtonClicked() {
+    if (isFavorite) {
+      removeFromFavoritesMutation.mutate({ toolId: tool.id });
+    } else {
+      addToFavoritesMutation.mutate({ toolId: tool.id });
+    }
+  }
+
   return (
     <div className="flex h-full w-full justify-center">
       <div className="flex h-full w-full max-w-3xl flex-col items-center space-y-4 p-4 sm:pt-10">
-        <a
-          href={tool.url}
-          target="_blank"
-          className={cn(
-            buttonVariants(),
-            "mb-2 flex h-12 w-full gap-2 sm:hidden",
+        <div className="flex w-full gap-4 sm:hidden">
+          {userData?.user && (
+            <Button
+              className="relative flex h-12 w-full items-center justify-center gap-2"
+              variant={"secondary"}
+              size={"lg"}
+              onClick={favoritesButtonClicked}
+            >
+              <span
+                className={cn(
+                  addToFavoritesMutation.isPending ||
+                    removeFromFavoritesMutation.isPending
+                    ? "opacity-0"
+                    : "opacity-100",
+                  "flex items-center gap-2",
+                )}
+              >
+                <Bookmark className="size-4" />
+                {isFavorite ? "Remove Favorite" : "Favorite"}
+              </span>
+
+              {(addToFavoritesMutation.isPending ||
+                removeFromFavoritesMutation.isPending) && (
+                <Loader2 className="absolute size-4 animate-spin" />
+              )}
+            </Button>
           )}
-        >
-          <span>Try it now</span>
-          <ExternalLink className="size-4" />
-        </a>
+
+          <a
+            href={tool.url}
+            target="_blank"
+            className={cn(buttonVariants(), "flex h-12 w-full gap-2")}
+            onClick={() => {
+              tryItNowTrackingMutation.mutate({
+                id: tool.id,
+                tryItNowClicks: true,
+              });
+            }}
+          >
+            <span>Try it now</span>
+            <ExternalLink className="size-4" />
+          </a>
+        </div>
 
         {userData?.user && userData?.user.role === "admin" && (
           <div className="group flex w-full flex-col rounded-md border-border bg-primary/10 p-4">
@@ -171,14 +230,49 @@ export function ToolsClientPage({
                     {tool.name}
                   </span>
 
-                  <a
-                    href={tool.url}
-                    target="_blank"
-                    className={cn(buttonVariants(), "mb-2 flex gap-2")}
-                  >
-                    <span>Try it now</span>
-                    <ExternalLink className="size-4" />
-                  </a>
+                  <div className="mb-2 flex gap-4">
+                    {userData?.user && (
+                      <Button
+                        className="relative flex w-full items-center justify-center gap-2"
+                        variant={"secondary"}
+                        onClick={favoritesButtonClicked}
+                      >
+                        <span
+                          className={cn(
+                            addToFavoritesMutation.isPending ||
+                              removeFromFavoritesMutation.isPending
+                              ? "opacity-0"
+                              : "opacity-100",
+                            "flex items-center gap-2",
+                          )}
+                        >
+                          <Bookmark className="size-4" />
+
+                          {isFavorite ? "Remove Favorite" : "Favorite"}
+                        </span>
+
+                        {(addToFavoritesMutation.isPending ||
+                          removeFromFavoritesMutation.isPending) && (
+                          <Loader2 className="absolute size-4 animate-spin" />
+                        )}
+                      </Button>
+                    )}
+
+                    <a
+                      href={tool.url}
+                      target="_blank"
+                      className={cn(buttonVariants(), "flex gap-2")}
+                      onClick={() => {
+                        tryItNowTrackingMutation.mutate({
+                          id: tool.id,
+                          tryItNowClicks: true,
+                        });
+                      }}
+                    >
+                      <span>Try it now</span>
+                      <ExternalLink className="size-4" />
+                    </a>
+                  </div>
                 </div>
                 <span className="text-muted-foreground">
                   {tool.description}

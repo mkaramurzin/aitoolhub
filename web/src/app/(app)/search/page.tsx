@@ -9,7 +9,6 @@ type tSearchParams = Promise<{
 export default async function Search(props: { searchParams: tSearchParams }) {
   const { orderBy } = await props.searchParams;
   const { tags } = await api.tags.fetchPopular();
-  const { newTools, trendingTools } = await api.tools.defaultTools();
   return (
     <>
       <SearchClientPage tags={tags} orderBy={orderBy} />

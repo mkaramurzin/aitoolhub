@@ -228,7 +228,6 @@ export const parserRouter = createTRPCRouter({
       });
     }
 
-    console.log(tools.length);
     return {};
   }),
 });

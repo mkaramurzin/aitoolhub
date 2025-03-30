@@ -50,12 +50,14 @@ export function SubmissionsUpsertPage({
 }: SubmissionsUpsertPageProps) {
   const router = useRouter();
   const [tagSearch, setTagSearch] = useState("");
+  const [showTopTags, setShowTopTags] = useState(false);
   const tagSearchQuery = api.tags.search.useQuery(
     {
       query: tagSearch,
     },
     {
       refetchOnWindowFocus: false,
+      enabled: tagSearch.length > 1 || showTopTags,
     },
   );
   const { AreYouSure, setShowAreYouSure } = useAreYouSure({});
@@ -243,6 +245,7 @@ export function SubmissionsUpsertPage({
                   </div>
                 </>
               )}
+
               <div className="flex w-full flex-col gap-4">
                 <Input
                   className="h-12 w-full px-4"
@@ -303,6 +306,17 @@ export function SubmissionsUpsertPage({
                 {tagSearchQuery.isPending && tagSearch.length > 0 && (
                   <div className="flex h-full w-full items-center justify-center p-6">
                     <Loader2 className="size-4 animate-spin" />
+                  </div>
+                )}
+
+                {tagSearch.length < 1 && !showTopTags && (
+                  <div className="flex">
+                    <span
+                      className="cursor-pointer text-muted-foreground underline-offset-1 hover:underline"
+                      onClick={() => setShowTopTags(true)}
+                    >
+                      For insperation, click here to show the most used tags
+                    </span>
                   </div>
                 )}
               </div>

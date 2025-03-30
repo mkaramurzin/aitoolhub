@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/store/useSideBarStore";
-import { Home, Info, Menu, SquarePlus } from "lucide-react";
+import { Bookmark, Home, Info, Menu, SquarePlus } from "lucide-react";
 import { useSidebar } from "../sidebar";
 import { SidebarFootContent } from "../sidebar-footer-content";
 
@@ -27,6 +27,11 @@ const items = [
     title: "Home",
     url: "/search",
     icon: Home,
+  },
+  {
+    title: "Favorites",
+    url: "/favorites",
+    icon: Bookmark,
   },
   // {
   //   title: "Trending",

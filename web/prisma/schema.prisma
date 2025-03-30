@@ -27,11 +27,12 @@ model User {
   UserVote         UserVote[]
   Tool             Tool[]
 
-  role          String?
-  banned        Boolean?
-  banReason     String?
-  banExpires    DateTime?
-  SearchHistory SearchHistory[]
+  role             String?
+  banned           Boolean?
+  banReason        String?
+  banExpires       DateTime?
+  SearchHistory    SearchHistory[]
+  UserToolFavorite UserToolFavorite[]
 
   @@unique([email])
   @@map("user")
@@ -96,9 +97,10 @@ model Review {
   updatedAt DateTime  @default(now()) @updatedAt @db.Timestamptz
   deletedAt DateTime? @db.Timestamptz
 
-  Tool     Tool       @relation(fields: [toolId], references: [id])
-  User     User       @relation(fields: [userId], references: [id])
-  UserVote UserVote[]
+  Tool                 Tool                   @relation(fields: [toolId], references: [id])
+  User                 User                   @relation(fields: [userId], references: [id])
+  UserVote             UserVote[]
+  CollectionToolReview CollectionToolReview[]
 
   @@index([toolId])
   @@index([userId])
@@ -118,25 +120,27 @@ model UserVote {
 }
 
 model Tool {
-  id            String                       @id @default(uuid())
-  name          String
-  rating        Float                        @default(0)
-  pricing       String                       @default("")
-  excerpt       String?
-  description   String
-  url           String
-  image         String
-  logoImageUrl  String?
-  screenshotUrl String?
-  ownerId       String?
-  createdAt     DateTime                     @default(now()) @db.Timestamptz
-  updatedAt     DateTime                     @default(now()) @updatedAt @db.Timestamptz
-  deletedAt     DateTime?                    @db.Timestamptz
-  vector        Unsupported("vector(1536)")?
-  User          User?                        @relation(fields: [ownerId], references: [id])
-  ToolTags      ToolTags[]
-  Review        Review[]
-  ToolAnalytics ToolAnalytics?
+  id               String                       @id @default(uuid())
+  name             String
+  rating           Float                        @default(0)
+  pricing          String                       @default("")
+  excerpt          String?
+  description      String
+  url              String
+  image            String
+  logoImageUrl     String?
+  screenshotUrl    String?
+  ownerId          String?
+  createdAt        DateTime                     @default(now()) @db.Timestamptz
+  updatedAt        DateTime                     @default(now()) @updatedAt @db.Timestamptz
+  deletedAt        DateTime?                    @db.Timestamptz
+  vector           Unsupported("vector(1536)")?
+  User             User?                        @relation(fields: [ownerId], references: [id])
+  ToolTags         ToolTags[]
+  Review           Review[]
+  ToolAnalytics    ToolAnalytics?
+  CollectionTool   CollectionTool[]
+  UserToolFavorite UserToolFavorite[]
 
   @@index([name])
   @@index([pricing])
@@ -208,4 +212,49 @@ model ToolAnalytics {
   updatedAt      DateTime @default(now()) @updatedAt @db.Timestamptz
 
   Tool Tool @relation(fields: [toolId], references: [id])
+}
+
+model Collection {
+  id                    String                 @id @default(uuid())
+  name                  String
+  description           String
+  image                 String
+  createdAt             DateTime               @default(now()) @db.Timestamptz
+  updatedAt             DateTime               @default(now()) @updatedAt @db.Timestamptz
+  CollectionTools       CollectionTool[]
+  CollectionToolReviews CollectionToolReview[]
+}
+
+model CollectionTool {
+  collectionId String
+  toolId       String
+  createdAt    DateTime   @default(now()) @db.Timestamptz
+  updatedAt    DateTime   @default(now()) @updatedAt @db.Timestamptz
+  Collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  Tool         Tool       @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, toolId])
+}
+
+model CollectionToolReview {
+  collectionId String
+  reviewId     String
+  createdAt    DateTime   @default(now()) @db.Timestamptz
+  updatedAt    DateTime   @default(now()) @updatedAt @db.Timestamptz
+  Collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  Review       Review     @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  @@id([collectionId, reviewId])
+}
+
+model UserToolFavorite {
+  userId    String
+  toolId    String
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Tool Tool @relation(fields: [toolId], references: [id], onDelete: Cascade)
+
+  @@id([userId, toolId])
 }

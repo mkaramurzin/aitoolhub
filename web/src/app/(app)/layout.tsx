@@ -25,7 +25,7 @@ export default async function Layout({
               : undefined
           }
         />
-        <div className="flex min-h-dvh w-full flex-col">
+        <div className="flex min-h-dvh w-full flex-col md:max-w-[calc(100dvw-64px)]">
           <Header />
           {children}
         </div>

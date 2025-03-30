@@ -4,7 +4,7 @@ import { Tag, Tool } from "@prisma/client";
 import { Star } from "lucide-react";
 import { useQueryState } from "nuqs";
 
-function ToolCard({
+function GalleryToolCard({
   tool,
   tags,
   href,
@@ -27,7 +27,7 @@ function ToolCard({
     <a
       href={href}
       key={tool.id}
-      className="group flex w-full flex-col rounded-md border border-border bg-card p-4 hover:border-primary"
+      className="group flex h-[212px] w-full flex-col justify-between rounded-md border border-border bg-card p-4 text-start hover:border-primary"
     >
       {/* Image and name */}
       <div className="mb-4 flex gap-4">
@@ -35,13 +35,13 @@ function ToolCard({
           <img
             src={tool.image}
             alt={tool.name}
-            className="size-12 rounded-md"
+            className="size-20 max-h-20 max-w-20 rounded-md"
           />
         ) : (
-          <div className="h-12 min-h-12 w-12 min-w-12 rounded-md bg-secondary"></div>
+          <div className="h-20 min-h-20 w-20 min-w-20 rounded-md bg-secondary"></div>
         )}
         <div className="flex w-full flex-col">
-          <div className="mb-2 flex w-full items-center justify-between">
+          <div className="mb-2 flex w-full items-center justify-between gap-2">
             <span className="w-fit cursor-pointer underline-offset-1 hover:underline">
               {tool.name}
             </span>
@@ -62,7 +62,7 @@ function ToolCard({
         </div>
       </div>
       {/* Tags */}
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-wrap gap-2">
         {tags.map((tag) => (
           <Badge
             variant={"secondary"}
@@ -85,9 +85,9 @@ function ToolCard({
   );
 }
 
-export default ToolCard;
+export default GalleryToolCard;
 
-export function ToolCardSkeleton() {
+export function GalleryToolCardSkeleton() {
   return (
     <div className="flex h-[250px] w-full animate-pulse flex-col rounded-md border border-border bg-secondary p-4"></div>
   );
