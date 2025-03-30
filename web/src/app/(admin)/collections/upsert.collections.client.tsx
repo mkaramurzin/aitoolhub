@@ -26,8 +26,8 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 export type UpsertCollectionsClientPageProps = {
-  collection: Collection;
-  tools: {
+  collection?: Collection;
+  tools?: {
     tool: Tool;
     review?: Review;
   }[];
@@ -86,29 +86,30 @@ function UpsertCollectionsClientPage({
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    defaultValues: collection
-      ? {
-          ...collection,
-          tools: tools.map((tool) => {
-            return {
-              toolId: tool.tool.id,
-              image: tool.tool.image,
-              name: tool.tool.name,
-              description: tool.tool.description,
-              review: tool.review
-                ? {
-                    reviewId: tool.review.id,
-                    rating: tool.review.rating,
-                    content: tool.review.content,
-                  }
-                : {
-                    rating: 5,
-                    content: "",
-                  },
-            };
-          }),
-        }
-      : {},
+    defaultValues:
+      collection && tools
+        ? {
+            ...collection,
+            tools: tools.map((tool) => {
+              return {
+                toolId: tool.tool.id,
+                image: tool.tool.image,
+                name: tool.tool.name,
+                description: tool.tool.description,
+                review: tool.review
+                  ? {
+                      reviewId: tool.review.id,
+                      rating: tool.review.rating,
+                      content: tool.review.content,
+                    }
+                  : {
+                      rating: 5,
+                      content: "",
+                    },
+              };
+            }),
+          }
+        : {},
   });
 
   function onSubmit(data: z.infer<typeof FormSchema>) {
