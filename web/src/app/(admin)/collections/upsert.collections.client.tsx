@@ -221,7 +221,7 @@ function UpsertCollectionsClientPage({
                 subtext={"PNG, JPG or SVG (max. 2MB)"}
                 icon={<Image />}
                 previewUrl={collection?.image}
-                maxSize={2 * 1024 * 1024}
+                maxSize={10 * 1024 * 1024}
                 onImageUpload={({ file, id }) => {
                   form.setValue(
                     "image",
