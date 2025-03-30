@@ -78,6 +78,7 @@ function UpsertCollectionsClientPage({
       take: 10,
       magicSearch: false,
       query,
+      searchHistory: false,
     },
     {
       enabled: query.length > 0,

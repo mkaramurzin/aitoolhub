@@ -47,17 +47,20 @@ export const toolsRouter = createTRPCRouter({
         pricing: z.string().optional(),
         take: z.number().max(50).optional().default(10),
         magicSearch: z.boolean().optional().default(false),
+        searchHistory: z.boolean().optional().default(true),
       }),
     )
     .query(async ({ input, ctx }) => {
-      await ctx.db.searchHistory.create({
-        data: {
-          query: input.query ?? "",
-          userId: ctx.user?.id,
-          tags: input.tags ?? [],
-          pricing: input.pricing ?? "",
-        },
-      });
+      if (input.searchHistory) {
+        await ctx.db.searchHistory.create({
+          data: {
+            query: input.query ?? "",
+            userId: ctx.user?.id,
+            tags: input.tags ?? [],
+            pricing: input.pricing ?? "",
+          },
+        });
+      }
 
       // if magic search
       if (input.magicSearch) {
