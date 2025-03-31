@@ -49,6 +49,7 @@ export function FavoriteClientPage(props: FavoriteClientPageProps) {
                   tool={tool}
                   key={tool.id}
                   tags={tool.ToolTags.flatMap((tag) => tag.Tag)}
+                  analytics={tool.ToolAnalytics}
                 />
               ))}
             </div>

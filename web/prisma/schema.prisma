@@ -208,6 +208,7 @@ model ToolAnalytics {
   views          Int      @default(0)
   shareClicks    Int      @default(0)
   tryItNowClicks Int      @default(0)
+  favorites      Int      @default(0)
   createdAt      DateTime @default(now()) @db.Timestamptz
   updatedAt      DateTime @default(now()) @updatedAt @db.Timestamptz
 

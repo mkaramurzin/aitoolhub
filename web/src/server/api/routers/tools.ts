@@ -122,6 +122,7 @@ export const toolsRouter = createTRPCRouter({
             id: { in: results.map((result) => result.id) },
           },
           include: {
+            ToolAnalytics: true,
             ToolTags: {
               include: {
                 Tag: true,
@@ -214,6 +215,7 @@ export const toolsRouter = createTRPCRouter({
             deletedAt: null,
           },
           include: {
+            ToolAnalytics: true,
             ToolTags: {
               include: {
                 Tag: true,
@@ -473,6 +475,7 @@ export const toolsRouter = createTRPCRouter({
         deletedAt: null,
       },
       include: {
+        ToolAnalytics: true,
         ToolTags: {
           include: {
             Tag: true,
@@ -488,6 +491,7 @@ export const toolsRouter = createTRPCRouter({
         deletedAt: null,
       },
       include: {
+        ToolAnalytics: true,
         ToolTags: {
           include: {
             Tag: true,

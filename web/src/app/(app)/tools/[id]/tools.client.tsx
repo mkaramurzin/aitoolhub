@@ -39,6 +39,7 @@ import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 export type ToolsClientPageProps = {
@@ -98,12 +99,14 @@ export function ToolsClientPage({
   const addToFavoritesMutation = api.tools.favorites.upsert.useMutation({
     onSuccess: () => {
       router.refresh();
+      toast("Saved to favorites");
     },
   });
 
   const removeFromFavoritesMutation = api.tools.favorites.delete.useMutation({
     onSuccess: () => {
       router.refresh();
+      toast("Removed from favorites");
     },
   });
 
@@ -483,12 +486,14 @@ function UserReview({
   const adminDeleteMutation = api.reviews.adminDelete.useMutation({
     onSuccess: () => {
       router.refresh();
+      toast("Review deleted");
     },
   });
 
   const deleteReviewMutation = api.reviews.delete.useMutation({
     onSuccess: () => {
       router.refresh();
+      toast("Review deleted");
     },
   });
 
@@ -496,6 +501,7 @@ function UserReview({
     onSuccess: () => {
       router.refresh();
       refetchVotes();
+      toast("Thank you for the review!");
     },
   });
 
@@ -535,14 +541,18 @@ function UserReview({
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => {}}>
+            <DropdownMenuItem
+              onClick={() => {
+                toast("Thank you for the report.");
+              }}
+            >
               <Flag className="size-4" />
               <span>Report</span>
             </DropdownMenuItem>
             {userData?.user && userData.user.id === review.userId && (
               <DropdownMenuItem
                 onClick={() => {
-                  adminDeleteMutation.mutate({ reviewId: review.id });
+                  deleteReviewMutation.mutate({ reviewId: review.id });
                 }}
               >
                 <Trash className="size-4" />

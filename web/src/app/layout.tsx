@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 
+import { Toaster } from "@/components/ui/sonner";
 import { TRPCReactProvider } from "@/trpc/react";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { GeistSans } from "geist/font/sans";
@@ -22,6 +23,8 @@ export default function RootLayout({
       className={`${GeistSans.variable} overflow-x-hidden scrollbar scrollbar-track-background scrollbar-thumb-background hover:scrollbar-thumb-primary`}
     >
       <body suppressHydrationWarning>
+        <Toaster position="bottom-center" />
+
         <TRPCReactProvider>
           <GoogleAnalytics gaId="G-8XJGQFYQZG" />
           <PageViewTracker gaId="G-8XJGQFYQZG" />

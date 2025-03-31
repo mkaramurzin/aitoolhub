@@ -55,6 +55,7 @@ export function SearchHomePage(props: { tags?: Tag[] }) {
           defaultToolsQuery.data?.newTools.map((tool) => (
             <GalleryToolCard
               key={tool.id}
+              analytics={tool.ToolAnalytics}
               href={`/tools/${tool.id}`}
               tool={tool}
               tags={tool.ToolTags.flatMap((tag) => tag.Tag)}
@@ -72,6 +73,7 @@ export function SearchHomePage(props: { tags?: Tag[] }) {
           defaultToolsQuery.data?.trendingTools.map((tool) => (
             <GalleryToolCard
               key={tool.id}
+              analytics={tool.ToolAnalytics}
               href={`/tools/${tool.id}`}
               tool={tool}
               tags={tool.ToolTags.flatMap((tag) => tag.Tag)}

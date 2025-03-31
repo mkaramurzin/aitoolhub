@@ -117,6 +117,7 @@ export function SearchResultsPage({
                   tool={tool}
                   key={tool.id}
                   tags={tool.ToolTags.flatMap((tag) => tag.Tag)}
+                  analytics={tool.ToolAnalytics}
                 />
               ))}
             </div>

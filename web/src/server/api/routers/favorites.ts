@@ -20,7 +20,12 @@ export const favoritesRouter = createTRPCRouter({
           take: input.take,
           skip: (input.page - 1) * input.take,
           include: {
-            Tool: { include: { ToolTags: { include: { Tag: true } } } },
+            Tool: {
+              include: {
+                ToolTags: { include: { Tag: true } },
+                ToolAnalytics: true,
+              },
+            },
           },
         }),
         ctx.db.userToolFavorite.count({
@@ -36,20 +41,36 @@ export const favoritesRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const favorite = await ctx.db.userToolFavorite.upsert({
+      const userToolFavorite = await ctx.db.userToolFavorite.findUnique({
         where: {
           userId_toolId: {
             userId: ctx.user.id,
             toolId: input.toolId,
           },
         },
-        create: {
-          userId: ctx.user.id,
-          toolId: input.toolId,
-        },
-        update: {},
       });
-      return favorite;
+
+      if (!userToolFavorite) {
+        await ctx.db.userToolFavorite.create({
+          data: {
+            toolId: input.toolId,
+            userId: ctx.user.id,
+          },
+        });
+
+        await ctx.db.toolAnalytics.upsert({
+          where: { toolId: input.toolId },
+          create: {
+            toolId: input.toolId,
+            favorites: 1,
+          },
+          update: {
+            favorites: { increment: 1 },
+          },
+        });
+      }
+
+      return {};
     }),
   fetch: publicProcedure
     .input(z.object({ toolId: z.string() }))
@@ -75,6 +96,16 @@ export const favoritesRouter = createTRPCRouter({
             userId: ctx.user.id,
             toolId: input.toolId,
           },
+        },
+      });
+
+      await ctx.db.toolAnalytics.upsert({
+        where: { toolId: input.toolId },
+        create: {
+          toolId: input.toolId,
+        },
+        update: {
+          favorites: { decrement: 1 },
         },
       });
       return deletedFavorite;
