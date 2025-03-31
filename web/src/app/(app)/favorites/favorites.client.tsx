@@ -1,5 +1,5 @@
 "use client";
-import ToolCard, { ToolCardSkeleton } from "@/app/_components/tool-card";
+import ToolCard from "@/app/_components/tool-card";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import { usePagination } from "@/hooks/use-pagination";
 import { api } from "@/trpc/react";
@@ -17,7 +17,7 @@ export function FavoriteClientPage(props: FavoriteClientPageProps) {
   });
 
   const toolSkeletons = Array.from({ length: 20 }, (_, i) => (
-    <ToolCardSkeleton key={i} />
+    <ToolCard.Skeleton key={i} />
   ));
 
   const favoriteToolsQuery = api.tools.favorites.fetchAll.useQuery({
