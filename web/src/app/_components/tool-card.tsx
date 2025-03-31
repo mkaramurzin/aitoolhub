@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Tag, Tool, ToolAnalytics } from "@prisma/client";
@@ -34,6 +35,23 @@ function ToolCard({
   const addToFavoritesMutation = api.tools.favorites.upsert.useMutation({
     onSuccess: () => {
       toast("Saved to favorites");
+    },
+    onError: () => {
+      toast.error("Please login to save to favorites.", {
+        action: {
+          label: (
+            <span>
+              <span>Login with Google</span>
+            </span>
+          ),
+          onClick: () => {
+            authClient.signIn.social({
+              provider: "google",
+              callbackURL: window.location.href,
+            });
+          },
+        },
+      });
     },
   });
   return (

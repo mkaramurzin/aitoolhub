@@ -94,7 +94,7 @@ export function SearchResultsPage({
   });
 
   return (
-    <div className="flex w-full max-w-5xl flex-col items-center">
+    <div className="flex w-full max-w-6xl flex-col items-center">
       {showSearch && (
         <>
           <SearchTitle />
@@ -110,7 +110,7 @@ export function SearchResultsPage({
       {toolsQuery.data && toolsQuery.data.tools.length > 0 ? (
         <>
           <div className="flex w-full flex-col items-center px-4">
-            <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {toolsQuery.data.tools.map((tool) => (
                 <ToolCard
                   href={`/tools/${tool.id}`}
