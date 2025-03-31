@@ -100,7 +100,7 @@ function GalleryToolCard({
           {/* Created at */}
           <div className="text-xs text-muted-foreground">{`Released ${formatDistanceToNow(
             tool.createdAt,
-          )}`}</div>
+          )} ago`}</div>
         </div>
 
         {/* Favorites */}
