@@ -172,7 +172,7 @@ export function ToolsClientPage({
                 )}
               >
                 <Bookmark className="size-4" />
-                {isFavorite ? "Remove Favorite" : "Favorite"}
+                {isFavorite ? "Remove" : "Save"}
               </span>
 
               {(addToFavoritesMutation.isPending ||
@@ -264,7 +264,7 @@ export function ToolsClientPage({
                         >
                           <Bookmark className="size-4" />
 
-                          {isFavorite ? "Remove Favorite" : "Favorite"}
+                          {isFavorite ? "Remove" : "Save"}
                         </span>
 
                         {(addToFavoritesMutation.isPending ||
