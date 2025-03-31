@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import "swiper/css";
@@ -90,7 +91,12 @@ export function Gallery({
             ))}
           </Swiper>
 
-          <div className="absolute left-0 top-0 z-10 hidden h-full items-center justify-between px-4 md:flex">
+          <div
+            className={cn(
+              isBeginning && "opacity-0",
+              "absolute left-0 top-0 z-10 hidden h-full items-center justify-between px-4 md:flex",
+            )}
+          >
             <Button
               variant={"outline"}
               className="rounded-full p-2"
@@ -101,7 +107,12 @@ export function Gallery({
             </Button>
           </div>
 
-          <div className="absolute right-0 top-0 z-10 hidden h-full items-center justify-between px-4 md:flex">
+          <div
+            className={cn(
+              isEnd && "opacity-0",
+              "absolute right-0 top-0 z-10 hidden h-full items-center justify-between px-4 md:flex",
+            )}
+          >
             <Button
               variant={"outline"}
               className="rounded-full p-2"
