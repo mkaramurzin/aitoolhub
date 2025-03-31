@@ -47,7 +47,7 @@ const FormSchema = z.object({
       review: z.object({
         reviewId: z.string().uuid().optional(),
         rating: z.number().min(1).max(5),
-        content: z.string().min(1).max(255),
+        content: z.string(),
       }),
     }),
   ),
