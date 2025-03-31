@@ -98,6 +98,7 @@ function ToolCard({
       {/* Tags (with overflow detection) */}
       <TagsOverflow
         tags={tags}
+        allowOverflow={true}
         onTagClick={(tagName) => {
           setPage(1);
           if (!filterTags?.includes(tagName)) {
@@ -162,16 +163,18 @@ export default ToolCard;
 export function TagsOverflow({
   tags,
   onTagClick,
+  allowOverflow = false,
 }: {
   tags: Tag[];
   onTagClick: (tagName: string) => void;
+  allowOverflow?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [visibleCount, setVisibleCount] = useState(tags.length);
 
   useLayoutEffect(() => {
     if (!containerRef.current) return;
-
+    if (allowOverflow) return;
     // First, reset visibleCount to ensure we measure properly.
     setVisibleCount(tags.length);
 
@@ -203,7 +206,7 @@ export function TagsOverflow({
   return (
     <div
       ref={containerRef}
-      className="mb-4 flex w-full gap-2"
+      className="mb-4 flex w-full gap-2 overflow-hidden"
       style={{ flexWrap: "nowrap" }} // Single-line display
     >
       {tags.slice(0, visibleCount).map((tag) => (

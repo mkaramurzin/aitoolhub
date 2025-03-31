@@ -20,7 +20,7 @@ export type SearchPageProps = {
 export function SearchPage(props: SearchPageProps) {
   const [tags, setTags] = useQueryState("tags", {
     shallow: false,
-    parse: (v) => v.split(","),
+    parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
 
   const [query, setQuery] = useQueryState("query", { shallow: false });
