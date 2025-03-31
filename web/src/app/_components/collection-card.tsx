@@ -8,9 +8,10 @@ export type CollectionCardProps = {
 
 function CollectionCard({ collection, tools }: CollectionCardProps) {
   return (
-    <div
+    <a
+      href={`/collections/${collection.id}`}
       key={collection.id}
-      className="group relative top-1/2 flex h-[300px] w-full -translate-y-1/2 cursor-pointer flex-col justify-between gap-2 rounded-md border border-border bg-card p-4"
+      className="group relative top-1/2 flex h-[200px] w-full -translate-y-1/2 cursor-pointer flex-col justify-between gap-2 rounded-md border border-border bg-card p-4 md:h-[300px]"
     >
       <img
         src={collection.image}
@@ -40,16 +41,13 @@ function CollectionCard({ collection, tools }: CollectionCardProps) {
               />
             ))}
           </div>
-          <a
-            href={`/collections/${collection.id}`}
-            className="flex w-fit items-center gap-2 rounded-full bg-background/50 px-3 py-1 text-sm hover:bg-background/70"
-          >
+          <div className="flex w-fit items-center gap-2 rounded-full bg-background/50 px-3 py-1 text-sm group-hover:bg-background/70">
             <span className="">View Collection</span>
             <MoveRight className="size-4" />
-          </a>
+          </div>
         </div>
       </div>
-    </div>
+    </a>
   );
 }
 
