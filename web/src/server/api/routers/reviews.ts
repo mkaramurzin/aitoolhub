@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
+  adminProcedure,
   authenticatedProcedure,
   createTRPCRouter,
   publicProcedure,
@@ -182,5 +183,24 @@ export const reviewsRouter = createTRPCRouter({
       });
 
       return { votes };
+    }),
+  delete: authenticatedProcedure
+    .input(z.object({ reviewId: z.string().uuid() }))
+    .mutation(async ({ input, ctx }) => {
+      await ctx.db.review.delete({
+        where: {
+          id: input.reviewId,
+          userId: ctx.user.id,
+        },
+      });
+    }),
+  adminDelete: adminProcedure
+    .input(z.object({ reviewId: z.string().uuid() }))
+    .mutation(async ({ input, ctx }) => {
+      await ctx.db.review.delete({
+        where: {
+          id: input.reviewId,
+        },
+      });
     }),
 });

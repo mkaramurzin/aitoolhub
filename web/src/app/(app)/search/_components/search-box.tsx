@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useFilterDrawer } from "@/store/useFilterDrawer";
-import { Filter, Search } from "lucide-react";
+import { Filter, WandSparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useEffect, useState } from "react";
@@ -71,7 +71,7 @@ export function SearchBox() {
         >
           {/* <div className="absolute -inset-px hidden rounded-md bg-primary opacity-20 blur-md transition-all duration-1000 group-hover:-inset-1 group-hover:opacity-40 group-hover:duration-200"></div> */}
           <Input
-            className="relative h-12 w-full border-none bg-secondary pl-4 pr-4 outline-none focus-visible:ring-0"
+            className="relative h-12 w-full border-none bg-secondary pl-12 pr-4 outline-none focus-visible:ring-0"
             value={search}
             maxLength={100}
             onKeyDown={(e) => {
@@ -85,8 +85,11 @@ export function SearchBox() {
               setSearch(e.target.value);
             }}
           />
+
+          <WandSparkles className="absolute left-4 top-1/2 size-5 -translate-y-1/2" />
+
           <div
-            className={`pointer-events-none absolute left-0 top-0 flex h-full w-full items-center px-5 text-gray-500 ${search.length > 0 ? "hidden" : "block"}`}
+            className={`pointer-events-none absolute left-0 top-0 flex h-full w-full items-center pl-12 text-gray-500 ${search.length > 0 ? "hidden" : "block"}`}
           >
             <span
               className={`transition-all duration-150 ${isTransitioning ? "translate-y-[-40%] opacity-0" : "translate-y-0 opacity-100"}`}
@@ -96,19 +99,6 @@ export function SearchBox() {
           </div>
         </div>
       </div>
-
-      {/* Search */}
-      <Button
-        onClick={() => {
-          setQuery(search);
-          setPage(1);
-        }}
-        variant={"secondary"}
-        size="lg"
-        className="ml-4 flex h-12 w-14 p-0"
-      >
-        <Search />
-      </Button>
 
       {/* Filter */}
       <Button

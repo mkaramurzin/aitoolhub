@@ -1,10 +1,6 @@
-import CollectionCard, {
-  CollectionCardSkeleton,
-} from "@/app/_components/collection-card";
+import CollectionCard from "@/app/_components/collection-card";
 import { Gallery } from "@/app/_components/gallery";
-import GalleryToolCard, {
-  GalleryToolCardSkeleton,
-} from "@/app/_components/gallery-tool-card";
+import GalleryToolCard from "@/app/_components/gallery-tool-card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { api } from "@/trpc/react";
 import { Tag } from "@prisma/client";
@@ -19,17 +15,17 @@ export function SearchHomePage(props: { tags?: Tag[] }) {
   const defaultToolsQuery = api.tools.defaultTools.useQuery();
   const collectionsQuery = api.tools.collections.fetchAll.useQuery({});
   const galleryToolSkeletons = Array.from({ length: 20 }, (_, i) => (
-    <GalleryToolCardSkeleton key={i} />
+    <GalleryToolCard.Skeleton key={i} />
   ));
   const collectionSkeletons = Array.from({ length: 20 }, (_, i) => (
-    <CollectionCardSkeleton key={i} />
+    <CollectionCard.Skeleton key={i} />
   ));
 
   const isMobile = useIsMobile();
 
   return (
     <div className="flex h-full w-full flex-1 flex-grow flex-col items-center justify-center gap-8">
-      <div className="flex flex-col items-center justify-center gap-8 px-6">
+      <div className="flex w-full flex-col items-center justify-center gap-8 px-6">
         <SearchTitle />
         <div className="flex w-full max-w-xl gap-6">
           <SearchBox />

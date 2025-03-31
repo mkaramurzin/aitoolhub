@@ -53,10 +53,10 @@ function CollectionCard({ collection, tools }: CollectionCardProps) {
   );
 }
 
-export default CollectionCard;
-
-export function CollectionCardSkeleton() {
+CollectionCard.Skeleton = function Skeleton() {
   return (
     <div className="flex h-[300px] w-full animate-pulse flex-col items-start justify-start gap-2 rounded-md bg-secondary"></div>
   );
-}
+};
+
+export default CollectionCard;

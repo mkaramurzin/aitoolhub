@@ -10,7 +10,7 @@ import { SearchBox } from "../(app)/search/_components/search-box";
 import { SearchHomePage } from "../(app)/search/_components/search-home";
 import { SearchOptions } from "../(app)/search/_components/search-options";
 import { SearchTitle } from "../(app)/search/_components/search-title";
-import ToolCard, { ToolCardSkeleton } from "./tool-card";
+import ToolCard from "./tool-card";
 
 export type SearchPageProps = {
   tags?: Tag[];
@@ -65,7 +65,7 @@ export function SearchResultsPage({
   });
 
   const toolSkeletons = Array.from({ length: 20 }, (_, i) => (
-    <ToolCardSkeleton key={i} />
+    <ToolCard.Skeleton key={i} />
   ));
 
   // Call the API with page number, query and tags

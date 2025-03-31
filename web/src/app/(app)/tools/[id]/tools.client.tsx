@@ -19,17 +19,28 @@ import { Review, Tag, Tool } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Bookmark,
+  EllipsisVertical,
   ExternalLink,
+  Flag,
   Loader2,
   Star,
   ThumbsDown,
   ThumbsUp,
+  Trash,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+
 export type ToolsClientPageProps = {
   tool: Tool;
   tags: Tag[];
@@ -135,6 +146,11 @@ export function ToolsClientPage({
     }
   }
 
+  const isAdmin = useMemo(() => {
+    if (!userData?.user) return false;
+    return userData.user.role === "admin";
+  }, [userData]);
+
   return (
     <div className="flex h-full w-full justify-center">
       <div className="flex h-full w-full max-w-3xl flex-col items-center space-y-4 p-4 sm:pt-10">
@@ -182,7 +198,7 @@ export function ToolsClientPage({
           </a>
         </div>
 
-        {userData?.user && userData?.user.role === "admin" && (
+        {isAdmin && (
           <div className="group flex w-full flex-col rounded-md border-border bg-primary/10 p-4">
             <span className="mb-4 text-xl">Admin</span>
             <div className="flex w-full gap-4">
@@ -458,10 +474,23 @@ function UserReview({
   user: { name: string };
 }) {
   const router = useRouter();
+  const { data: userData } = authClient.useSession();
   const { data: voteData, refetch: refetchVotes } =
     api.reviews.fetchVotesMadeBySelf.useQuery({
       toolId: review.toolId,
     });
+
+  const adminDeleteMutation = api.reviews.adminDelete.useMutation({
+    onSuccess: () => {
+      router.refresh();
+    },
+  });
+
+  const deleteReviewMutation = api.reviews.delete.useMutation({
+    onSuccess: () => {
+      router.refresh();
+    },
+  });
 
   const rateReviewMutation = api.reviews.rate.useMutation({
     onSuccess: () => {
@@ -470,27 +499,68 @@ function UserReview({
     },
   });
 
+  const isAdmin = useMemo(() => {
+    if (!userData?.user) return false;
+    return userData.user.role === "admin";
+  }, [userData]);
+
   return (
     <div
       key={review.id}
       className="group flex w-full flex-col space-y-2 rounded-md border-border bg-primary/10 p-4"
     >
-      <div className="flex items-center gap-4">
-        <span>{user.name}</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <span>{user.name}</span>
 
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              className={cn(
-                "size-4",
-                star <= review.rating
-                  ? "fill-yellow-500 text-yellow-500"
-                  : "fill-muted text-muted",
-              )}
-            />
-          ))}
+          <div className="flex gap-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <Star
+                key={star}
+                className={cn(
+                  "size-4",
+                  star <= review.rating
+                    ? "fill-yellow-500 text-yellow-500"
+                    : "fill-muted text-muted",
+                )}
+              />
+            ))}
+          </div>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <div className={buttonVariants({ variant: "ghost", size: "icon" })}>
+              <EllipsisVertical className="size-4" />
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => {}}>
+              <Flag className="size-4" />
+              <span>Report</span>
+            </DropdownMenuItem>
+            {userData?.user && userData.user.id === review.userId && (
+              <DropdownMenuItem
+                onClick={() => {
+                  adminDeleteMutation.mutate({ reviewId: review.id });
+                }}
+              >
+                <Trash className="size-4" />
+                <span>Delete</span>
+              </DropdownMenuItem>
+            )}
+            {isAdmin && (
+              <DropdownMenuItem
+                onClick={() => {
+                  adminDeleteMutation.mutate({ reviewId: review.id });
+                }}
+              >
+                <Trash className="size-4" />
+                <span>Admin Delete</span>
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* content */}

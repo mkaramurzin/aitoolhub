@@ -35,30 +35,32 @@ function GalleryToolCard({
           <img
             src={tool.image}
             alt={tool.name}
-            className="size-20 max-h-20 max-w-20 rounded-md"
+            className="size-16 max-h-16 max-w-16 rounded-md"
           />
         ) : (
-          <div className="h-20 min-h-20 w-20 min-w-20 rounded-md bg-secondary"></div>
+          <div className="h-16 min-h-16 w-16 min-w-16 rounded-md bg-secondary"></div>
         )}
         <div className="flex w-full flex-col">
           <div className="mb-2 flex w-full items-center justify-between gap-2">
             <span className="w-fit cursor-pointer underline-offset-1 hover:underline">
               {tool.name}
             </span>
-          </div>
 
-          {tool.rating === 0 ? (
-            <span className="text-xs text-muted-foreground">no ratings</span>
-          ) : (
-            <div className="flex w-fit items-center gap-1 rounded-full bg-secondary px-3 py-1">
-              <Star className={cn("size-4 fill-yellow-500 text-yellow-500")} />
-              <span className="pt-[2px]">
-                {Number(tool.rating) % 1 === 0
-                  ? Number(tool.rating).toFixed(0)
-                  : Number(tool.rating).toFixed(1)}
-              </span>
-            </div>
-          )}
+            {tool.rating === 0 ? (
+              <span className="text-xs text-muted-foreground">no ratings</span>
+            ) : (
+              <div className="flex w-fit items-center gap-1 rounded-full bg-secondary px-3 py-1">
+                <Star
+                  className={cn("size-4 fill-yellow-500 text-yellow-500")}
+                />
+                <span className="pt-[2px]">
+                  {Number(tool.rating) % 1 === 0
+                    ? Number(tool.rating).toFixed(0)
+                    : Number(tool.rating).toFixed(1)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       {/* Tags */}
@@ -85,10 +87,12 @@ function GalleryToolCard({
   );
 }
 
-export default GalleryToolCard;
-
-export function GalleryToolCardSkeleton() {
+function Skeleton() {
   return (
     <div className="flex h-[250px] w-full animate-pulse flex-col rounded-md border border-border bg-secondary p-4"></div>
   );
 }
+
+GalleryToolCard.Skeleton = Skeleton;
+
+export default GalleryToolCard;

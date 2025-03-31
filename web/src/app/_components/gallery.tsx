@@ -3,7 +3,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import "swiper/css";
+import "swiper/css/mousewheel";
 import "swiper/css/navigation";
+import { Mousewheel } from "swiper/modules";
 import { Swiper, SwiperRef, SwiperSlide } from "swiper/react";
 
 export function Gallery({
@@ -59,15 +61,17 @@ export function Gallery({
           <Swiper
             key={key}
             slidesOffsetBefore={24}
-            slidesOffsetAfter={24}
             onSwiper={(swiper: any) => {
               swiperRef.current = swiper;
               setIsBeginning(swiper.isBeginning);
               setIsEnd(swiper.isEnd);
             }}
+            modules={[Mousewheel]}
+            mousewheel={{ forceToAxis: true, thresholdDelta: 10 }}
             onSlideChange={onSlideChange}
-            spaceBetween={24}
             slidesPerView={"auto"}
+            slidesPerGroupAuto={true}
+            centeredSlides={false}
           >
             {items.map((item, index) => (
               <SwiperSlide
@@ -81,7 +85,7 @@ export function Gallery({
                       : "350px",
                 }}
               >
-                {item}
+                <div className="flex h-full w-full pr-6">{item}</div>
               </SwiperSlide>
             ))}
           </Swiper>

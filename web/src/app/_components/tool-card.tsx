@@ -35,30 +35,32 @@ function ToolCard({
           <img
             src={tool.image}
             alt={tool.name}
-            className="size-12 rounded-md"
+            className="size-16 rounded-md"
           />
         ) : (
-          <div className="h-12 min-h-12 w-12 min-w-12 rounded-md bg-secondary"></div>
+          <div className="h-16 min-h-16 w-16 min-w-16 rounded-md bg-secondary"></div>
         )}
         <div className="flex w-full flex-col">
           <div className="mb-2 flex w-full items-center justify-between">
             <span className="w-fit cursor-pointer underline-offset-1 hover:underline">
               {tool.name}
             </span>
-          </div>
 
-          {tool.rating === 0 ? (
-            <span className="text-xs text-muted-foreground">no ratings</span>
-          ) : (
-            <div className="flex w-fit items-center gap-1 rounded-full bg-secondary px-3 py-1">
-              <Star className={cn("size-4 fill-yellow-500 text-yellow-500")} />
-              <span className="pt-[2px]">
-                {Number(tool.rating) % 1 === 0
-                  ? Number(tool.rating).toFixed(0)
-                  : Number(tool.rating).toFixed(1)}
-              </span>
-            </div>
-          )}
+            {tool.rating === 0 ? (
+              <span className="text-xs text-muted-foreground">no ratings</span>
+            ) : (
+              <div className="flex w-fit items-center gap-1 rounded-full bg-secondary px-3 py-1">
+                <Star
+                  className={cn("size-4 fill-yellow-500 text-yellow-500")}
+                />
+                <span className="pt-[2px]">
+                  {Number(tool.rating) % 1 === 0
+                    ? Number(tool.rating).toFixed(0)
+                    : Number(tool.rating).toFixed(1)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       {/* Tags */}
@@ -85,10 +87,12 @@ function ToolCard({
   );
 }
 
-export default ToolCard;
-
-export function ToolCardSkeleton() {
+function Skeleton() {
   return (
     <div className="flex h-[250px] w-full animate-pulse flex-col rounded-md border border-border bg-secondary p-4"></div>
   );
 }
+
+ToolCard.Skeleton = Skeleton;
+
+export default ToolCard;
