@@ -1,3 +1,4 @@
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Collection, Tool } from "@prisma/client";
 import { MoveRight } from "lucide-react";
 
@@ -7,6 +8,10 @@ export type CollectionCardProps = {
 };
 
 function CollectionCard({ collection, tools }: CollectionCardProps) {
+  const isMobile = useIsMobile();
+
+  const cutTools = isMobile ? tools.slice(0, 4) : tools.slice(0, 5);
+
   return (
     <a
       href={`/collections/${collection.id}`}
@@ -31,8 +36,8 @@ function CollectionCard({ collection, tools }: CollectionCardProps) {
 
       <div className="z-10 flex flex-col text-start">
         <div className="flex w-full flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div className="flex flex-wrap items-end gap-1 space-x-reverse md:max-w-[50%]">
-            {tools.map((tool) => (
+          <div className="flex flex-wrap items-end gap-1 space-x-reverse md:max-w-[60%]">
+            {cutTools.map((tool) => (
               <img
                 key={tool.id}
                 src={tool.image}
@@ -40,6 +45,12 @@ function CollectionCard({ collection, tools }: CollectionCardProps) {
                 className="max-h-8 max-w-8 rounded-sm bg-background object-cover"
               />
             ))}
+
+            {cutTools.length < tools.length && (
+              <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-background text-sm font-semibold text-muted-foreground">
+                +{tools.length - cutTools.length}
+              </span>
+            )}
           </div>
           <div className="flex w-fit items-center gap-2 rounded-full bg-background/50 px-3 py-1 text-sm group-hover:bg-background/70">
             <span className="">View Collection</span>
