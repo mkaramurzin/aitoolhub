@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Collection, Review, Tag, Tool } from "@prisma/client";
 import { ExternalLink } from "lucide-react";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 export function CollectionClientPage({
@@ -15,6 +16,7 @@ export function CollectionClientPage({
   collection: Collection;
   tools: { tool: Tool; review?: Review; tags: Tag[] }[];
 }) {
+  const router = useRouter();
   const tryItNowTrackingMutation = api.tools.analytics.increment.useMutation(
     {},
   );
@@ -64,16 +66,22 @@ export function CollectionClientPage({
                 {/* Image and name desktop */}
                 <div className="mb-4 hidden gap-4 sm:flex">
                   <img
+                    onClick={() => {
+                      router.push(`/tools/${item.tool.id}`);
+                    }}
                     src={item.tool.image}
                     alt={item.tool.name}
-                    className="size-24 rounded-md"
+                    className="size-24 cursor-pointer rounded-md"
                   />
                   <div className="flex w-full flex-col">
                     <div className="mb-2 flex flex-col">
                       <div className="flex justify-between">
-                        <span className="w-fit cursor-pointer text-2xl underline-offset-1 hover:underline">
+                        <a
+                          href={`/tools/${item.tool.id}`}
+                          className="w-fit cursor-pointer text-2xl underline-offset-1 hover:underline"
+                        >
                           {item.tool.name}
-                        </span>
+                        </a>
 
                         <a
                           href={item.tool.url}
