@@ -1,6 +1,11 @@
 import { SubscribeEmailCapture } from "@/app/_components/subscribe-email-capture";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { Mail, Star, TrendingUp } from "lucide-react";
 import { useQueryState } from "nuqs";
@@ -84,6 +89,8 @@ export function SearchOptions() {
         if (item.id === "subscribe") {
           return (
             <Dialog key={item.id}>
+              <DialogTitle className="hidden"></DialogTitle>
+
               <DialogTrigger asChild>{tagButton}</DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
                 <SubscribeEmailCapture />
