@@ -36,7 +36,7 @@ function CollectionCard({ collection, tools }: CollectionCardProps) {
 
       <div className="z-10 flex flex-col text-start">
         <div className="flex w-full flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div className="flex flex-wrap items-end gap-1 space-x-reverse md:max-w-[60%]">
+          <div className="flex w-full flex-wrap items-end gap-1 space-x-reverse md:max-w-[55%]">
             {cutTools.map((tool) => (
               <img
                 key={tool.id}
