@@ -91,39 +91,40 @@ function GalleryToolCard({
       {/* Analytics row */}
       <div className="flex items-center justify-between">
         <div className="flex gap-4">
+          {/* Created at */}
+          <div className="text-xs text-muted-foreground">{`${formatDistanceToNowStrict(tool.createdAt)} ago`}</div>
+        </div>
+
+        <div className="flex justify-center gap-2">
           {/* Views */}
           <span className="flex items-center gap-1 text-muted-foreground">
             <Eye className="size-4" />
             <span className="text-xs">{millify(analytics?.views ?? 0)}</span>
           </span>
-
-          {/* Created at */}
-          <div className="text-xs text-muted-foreground">{`${formatDistanceToNowStrict(tool.createdAt)} ago`}</div>
+          {/* Favorites */}
+          <span
+            id={`favorite-${tool.id}`}
+            className="group relative flex items-center gap-1 text-muted-foreground"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              addToFavoritesMutation.mutate({
+                toolId: tool.id,
+              });
+            }}
+          >
+            <label
+              htmlFor={`favorite-${tool.id}`}
+              className="absolute -inset-1 z-0 hidden rounded-[3px] bg-primary group-hover:block"
+            ></label>
+            <div className="relative z-10 flex items-center gap-1 group-hover:text-white">
+              <Bookmark className="size-4" />
+              <span className="text-xs">
+                {millify(analytics?.favorites ?? 0)}
+              </span>
+            </div>
+          </span>
         </div>
-
-        {/* Favorites */}
-        <span
-          id={`favorite-${tool.id}`}
-          className="group relative flex items-center gap-1 text-muted-foreground"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            addToFavoritesMutation.mutate({
-              toolId: tool.id,
-            });
-          }}
-        >
-          <label
-            htmlFor={`favorite-${tool.id}`}
-            className="absolute -inset-1 z-0 hidden rounded-[3px] bg-primary group-hover:block"
-          ></label>
-          <div className="relative z-10 flex items-center gap-1 group-hover:text-white">
-            <Bookmark className="size-4" />
-            <span className="text-xs">
-              {millify(analytics?.favorites ?? 0)}
-            </span>
-          </div>
-        </span>
       </div>
     </a>
   );
