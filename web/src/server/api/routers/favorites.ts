@@ -24,6 +24,9 @@ export const favoritesRouter = createTRPCRouter({
               include: {
                 ToolTags: { include: { Tag: true } },
                 ToolAnalytics: true,
+                UserToolFavorite: {
+                  where: { userId: ctx.user.id },
+                },
               },
             },
           },
