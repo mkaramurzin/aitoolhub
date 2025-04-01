@@ -79,7 +79,7 @@ function ToolCard({
           <img
             src={tool.image}
             alt={tool.name}
-            className="size-16 rounded-md"
+            className="size-16 h-full max-h-16 w-full max-w-16 rounded-md"
           />
         ) : (
           <div className="h-16 min-h-16 w-16 min-w-16 rounded-md bg-secondary"></div>
