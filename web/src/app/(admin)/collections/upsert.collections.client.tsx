@@ -1,6 +1,7 @@
 "use client";
 
 import { FileInput } from "@/app/_components/file-input";
+import { StarRating } from "@/app/_components/star-rating";
 import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +20,7 @@ import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Collection, Review, Tool } from "@prisma/client";
-import { Image, Loader2, Star, Trash } from "lucide-react";
+import { Image, Loader2, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -342,24 +343,18 @@ function UpsertCollectionsClientPage({
                         {tool.review && (
                           <div className="flex w-full flex-col gap-2">
                             <div className="flex gap-2">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <Star
-                                  key={star}
-                                  className={cn(
-                                    "size-5 cursor-pointer",
-                                    star <=
-                                      (watchedTools[index]?.review?.rating ?? 0)
-                                      ? "fill-yellow-500 text-yellow-500"
-                                      : "fill-muted text-muted",
-                                  )}
-                                  onClick={() =>
-                                    form.setValue(
-                                      `tools.${index}.review.rating`,
-                                      star,
-                                    )
-                                  }
-                                />
-                              ))}
+                              <StarRating
+                                rating={
+                                  watchedTools[index]?.review?.rating ?? 0
+                                }
+                                onRatingChange={(value) =>
+                                  form.setValue(
+                                    `tools.${index}.review.rating`,
+                                    value,
+                                  )
+                                }
+                                size={20}
+                              />
                             </div>
 
                             <FormField

@@ -18,6 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Review, Tag, Tool } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
 
+import { StarRating } from "@/app/_components/star-rating";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -78,7 +79,7 @@ export function ToolsClientPage({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       content: "",
-      rating: 5,
+      rating: 0,
       toolId: tool.id,
     },
   });
@@ -379,18 +380,11 @@ export function ToolsClientPage({
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {/* Stars */}
               <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Star
-                    key={star}
-                    className={cn(
-                      "size-5 cursor-pointer",
-                      star <= rating
-                        ? "fill-yellow-500 text-yellow-500"
-                        : "fill-muted text-muted",
-                    )}
-                    onClick={() => form.setValue("rating", star)}
-                  />
-                ))}
+                <StarRating
+                  rating={rating}
+                  onRatingChange={(value) => form.setValue("rating", value)}
+                  size={20}
+                />
               </div>
 
               <FormField
