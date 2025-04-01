@@ -1,3 +1,4 @@
+import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Tag, Tool, ToolAnalytics } from "@prisma/client";
@@ -5,6 +6,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { Bookmark, Eye, Star } from "lucide-react";
 import millify from "millify";
 import { useQueryState } from "nuqs";
+import { useState } from "react";
 import { toast } from "sonner";
 import { TagsOverflow } from "./tool-card";
 
@@ -13,12 +15,16 @@ function GalleryToolCard({
   tags,
   href,
   analytics,
+  isFavorite,
 }: {
   tool: Tool;
   tags: Tag[];
   href: string;
   analytics?: ToolAnalytics | null;
+  isFavorite: boolean;
 }) {
+  const [isFavorited, setIsFavorited] = useState(isFavorite);
+
   const [filterTags, setFilterTags] = useQueryState("tags", {
     shallow: false,
     history: "push",
@@ -33,6 +39,31 @@ function GalleryToolCard({
   const addToFavoritesMutation = api.tools.favorites.upsert.useMutation({
     onSuccess: () => {
       toast("Saved to favorites");
+      setIsFavorited(true);
+    },
+    onError: () => {
+      toast.error("Please login to save to favorites.", {
+        action: {
+          label: (
+            <span>
+              <span>Login with Google</span>
+            </span>
+          ),
+          onClick: () => {
+            authClient.signIn.social({
+              provider: "google",
+              callbackURL: window.location.href,
+            });
+          },
+        },
+      });
+    },
+  });
+
+  const removeFromFavoritesMutation = api.tools.favorites.delete.useMutation({
+    onSuccess: () => {
+      toast("Removed from favorites");
+      setIsFavorited(false);
     },
   });
 
@@ -108,6 +139,13 @@ function GalleryToolCard({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
+              if (isFavorited) {
+                removeFromFavoritesMutation.mutate({
+                  toolId: tool.id,
+                });
+                return;
+              }
+
               addToFavoritesMutation.mutate({
                 toolId: tool.id,
               });
@@ -117,8 +155,18 @@ function GalleryToolCard({
               htmlFor={`favorite-${tool.id}`}
               className="absolute -inset-1 z-0 hidden rounded-[3px] bg-primary group-hover:block"
             ></label>
-            <div className="relative z-10 flex items-center gap-1 group-hover:text-white">
-              <Bookmark className="size-4" />
+            <div
+              className={cn(
+                "relative z-10 flex items-center gap-1 group-hover:text-white",
+                isFavorited && "text-primary",
+              )}
+            >
+              <Bookmark
+                className={cn(
+                  "size-4",
+                  isFavorited ? "fill-primary group-hover:fill-white" : "",
+                )}
+              />
               <span className="text-xs">
                 {millify(analytics?.favorites ?? 0)}
               </span>

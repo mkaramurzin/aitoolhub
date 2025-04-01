@@ -118,6 +118,7 @@ export function SearchResultsPage({
                   key={tool.id}
                   tags={tool.ToolTags.flatMap((tag) => tag.Tag)}
                   analytics={tool.ToolAnalytics}
+                  isFavorite={tool.UserToolFavorite.length > 0}
                 />
               ))}
             </div>

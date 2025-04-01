@@ -39,6 +39,7 @@ export function SubmissionsClientPage({ tools }: SubmissionsClientPageProps) {
                     href={`/submissions/${item.tool.id}/update`}
                     tool={item.tool}
                     tags={item.tags}
+                    isFavorite={false}
                   />
                 ))}
               </div>

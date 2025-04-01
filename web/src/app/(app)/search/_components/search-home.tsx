@@ -59,6 +59,7 @@ export function SearchHomePage(props: { tags?: Tag[] }) {
               href={`/tools/${tool.id}`}
               tool={tool}
               tags={tool.ToolTags.flatMap((tag) => tag.Tag)}
+              isFavorite={tool.UserToolFavorite.length > 0}
             />
           )) ?? galleryToolSkeletons
         }
@@ -77,6 +78,7 @@ export function SearchHomePage(props: { tags?: Tag[] }) {
               href={`/tools/${tool.id}`}
               tool={tool}
               tags={tool.ToolTags.flatMap((tag) => tag.Tag)}
+              isFavorite={tool.UserToolFavorite.length > 0}
             />
           )) ?? galleryToolSkeletons
         }

@@ -128,6 +128,11 @@ export const toolsRouter = createTRPCRouter({
                 Tag: true,
               },
             },
+            UserToolFavorite: {
+              where: {
+                userId: ctx.user?.id,
+              },
+            },
           },
         });
 
@@ -219,6 +224,11 @@ export const toolsRouter = createTRPCRouter({
             ToolTags: {
               include: {
                 Tag: true,
+              },
+            },
+            UserToolFavorite: {
+              where: {
+                userId: ctx.user?.id,
               },
             },
           },
@@ -481,6 +491,11 @@ export const toolsRouter = createTRPCRouter({
             Tag: true,
           },
         },
+        UserToolFavorite: {
+          where: {
+            userId: ctx.user?.id,
+          },
+        },
       },
       take: 20,
       orderBy: { createdAt: "desc" },
@@ -495,6 +510,11 @@ export const toolsRouter = createTRPCRouter({
         ToolTags: {
           include: {
             Tag: true,
+          },
+        },
+        UserToolFavorite: {
+          where: {
+            userId: ctx.user?.id,
           },
         },
       },
