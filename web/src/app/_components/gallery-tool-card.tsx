@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Tag, Tool, ToolAnalytics } from "@prisma/client";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNowStrict } from "date-fns";
 import { Bookmark, Eye, Star } from "lucide-react";
 import millify from "millify";
 import { useQueryState } from "nuqs";
@@ -98,9 +98,7 @@ function GalleryToolCard({
           </span>
 
           {/* Created at */}
-          <div className="text-xs text-muted-foreground">{`Released ${formatDistanceToNow(
-            tool.createdAt,
-          )} ago`}</div>
+          <div className="text-xs text-muted-foreground">{`${formatDistanceToNowStrict(tool.createdAt)} ago`}</div>
         </div>
 
         {/* Favorites */}
