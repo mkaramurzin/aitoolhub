@@ -80,7 +80,7 @@ function CollectionsClientPage({}: CollectionsClientPageProps) {
                   )}
                 </div>
                 <a
-                  href={`/collections/${collection.id}/update`}
+                  href={`/collections/${collection.slug}/update`}
                   className="flex w-fit items-center gap-2 rounded-full bg-background/50 px-3 py-1 text-sm hover:bg-background/70"
                 >
                   <span className="">Edit Collection</span>

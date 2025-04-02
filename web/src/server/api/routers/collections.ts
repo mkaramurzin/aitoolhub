@@ -28,11 +28,13 @@ export const collectionsRouter = createTRPCRouter({
           id: input.id ?? "",
         },
         create: {
+          slug: slugify(input.name),
           name: input.name,
           description: input.description,
           image: input.image,
         },
         update: {
+          slug: slugify(input.name),
           name: input.name,
           description: input.description,
           image: input.image,
@@ -145,11 +147,11 @@ export const collectionsRouter = createTRPCRouter({
       };
     }),
   fetch: publicProcedure
-    .input(z.object({ id: z.string().uuid() }))
+    .input(z.object({ slug: z.string() }))
     .query(async ({ ctx, input }) => {
       const collection = await ctx.db.collection.findUnique({
         where: {
-          id: input.id,
+          slug: input.slug,
         },
         include: {
           CollectionTools: {

@@ -8,7 +8,7 @@ type tParams = Promise<{
 export default async function CollectionServerPage(props: { params: tParams }) {
   const { id } = await props.params;
 
-  const { collection } = await api.tools.collections.fetch({ id });
+  const { collection } = await api.tools.collections.fetch({ slug: id });
   if (!collection) {
     return <>Collection not found</>;
   }

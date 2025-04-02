@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Tag, Tool, ToolAnalytics } from "@prisma/client";
 import { formatDistanceToNow } from "date-fns";
-import { Bookmark, Eye, Star } from "lucide-react";
+import { Bookmark, ChartNoAxesColumnIcon, Star } from "lucide-react";
 import millify from "millify";
 import { useQueryState } from "nuqs";
 import { useLayoutEffect, useRef, useState } from "react";
@@ -132,7 +132,7 @@ function ToolCard({
         <div className="flex items-center gap-2">
           {/* Views */}
           <span className="flex items-center gap-1 text-muted-foreground">
-            <Eye className="size-4" />
+            <ChartNoAxesColumnIcon className="size-4" />
             <span className="text-xs">{millify(analytics?.views ?? 0)}</span>
           </span>
           {/* Favorites */}

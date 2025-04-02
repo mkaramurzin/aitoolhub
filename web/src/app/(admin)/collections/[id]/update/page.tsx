@@ -10,7 +10,7 @@ export default async function UpsertCollectionServerPage(props: {
 }) {
   const { id } = await props.params;
 
-  const { collection } = await api.tools.collections.fetch({ id });
+  const { collection } = await api.tools.collections.fetch({ slug: id });
   if (!collection) {
     return <>Collection not found</>;
   }

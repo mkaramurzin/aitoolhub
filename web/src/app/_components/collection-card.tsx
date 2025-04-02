@@ -14,7 +14,7 @@ function CollectionCard({ collection, tools }: CollectionCardProps) {
 
   return (
     <a
-      href={`/collections/${collection.id}`}
+      href={`/collections/${collection.slug}`}
       key={collection.id}
       className="group relative top-1/2 flex h-[200px] w-full -translate-y-1/2 cursor-pointer flex-col justify-between gap-2 rounded-md border border-border bg-card p-4 md:h-[300px]"
     >

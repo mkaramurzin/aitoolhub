@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Tag, Tool, ToolAnalytics } from "@prisma/client";
 import { formatDistanceToNowStrict } from "date-fns";
-import { Bookmark, Eye, Star } from "lucide-react";
+import { Bookmark, ChartNoAxesColumnIcon, Star } from "lucide-react";
 import millify from "millify";
 import { useQueryState } from "nuqs";
 import { useState } from "react";
@@ -129,7 +129,7 @@ function GalleryToolCard({
         <div className="flex justify-center gap-2">
           {/* Views */}
           <span className="flex items-center gap-1 text-muted-foreground">
-            <Eye className="size-4" />
+            <ChartNoAxesColumnIcon className="size-4" />
             <span className="text-xs">{millify(analytics?.views ?? 0)}</span>
           </span>
           {/* Favorites */}
