@@ -1,9 +1,40 @@
 import { api } from "@/trpc/server";
+import type { Metadata, ResolvingMetadata } from "next";
 import { CollectionClientPage } from "./view.collection.client";
 
 type tParams = Promise<{
   id: string;
 }>;
+
+export async function generateMetadata(
+  { params }: { params: tParams },
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
+  // read route params
+  const { id } = await params;
+
+  // fetch data
+  const { collection } = await api.tools.collections.fetch({ slug: id });
+
+  // optionally access and extend (rather than replace) parent metadata
+  const previousImages = (await parent).openGraph?.images || [];
+
+  if (!collection) {
+    return {
+      title: "Collection not found",
+      openGraph: {
+        images: [],
+      },
+    };
+  }
+
+  return {
+    title: collection.name,
+    openGraph: {
+      images: [collection.image, ...previousImages],
+    },
+  };
+}
 
 export default async function CollectionServerPage(props: { params: tParams }) {
   const { id } = await props.params;
