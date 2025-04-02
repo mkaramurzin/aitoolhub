@@ -217,6 +217,7 @@ model ToolAnalytics {
 
 model Collection {
   id                    String                 @id @default(uuid())
+  slug                  String?                @unique
   name                  String
   description           String
   image                 String

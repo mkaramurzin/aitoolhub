@@ -11,53 +11,16 @@ function AdminClientPage({}: AdminClientPageProps) {
   const deleteStuffMutation = api.groomer.deleteStuff.useMutation({});
   const createEmbeddingMutation = api.tools.createEmbeddings.useMutation({});
   const asdf = api.groomer.scrapeTaaftLinks.useMutation({});
+  const slugifyMutation = api.tools.collections.convertToSlug.useMutation({});
   return (
     <div className="flex h-full w-full items-center justify-center">
       <Button
-        disabled={syncImagesMutation.isPending}
+        disabled={slugifyMutation.isPending}
         onClick={() => {
-          syncImagesMutation.mutate();
+          slugifyMutation.mutate();
         }}
       >
-        {syncImagesMutation.isPending ? "Syncing..." : "Sync Images"}
-      </Button>
-
-      <Button
-        disabled={deleteStuffMutation.isPending}
-        onClick={() => {
-          deleteStuffMutation.mutate();
-        }}
-      >
-        {deleteStuffMutation.isPending ? "Deleting..." : "Delete Stuff"}
-      </Button>
-
-      <Button
-        disabled={parseMutation.isPending}
-        onClick={() => {
-          parseMutation.mutate({});
-        }}
-      >
-        {parseMutation.isPending ? "Grooming..." : "Groom"}
-      </Button>
-
-      <Button
-        disabled={createEmbeddingMutation.isPending}
-        onClick={() => {
-          createEmbeddingMutation.mutate({
-            text: "Hello world",
-          });
-        }}
-      >
-        {createEmbeddingMutation.isPending ? "Creating..." : "Create Embedding"}
-      </Button>
-
-      <Button
-        disabled={asdf.isPending}
-        onClick={() => {
-          asdf.mutate();
-        }}
-      >
-        {asdf.isPending ? "Removing..." : "Removing Taaft Links"}
+        {slugifyMutation.isPending ? "Slugifying..." : "Slugify"}
       </Button>
     </div>
   );
