@@ -325,11 +325,25 @@ export const toolsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      // check slug
+      const existingTool = await ctx.db.tool.findUnique({
+        where: {
+          slug: slugify(input.name),
+        },
+      });
+      if (existingTool && existingTool.id !== input.id) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Tool with this name already exists.",
+        });
+      }
+
       const tool = await ctx.db.tool.upsert({
         where: {
           id: input.id ?? uuidv4(),
         },
         create: {
+          slug: slugify(input.name),
           name: input.name,
           description: input.description,
           url: input.url,
@@ -340,6 +354,7 @@ export const toolsRouter = createTRPCRouter({
           pricing: input.pricing,
         },
         update: {
+          slug: slugify(input.name),
           name: input.name,
           description: input.description,
           url: input.url,

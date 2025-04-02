@@ -26,6 +26,7 @@ import millify from "millify";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const FormSchema = z.object({
@@ -94,6 +95,9 @@ export function SubmissionsUpsertPage({
   const submit = api.tools.upsert.useMutation({
     onSuccess: () => {
       router.push("/submissions");
+    },
+    onError: (error) => {
+      toast(error.message);
     },
   });
 
