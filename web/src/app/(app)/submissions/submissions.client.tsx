@@ -36,7 +36,7 @@ export function SubmissionsClientPage({ tools }: SubmissionsClientPageProps) {
                 {tools.map((item) => (
                   <ToolCard
                     key={item.tool.id}
-                    href={`/submissions/${item.tool.id}/update`}
+                    href={`/submissions/${item.tool.slug}/update`}
                     tool={item.tool}
                     tags={item.tags}
                     isFavorite={false}

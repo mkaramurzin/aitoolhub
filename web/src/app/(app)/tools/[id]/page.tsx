@@ -15,18 +15,18 @@ export default async function ToolsPage(props: {
 }) {
   const { id } = await props.params;
   const { page } = await props.searchParams;
-  const { tool } = await api.tools.fetch({ id });
+  const { tool } = await api.tools.fetch({ slug: id });
   const { reviews, count } = await api.reviews.fetchAll({
-    toolId: id,
+    toolId: tool.id,
     page: page ? Number(page) : 1,
   });
 
   await api.tools.analytics.increment({
-    id,
+    id: tool.id,
     views: true,
   });
 
-  const { favorite } = await api.tools.favorites.fetch({ toolId: id });
+  const { favorite } = await api.tools.favorites.fetch({ toolId: tool.id });
 
   return (
     <ToolsClientPage

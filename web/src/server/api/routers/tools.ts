@@ -21,10 +21,10 @@ export const toolsRouter = createTRPCRouter({
   analytics: toolAnalyticsRouter,
   favorites: favoritesRouter,
   fetch: publicProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ slug: z.string() }))
     .query(async ({ input, ctx }) => {
       const tool = await ctx.db.tool.findUnique({
-        where: { id: input.id },
+        where: { slug: input.slug },
         include: {
           ToolTags: {
             include: {

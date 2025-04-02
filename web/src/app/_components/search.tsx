@@ -113,7 +113,7 @@ export function SearchResultsPage({
             <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {toolsQuery.data.tools.map((tool) => (
                 <ToolCard
-                  href={`/tools/${tool.id}`}
+                  href={`/tools/${tool.slug}`}
                   tool={tool}
                   key={tool.id}
                   tags={tool.ToolTags.flatMap((tag) => tag.Tag)}

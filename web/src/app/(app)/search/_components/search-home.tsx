@@ -56,7 +56,7 @@ export function SearchHomePage(props: { tags?: Tag[] }) {
             <GalleryToolCard
               key={tool.id}
               analytics={tool.ToolAnalytics}
-              href={`/tools/${tool.id}`}
+              href={`/tools/${tool.slug}`}
               tool={tool}
               tags={tool.ToolTags.flatMap((tag) => tag.Tag)}
               isFavorite={tool.UserToolFavorite.length > 0}
@@ -75,7 +75,7 @@ export function SearchHomePage(props: { tags?: Tag[] }) {
             <GalleryToolCard
               key={tool.id}
               analytics={tool.ToolAnalytics}
-              href={`/tools/${tool.id}`}
+              href={`/tools/${tool.slug}`}
               tool={tool}
               tags={tool.ToolTags.flatMap((tag) => tag.Tag)}
               isFavorite={tool.UserToolFavorite.length > 0}

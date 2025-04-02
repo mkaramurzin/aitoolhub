@@ -14,7 +14,7 @@ export default async function SubmitPage(props: { params: tParams }) {
     return <FullScreenSignIn />;
   }
 
-  const { tool } = await api.tools.fetch({ id });
+  const { tool } = await api.tools.fetch({ slug: id });
 
   return (
     <SubmissionsUpsertPage
