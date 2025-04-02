@@ -607,9 +607,15 @@ export const toolsRouter = createTRPCRouter({
       return {};
     }),
   slugify: adminProcedure.mutation(async ({ ctx }) => {
-    const tools = await ctx.db.tool.findMany({});
+    const tools = await ctx.db.tool.findMany({
+      where: {
+        slug: null,
+      },
+    });
+    console.log("Tools without slugs: ", tools.length);
     for (const tool of tools) {
       const baseSlug = slugify(tool.name);
+      console.log(`${baseSlug}`);
       let newSlug = baseSlug;
       let count = 1;
       // Attempt to find an existing tool with the same slug (ignore self)
