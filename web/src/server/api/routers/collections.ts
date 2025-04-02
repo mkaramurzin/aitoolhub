@@ -1,3 +1,4 @@
+import { slugify } from "@/lib/slugify";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { adminProcedure, createTRPCRouter, publicProcedure } from "../trpc";
@@ -178,26 +179,4 @@ export const collectionsRouter = createTRPCRouter({
         collection,
       };
     }),
-  convertToSlug: adminProcedure.mutation(async ({ ctx, input }) => {
-    const collections = await ctx.db.collection.findMany({});
-    for (const collection of collections) {
-      const slug = slugify(collection.name);
-      await ctx.db.collection.update({
-        where: {
-          id: collection.id,
-        },
-        data: {
-          slug,
-        },
-      });
-    }
-  }),
 });
-
-function slugify(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .trim()
-    .replace(/[\s-]+/g, "-");
-}

@@ -121,6 +121,7 @@ model UserVote {
 
 model Tool {
   id               String                       @id @default(uuid())
+  slug             String?                      @unique
   name             String
   rating           Float                        @default(0)
   pricing          String                       @default("")

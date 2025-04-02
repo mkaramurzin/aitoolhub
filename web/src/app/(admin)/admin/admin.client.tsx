@@ -11,7 +11,7 @@ function AdminClientPage({}: AdminClientPageProps) {
   const deleteStuffMutation = api.groomer.deleteStuff.useMutation({});
   const createEmbeddingMutation = api.tools.createEmbeddings.useMutation({});
   const asdf = api.groomer.scrapeTaaftLinks.useMutation({});
-  const slugifyMutation = api.tools.collections.convertToSlug.useMutation({});
+  const slugifyMutation = api.tools.slugify.useMutation({});
   return (
     <div className="flex h-full w-full items-center justify-center">
       <Button

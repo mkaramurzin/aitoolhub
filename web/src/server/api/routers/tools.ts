@@ -1,4 +1,5 @@
 import { tools } from "@/lib/ai_tools";
+import { slugify } from "@/lib/slugify";
 import { openai } from "@ai-sdk/openai";
 import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
@@ -590,4 +591,27 @@ export const toolsRouter = createTRPCRouter({
       });
       return {};
     }),
+  slugify: adminProcedure.mutation(async ({ ctx }) => {
+    const tools = await ctx.db.tool.findMany({});
+    for (const tool of tools) {
+      const baseSlug = slugify(tool.name);
+      let newSlug = baseSlug;
+      let count = 1;
+      // Attempt to find an existing tool with the same slug (ignore self)
+      let existing = await ctx.db.tool.findUnique({ where: { slug: newSlug } });
+      while (existing && existing.id !== tool.id) {
+        newSlug = `${baseSlug}-${count}`;
+        count++;
+        existing = await ctx.db.tool.findUnique({ where: { slug: newSlug } });
+      }
+      await ctx.db.tool.update({
+        where: {
+          id: tool.id,
+        },
+        data: {
+          slug: newSlug,
+        },
+      });
+    }
+  }),
 });
