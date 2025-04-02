@@ -139,6 +139,7 @@ export const collectionsRouter = createTRPCRouter({
           },
           take: input.take,
           skip: (input.page - 1) * input.take,
+          orderBy: { createdAt: "desc" },
         }),
         ctx.db.collection.count({}),
       ]);
