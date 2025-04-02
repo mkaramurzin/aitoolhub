@@ -77,7 +77,7 @@ export function CollectionClientPage({
                     <div className="mb-2 flex flex-col">
                       <div className="flex justify-between">
                         <a
-                          href={`/tools/${item.tool.id}`}
+                          href={`/tools/${item.tool.slug}`}
                           className="w-fit cursor-pointer text-2xl underline-offset-1 hover:underline"
                         >
                           {item.tool.name}
