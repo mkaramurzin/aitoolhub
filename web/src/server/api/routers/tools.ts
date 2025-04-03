@@ -131,7 +131,7 @@ export const toolsRouter = createTRPCRouter({
             },
             UserToolFavorite: {
               where: {
-                userId: ctx.user?.id,
+                userId: ctx.user?.id ?? "",
               },
             },
           },
@@ -229,7 +229,7 @@ export const toolsRouter = createTRPCRouter({
             },
             UserToolFavorite: {
               where: {
-                userId: ctx.user?.id,
+                userId: ctx.user?.id ?? "",
               },
             },
           },
@@ -496,6 +496,7 @@ export const toolsRouter = createTRPCRouter({
     return { count };
   }),
   defaultTools: publicProcedure.query(async ({ ctx }) => {
+    console.log(ctx.user?.id);
     const newTools = await ctx.db.tool.findMany({
       where: {
         deletedAt: null,
@@ -509,7 +510,7 @@ export const toolsRouter = createTRPCRouter({
         },
         UserToolFavorite: {
           where: {
-            userId: ctx.user?.id,
+            userId: ctx.user?.id ?? "",
           },
         },
       },
@@ -530,7 +531,7 @@ export const toolsRouter = createTRPCRouter({
         },
         UserToolFavorite: {
           where: {
-            userId: ctx.user?.id,
+            userId: ctx.user?.id ?? "",
           },
         },
       },
