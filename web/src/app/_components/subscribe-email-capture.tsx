@@ -45,7 +45,7 @@ export function SubscribeEmailCapture(props: EmailCaptureProps) {
         <div className="flex items-center text-3xl">
           <Mail className="mr-4 size-6 text-primary" strokeWidth={3} />
 
-          <span className="text-xl text-white">Join the AI Revolution</span>
+          <span className="text-xl text-white">Join the Community</span>
         </div>
 
         <span className="text-muted-foreground">
