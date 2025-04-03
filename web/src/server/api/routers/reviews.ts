@@ -1,3 +1,4 @@
+import { db } from "@/server/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -71,29 +72,7 @@ export const reviewsRouter = createTRPCRouter({
         },
       });
 
-      // Update the tool's rating
-      const averageRating = await ctx.db.review.aggregate({
-        where: {
-          toolId: input.toolId,
-        },
-        _sum: {
-          rating: true,
-        },
-        _count: true,
-      });
-
-      const newRating =
-        (averageRating._sum?.rating ?? 0) / (averageRating._count ?? 1);
-
-      await ctx.db.tool.update({
-        where: {
-          id: input.toolId,
-        },
-        data: {
-          rating: newRating,
-        },
-      });
-
+      await updateToolRating({ toolId: input.toolId });
       return { review };
     }),
   rate: authenticatedProcedure
@@ -187,20 +166,49 @@ export const reviewsRouter = createTRPCRouter({
   delete: authenticatedProcedure
     .input(z.object({ reviewId: z.string().uuid() }))
     .mutation(async ({ input, ctx }) => {
-      await ctx.db.review.delete({
+      const review = await ctx.db.review.delete({
         where: {
           id: input.reviewId,
           userId: ctx.user.id,
         },
       });
+
+      await updateToolRating({ toolId: review.toolId });
     }),
   adminDelete: adminProcedure
     .input(z.object({ reviewId: z.string().uuid() }))
     .mutation(async ({ input, ctx }) => {
-      await ctx.db.review.delete({
+      const review = await ctx.db.review.delete({
         where: {
           id: input.reviewId,
         },
       });
+
+      await updateToolRating({ toolId: review.toolId });
     }),
 });
+
+export async function updateToolRating({ toolId }: { toolId: string }) {
+  // Update the tool's rating
+  const averageRating = await db.review.aggregate({
+    where: {
+      toolId: toolId,
+    },
+    _sum: {
+      rating: true,
+    },
+    _count: true,
+  });
+
+  const newRating =
+    (averageRating._sum?.rating ?? 0) / (averageRating._count ?? 1);
+
+  await db.tool.update({
+    where: {
+      id: toolId,
+    },
+    data: {
+      rating: newRating,
+    },
+  });
+}

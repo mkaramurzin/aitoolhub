@@ -2,6 +2,7 @@ import { slugify } from "@/lib/slugify";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { adminProcedure, createTRPCRouter, publicProcedure } from "../trpc";
+import { updateToolRating } from "./reviews";
 export const collectionsRouter = createTRPCRouter({
   upsert: adminProcedure
     .input(
@@ -104,6 +105,8 @@ export const collectionsRouter = createTRPCRouter({
             reviewId: review.id,
           },
         });
+
+        await updateToolRating({ toolId: tool.toolId });
       });
     }),
   delete: adminProcedure
