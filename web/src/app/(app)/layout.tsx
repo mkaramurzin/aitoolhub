@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/ui/sidebar/app-sidebar";
 import { api } from "@/trpc/server";
 import { cookies } from "next/headers";
 import { Header } from "../_components/header";
+import { Footer } from "../_components/footer";
 
 export default async function Layout({
   children,
@@ -28,7 +29,8 @@ export default async function Layout({
         {/* <TimedEmailPopup /> */}
         <div className="flex min-h-dvh w-full flex-col md:max-w-[calc(100dvw-64px)]">
           <Header />
-          {children}
+          <main className="flex-1">{children}</main>
+          <Footer />
         </div>
       </SidebarProvider>
     </div>
