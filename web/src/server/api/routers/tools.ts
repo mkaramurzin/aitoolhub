@@ -14,12 +14,14 @@ import {
 } from "../trpc";
 import { collectionsRouter } from "./collections";
 import { favoritesRouter } from "./favorites";
+import { searchHistoryRouter } from "./searchHistory";
 import { toolAnalyticsRouter } from "./toolAnalytics";
 
 export const toolsRouter = createTRPCRouter({
   collections: collectionsRouter,
   analytics: toolAnalyticsRouter,
   favorites: favoritesRouter,
+  searchHistory: searchHistoryRouter,
   fetch: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ input, ctx }) => {
