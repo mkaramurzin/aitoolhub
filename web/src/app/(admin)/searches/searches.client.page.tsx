@@ -25,8 +25,6 @@ import { format } from "date-fns";
 import { useQueryState } from "nuqs";
 import * as React from "react";
 
-const PAGE_SIZE = 10;
-
 export type SearchesClientPageProps = {};
 
 export function SearchesClientPage(props: SearchesClientPageProps) {
@@ -53,7 +51,7 @@ export function SearchesClientPage(props: SearchesClientPageProps) {
   );
 
   const totalCount = searchesQuery.data?.count ?? 0;
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   const { pages, showLeftEllipsis, showRightEllipsis } = usePagination({
     currentPage: page ?? 1,
