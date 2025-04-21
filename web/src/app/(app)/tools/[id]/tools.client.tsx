@@ -272,7 +272,9 @@ export function ToolsClientPage({
           <TabsContent value="overview" className="py-6">
             <div className="flex w-full flex-col">
               <div className="mb-4 flex w-full items-center justify-between">
-                <span className="self-start text-2xl">Overview</span>
+                <span className="hidden self-start text-2xl lg:block">
+                  Overview
+                </span>
 
                 {/* tags and rating */}
                 <div className="flex gap-4">
