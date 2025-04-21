@@ -15,8 +15,8 @@ import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Review, Tag, Tool } from "@prisma/client";
-import { formatDistanceToNow } from "date-fns";
+import { Review, Tag, Tool, ToolRelease } from "@prisma/client";
+import { format, formatDistanceToNow } from "date-fns";
 
 import { StarRating } from "@/app/_components/star-rating";
 import {
@@ -25,6 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Bookmark,
   EllipsisVertical,
@@ -42,7 +43,6 @@ import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
 export type ToolsClientPageProps = {
   tool: Tool;
   tags: Tag[];
@@ -54,6 +54,7 @@ export type ToolsClientPageProps = {
   }[];
   reviewsCount: number;
   isFavorite: boolean;
+  releases: ToolRelease[];
 };
 
 const FormSchema = z.object({
@@ -68,6 +69,7 @@ export function ToolsClientPage({
   reviews,
   reviewsCount,
   isFavorite,
+  releases,
 }: ToolsClientPageProps) {
   const router = useRouter();
   const [page, setPage] = useQueryState("page", {
@@ -157,51 +159,7 @@ export function ToolsClientPage({
 
   return (
     <div className="flex h-full w-full justify-center">
-      <div className="flex h-full w-full max-w-3xl flex-col items-center space-y-4 p-4 sm:pt-10">
-        <div className="flex w-full gap-4 sm:hidden">
-          {userData?.user && (
-            <Button
-              className="relative flex h-12 w-full items-center justify-center gap-2"
-              variant={"secondary"}
-              size={"lg"}
-              onClick={favoritesButtonClicked}
-            >
-              <span
-                className={cn(
-                  addToFavoritesMutation.isPending ||
-                    removeFromFavoritesMutation.isPending
-                    ? "opacity-0"
-                    : "opacity-100",
-                  "flex items-center gap-2",
-                )}
-              >
-                <Bookmark className="size-4" />
-                {isFavorite ? "Remove" : "Save"}
-              </span>
-
-              {(addToFavoritesMutation.isPending ||
-                removeFromFavoritesMutation.isPending) && (
-                <Loader2 className="absolute size-4 animate-spin" />
-              )}
-            </Button>
-          )}
-
-          <a
-            href={tool.url}
-            target="_blank"
-            className={cn(buttonVariants(), "flex h-12 w-full gap-2")}
-            onClick={() => {
-              tryItNowTrackingMutation.mutate({
-                id: tool.id,
-                tryItNowClicks: true,
-              });
-            }}
-          >
-            <span>Try it now</span>
-            <ExternalLink className="size-4" />
-          </a>
-        </div>
-
+      <div className="flex h-full w-full max-w-5xl flex-col items-center space-y-4 p-4 sm:pt-10">
         {isAdmin && (
           <div className="group flex w-full flex-col rounded-md border-border bg-primary/10 p-4">
             <span className="mb-4 text-xl">Admin</span>
@@ -231,233 +189,277 @@ export function ToolsClientPage({
           </div>
         )}
 
-        {/* tool */}
-        <div
-          key={tool.id}
-          className="group flex w-full flex-col rounded-md border-border bg-primary/10 p-4"
-        >
-          {/* Image and name desktop */}
-          <div className="mb-4 hidden gap-4 sm:flex">
+        {/* Header */}
+        <div className="flex w-full flex-col justify-between gap-4 lg:flex-row lg:items-center">
+          {/* image and title */}
+          <div className="flex items-center gap-2">
             <img
               src={tool.image}
               alt={tool.name}
-              className="size-20 rounded-md"
+              className="size-20 rounded-md object-cover"
             />
+            <div className="flex flex-col">
+              <span className="text-2xl">{tool.name}</span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-4">
+            {userData?.user && (
+              <Button
+                className="relative flex items-center justify-center gap-2"
+                variant={"secondary"}
+                onClick={favoritesButtonClicked}
+              >
+                <span
+                  className={cn(
+                    addToFavoritesMutation.isPending ||
+                      removeFromFavoritesMutation.isPending
+                      ? "opacity-0"
+                      : "opacity-100",
+                    "flex items-center gap-2",
+                  )}
+                >
+                  <Bookmark className="size-4" />
+                  {isFavorite ? "Remove" : "Save"}
+                </span>
+
+                {(addToFavoritesMutation.isPending ||
+                  removeFromFavoritesMutation.isPending) && (
+                  <Loader2 className="absolute size-4 animate-spin" />
+                )}
+              </Button>
+            )}
+
+            <a
+              href={tool.url}
+              target="_blank"
+              className={cn(buttonVariants(), "flex gap-2")}
+              onClick={() => {
+                tryItNowTrackingMutation.mutate({
+                  id: tool.id,
+                  tryItNowClicks: true,
+                });
+              }}
+            >
+              <span>Try it now</span>
+              <ExternalLink className="size-4" />
+            </a>
+          </div>
+        </div>
+
+        <Tabs defaultValue="overview" className="w-full items-center">
+          <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
+            <TabsTrigger
+              value="overview"
+              className="relative rounded-none py-2 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary"
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger
+              value="Releases"
+              className="relative rounded-none py-2 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary"
+            >
+              Releases
+            </TabsTrigger>
+            <TabsTrigger
+              value="Reviews"
+              className="relative rounded-none py-2 after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:bg-primary"
+            >
+              Reviews
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="overview" className="py-6">
             <div className="flex w-full flex-col">
-              <div className="mb-2 flex flex-col">
-                <div className="flex justify-between">
-                  <span className="w-fit cursor-pointer text-2xl underline-offset-1 hover:underline">
-                    {tool.name}
-                  </span>
+              <div className="mb-4 flex w-full items-center justify-between">
+                <span className="self-start text-2xl">Overview</span>
 
-                  <div className="mb-2 flex gap-4">
-                    {userData?.user && (
-                      <Button
-                        className="relative flex w-full items-center justify-center gap-2"
-                        variant={"secondary"}
-                        onClick={favoritesButtonClicked}
-                      >
-                        <span
-                          className={cn(
-                            addToFavoritesMutation.isPending ||
-                              removeFromFavoritesMutation.isPending
-                              ? "opacity-0"
-                              : "opacity-100",
-                            "flex items-center gap-2",
-                          )}
-                        >
-                          <Bookmark className="size-4" />
-
-                          {isFavorite ? "Remove" : "Save"}
-                        </span>
-
-                        {(addToFavoritesMutation.isPending ||
-                          removeFromFavoritesMutation.isPending) && (
-                          <Loader2 className="absolute size-4 animate-spin" />
-                        )}
-                      </Button>
-                    )}
-
-                    <a
-                      href={tool.url}
-                      target="_blank"
-                      className={cn(buttonVariants(), "flex gap-2")}
-                      onClick={() => {
-                        tryItNowTrackingMutation.mutate({
-                          id: tool.id,
-                          tryItNowClicks: true,
-                        });
-                      }}
-                    >
-                      <span>Try it now</span>
-                      <ExternalLink className="size-4" />
-                    </a>
+                {/* tags and rating */}
+                <div className="flex gap-4">
+                  {/* Rating */}
+                  <div className="flex items-center gap-1 text-primary">
+                    <Star className="size-5 fill-yellow-500 text-yellow-500" />
+                    <span className="text-sm">
+                      {Number(tool.rating).toFixed(1)}
+                    </span>
+                  </div>
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-4">
+                    {tags.map((tag) => (
+                      <Badge key={tag.name} className="cursor-pointer">
+                        {tag.name}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
+              </div>
+
+              {/* images */}
+              <div className="mb-6 aspect-video w-full">
+                <img
+                  src={tool.image}
+                  alt={tool.name}
+                  className="h-full w-full rounded-md object-cover"
+                />
+              </div>
+
+              {/* Description */}
+              <div className="group mb-4 flex w-full flex-col space-y-2 rounded-md">
+                <span className="text-xl">About {tool.name}</span>
                 <span className="text-muted-foreground">
                   {tool.description}
                 </span>
               </div>
 
-              {/* Rating */}
-              <div className="mb-4 flex items-center gap-1 text-primary">
-                <Star className="size-5 fill-yellow-500 text-yellow-500" />
-                <span className="text-sm">
-                  {Number(tool.rating).toFixed(1)}
-                </span>
-              </div>
+              {/* Pricing */}
+              <div className="group flex w-full flex-col space-y-2 rounded-md border-border bg-primary/10 p-4">
+                <span className="text-xl">Pricing</span>
 
-              {/* Tags */}
-              <div className="flex flex-wrap gap-4">
-                {tags.map((tag) => (
-                  <Badge key={tag.name} className="cursor-pointer">
-                    {tag.name}
-                  </Badge>
-                ))}
+                <div className="flex w-full gap-4">
+                  <span>Model</span>
+                  <span className="text-muted-foreground">
+                    {getPricing(tool.pricing)}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          </TabsContent>
+          <TabsContent value="Releases" className="py-6">
+            <div className="flex w-full flex-col">
+              <span className="mb-4 self-start text-2xl">Releases</span>
+              <div className="flex w-full flex-col gap-4">
+                {releases.map((release) => (
+                  <div
+                    key={release.id}
+                    className="group flex w-full flex-col rounded-md border-border bg-primary/10 p-4"
+                  >
+                    <div className="mb-2 flex flex-col justify-between gap-2 border-b border-border pb-2">
+                      <span className="text-lg">
+                        Version: {release.version}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        Released {format(release.createdAt, "MMM dd, yyyy")}
+                      </span>
+                    </div>
 
-          {/* Image and name mobile */}
-          <div className="mb-4 flex flex-col gap-4 sm:hidden">
-            <div className="flex gap-4">
-              <img
-                src={tool.image}
-                alt={tool.name}
-                className="size-20 rounded-md"
-              />
-              <div className="flex w-full flex-col">
-                <div className="mb-2 flex flex-col">
-                  <div className="flex justify-between">
-                    <span className="w-fit cursor-pointer text-2xl underline-offset-1 hover:underline">
-                      {tool.name}
+                    <span className="text-white/70">{release.notes}</span>
+                  </div>
+                ))}
+
+                {/* Initial release */}
+                <div className="group flex w-full flex-col rounded-md border-border bg-primary/10 p-4">
+                  <div className="flex flex-col justify-between gap-2">
+                    <span className="text-lg">Launch</span>
+                    <span className="text-sm text-muted-foreground">
+                      {format(tool.createdAt, "MMM dd, yyyy")}
                     </span>
                   </div>
                 </div>
-
-                {/* Rating */}
-                <div className="mb-4 flex items-center gap-1 text-primary">
-                  <Star className="size-5 fill-yellow-500 text-yellow-500" />
-                  <span className="text-sm">
-                    {Number(tool.rating).toFixed(1)}
-                  </span>
-                </div>
               </div>
             </div>
+          </TabsContent>
+          <TabsContent value="Reviews" className="py-6">
+            <div className="flex w-full flex-col">
+              <span className="mb-4 self-start text-2xl">Reviews</span>
 
-            {/* Tags */}
-            <div className="flex flex-wrap gap-4">
-              {tags.map((tag) => (
-                <Badge key={tag.name} className="cursor-pointer">
-                  {tag.name}
-                </Badge>
-              ))}
-            </div>
+              {/* Write a review */}
+              <div className="group mb-4 flex w-full flex-col space-y-4 rounded-md border-border bg-primary/10 p-4">
+                <span className="text-xl">Write a Review</span>
 
-            <span className="text-muted-foreground">{tool.description}</span>
-          </div>
-        </div>
-
-        {/* Pricing */}
-        <div className="group flex w-full flex-col space-y-2 rounded-md border-border bg-primary/10 p-4">
-          <span className="text-xl">Pricing</span>
-
-          <div className="flex w-full gap-4">
-            <span>Model</span>
-            <span className="text-muted-foreground">
-              {getPricing(tool.pricing)}
-            </span>
-          </div>
-        </div>
-
-        <span className="self-start text-2xl">Reviews</span>
-
-        {/* Write a review */}
-        <div className="group flex w-full flex-col space-y-4 rounded-md border-border bg-primary/10 p-4">
-          <span className="text-xl">Write a Review</span>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Stars */}
-              <div className="flex gap-2">
-                <StarRating
-                  rating={rating}
-                  onRatingChange={(value) => form.setValue("rating", value)}
-                  size={20}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea
-                        className="content"
-                        placeholder="Optionally, share your experience..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              {!userData?.user ? (
-                <Button
-                  onClick={() => {
-                    authClient.signIn.social({
-                      provider: "google",
-                      callbackURL: window.location.href,
-                    });
-                  }}
-                  type="button"
-                >
-                  Sign in to submit
-                </Button>
-              ) : (
-                <Button
-                  disabled={reviewMutation.isPending}
-                  type="submit"
-                  className="relative flex items-center justify-center"
-                >
-                  <span
-                    className={cn(
-                      reviewMutation.isPending ? "opacity-0" : "opacity-100",
-                    )}
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(onSubmit)}
+                    className="space-y-4"
                   >
-                    Submit
-                  </span>
+                    {/* Stars */}
+                    <div className="flex gap-2">
+                      <StarRating
+                        rating={rating}
+                        onRatingChange={(value) =>
+                          form.setValue("rating", value)
+                        }
+                        size={20}
+                      />
+                    </div>
 
-                  {reviewMutation.isPending && (
-                    <Loader2 className="absolute size-4 animate-spin" />
-                  )}
-                </Button>
+                    <FormField
+                      control={form.control}
+                      name="content"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Textarea
+                              className="content"
+                              placeholder="Optionally, share your experience..."
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {!userData?.user ? (
+                      <Button
+                        onClick={() => {
+                          authClient.signIn.social({
+                            provider: "google",
+                            callbackURL: window.location.href,
+                          });
+                        }}
+                        type="button"
+                      >
+                        Sign in to submit
+                      </Button>
+                    ) : (
+                      <Button
+                        disabled={reviewMutation.isPending}
+                        type="submit"
+                        className="relative flex items-center justify-center"
+                      >
+                        <span
+                          className={cn(
+                            reviewMutation.isPending
+                              ? "opacity-0"
+                              : "opacity-100",
+                          )}
+                        >
+                          Submit
+                        </span>
+
+                        {reviewMutation.isPending && (
+                          <Loader2 className="absolute size-4 animate-spin" />
+                        )}
+                      </Button>
+                    )}
+                  </form>
+                </Form>
+              </div>
+
+              {/* Reviews */}
+              <div className="flex w-full flex-col gap-4">
+                {reviews.map((review) => (
+                  <UserReview
+                    key={review.review.id}
+                    review={review.review}
+                    user={review.user}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {reviewsCount > 0 && (
+                <PaginationBar
+                  page={page ?? 1}
+                  totalPages={totalPages}
+                  pages={pages}
+                  showLeftEllipsis={showLeftEllipsis}
+                  showRightEllipsis={showRightEllipsis}
+                  setPage={setPage}
+                />
               )}
-            </form>
-          </Form>
-        </div>
-
-        {/* Reviews */}
-        {reviews.map((review) => (
-          <UserReview
-            key={review.review.id}
-            review={review.review}
-            user={review.user}
-          />
-        ))}
-
-        {/* Pagination */}
-        {reviewsCount > 0 && (
-          <PaginationBar
-            page={page ?? 1}
-            totalPages={totalPages}
-            pages={pages}
-            showLeftEllipsis={showLeftEllipsis}
-            showRightEllipsis={showRightEllipsis}
-            setPage={setPage}
-          />
-        )}
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

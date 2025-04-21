@@ -142,6 +142,7 @@ model Tool {
   ToolAnalytics    ToolAnalytics?
   CollectionTool   CollectionTool[]
   UserToolFavorite UserToolFavorite[]
+  ToolRelease      ToolRelease[]
 
   @@index([name])
   @@index([pricing])
@@ -260,4 +261,16 @@ model UserToolFavorite {
   Tool Tool @relation(fields: [toolId], references: [id], onDelete: Cascade)
 
   @@id([userId, toolId])
+}
+
+model ToolRelease {
+  id          String   @id @default(uuid())
+  toolId      String
+  version     String
+  notes       String
+  releaseDate DateTime @db.Timestamptz
+  createdAt   DateTime @default(now()) @db.Timestamptz
+  updatedAt   DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  Tool Tool @relation(fields: [toolId], references: [id], onDelete: Cascade)
 }

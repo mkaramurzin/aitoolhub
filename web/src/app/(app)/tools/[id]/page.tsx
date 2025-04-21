@@ -58,6 +58,10 @@ export default async function ToolsPage(props: {
     views: true,
   });
 
+  const { releases } = await api.tools.releases.fetchAll({
+    toolId: tool.id,
+  });
+
   const { favorite } = await api.tools.favorites.fetch({ toolId: tool.id });
 
   return (
@@ -69,6 +73,7 @@ export default async function ToolsPage(props: {
           name: review.User.name,
         },
       }))}
+      releases={releases}
       tool={tool}
       tags={tool.ToolTags.flatMap((tt) => tt.Tag)}
       isFavorite={Boolean(favorite)}

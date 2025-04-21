@@ -14,6 +14,7 @@ import {
 } from "../trpc";
 import { collectionsRouter } from "./collections";
 import { favoritesRouter } from "./favorites";
+import { releasesRouter } from "./releases";
 import { searchHistoryRouter } from "./searchHistory";
 import { toolAnalyticsRouter } from "./toolAnalytics";
 
@@ -22,6 +23,7 @@ export const toolsRouter = createTRPCRouter({
   analytics: toolAnalyticsRouter,
   favorites: favoritesRouter,
   searchHistory: searchHistoryRouter,
+  releases: releasesRouter,
   fetch: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ input, ctx }) => {
