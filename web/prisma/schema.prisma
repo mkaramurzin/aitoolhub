@@ -120,29 +120,30 @@ model UserVote {
 }
 
 model Tool {
-  id               String                       @id @default(uuid())
-  slug             String?                      @unique
-  name             String
-  rating           Float                        @default(0)
-  pricing          String                       @default("")
-  excerpt          String?
-  description      String
-  url              String
-  image            String
-  logoImageUrl     String?
-  screenshotUrl    String?
-  ownerId          String?
-  createdAt        DateTime                     @default(now()) @db.Timestamptz
-  updatedAt        DateTime                     @default(now()) @updatedAt @db.Timestamptz
-  deletedAt        DateTime?                    @db.Timestamptz
-  vector           Unsupported("vector(1536)")?
-  User             User?                        @relation(fields: [ownerId], references: [id])
-  ToolTags         ToolTags[]
-  Review           Review[]
-  ToolAnalytics    ToolAnalytics?
-  CollectionTool   CollectionTool[]
-  UserToolFavorite UserToolFavorite[]
-  ToolRelease      ToolRelease[]
+  id                String                       @id @default(uuid())
+  slug              String?                      @unique
+  name              String
+  rating            Float                        @default(0)
+  pricing           String                       @default("")
+  excerpt           String?
+  description       String
+  url               String
+  image             String
+  logoImageUrl      String?
+  screenshotUrl     String?
+  ownerId           String?
+  createdAt         DateTime                     @default(now()) @db.Timestamptz
+  updatedAt         DateTime                     @default(now()) @updatedAt @db.Timestamptz
+  deletedAt         DateTime?                    @db.Timestamptz
+  vector            Unsupported("vector(1536)")?
+  User              User?                        @relation(fields: [ownerId], references: [id])
+  ToolTags          ToolTags[]
+  Review            Review[]
+  ToolAnalytics     ToolAnalytics?
+  CollectionTool    CollectionTool[]
+  UserToolFavorite  UserToolFavorite[]
+  ToolRelease       ToolRelease[]
+  TechCrunchSponsor TechCrunchSponsor[]
 
   @@index([name])
   @@index([pricing])
@@ -176,6 +177,7 @@ model Tag {
 model Waitlist {
   id        String   @id @default(uuid())
   email     String
+  isContact Boolean  @default(false)
   createdAt DateTime @default(now()) @db.Timestamptz
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz
 }
@@ -273,4 +275,53 @@ model ToolRelease {
   updatedAt   DateTime @default(now()) @updatedAt @db.Timestamptz
 
   Tool Tool @relation(fields: [toolId], references: [id], onDelete: Cascade)
+}
+
+enum TechCrunchStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model TechCrunch {
+  id        String           @id @default(uuid())
+  title     String
+  subject   String
+  status    TechCrunchStatus @default(DRAFT)
+  createdAt DateTime         @default(now()) @db.Timestamptz
+  updatedAt DateTime         @default(now()) @updatedAt @db.Timestamptz
+
+  TechCrunchSponsor TechCrunchSponsor[]
+  TechCrunchSummary TechCrunchSummary[]
+  TechCrunchTool    TechCrunchTool[]
+}
+
+model TechCrunchSponsor {
+  id           String @id @default(uuid())
+  techCrunchId String
+  toolId       String
+
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  TechCrunch TechCrunch @relation(fields: [techCrunchId], references: [id], onDelete: Cascade)
+  Tool       Tool       @relation(fields: [toolId], references: [id], onDelete: Cascade)
+}
+
+model TechCrunchSummary {
+  id           String     @id @default(uuid())
+  techCrunchId String
+  summary      String
+  createdAt    DateTime   @default(now()) @db.Timestamptz
+  updatedAt    DateTime   @default(now()) @updatedAt @db.Timestamptz
+  TechCrunch   TechCrunch @relation(fields: [techCrunchId], references: [id], onDelete: Cascade)
+}
+
+model TechCrunchTool {
+  id           String     @id @default(uuid())
+  techCrunchId String
+  name         String
+  description  String
+  createdAt    DateTime   @default(now()) @db.Timestamptz
+  updatedAt    DateTime   @default(now()) @updatedAt @db.Timestamptz
+  TechCrunch   TechCrunch @relation(fields: [techCrunchId], references: [id], onDelete: Cascade)
 }

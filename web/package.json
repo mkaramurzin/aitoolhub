@@ -23,7 +23,8 @@
     "start": "next start",
     "stripe": "stripe listen --forward-to localhost:3000/api/webhooks/stripe",
     "typecheck": "tsc --noEmit",
-    "s3": "node ./s3/s3.js"
+    "s3": "node ./s3/s3.js",
+    "email:dev": "email dev"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^0.1.6",
@@ -61,6 +62,7 @@
     "@radix-ui/react-toggle": "^1.1.1",
     "@radix-ui/react-toggle-group": "^1.1.1",
     "@radix-ui/react-tooltip": "^1.1.7",
+    "@react-email/components": "0.0.36",
     "@react-three/drei": "^9.121.3",
     "@react-three/fiber": "^9.0.0-alpha.8",
     "@react-three/postprocessing": "^2.19.1",
@@ -99,6 +101,7 @@
     "react-resizable-panels": "^2.1.7",
     "react-swipeable": "^7.0.2",
     "recharts": "^2.15.0",
+    "resend": "^4.4.1",
     "s3rver": "^3.7.1",
     "server-only": "^0.0.1",
     "sonner": "^1.7.2",
@@ -127,6 +130,7 @@
     "prettier": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.6.5",
     "prisma": "^5.14.0",
+    "react-email": "4.0.7",
     "tailwind-scrollbar": "^4.0.0",
     "tailwindcss": "^3.4.3",
     "typescript": "^5.5.3"

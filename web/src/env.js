@@ -17,6 +17,7 @@ export const env = createEnv({
     AWS_ACCESS_KEY_ID: z.string(),
     AWS_SECRET_ACCESS_KEY: z.string(),
     OPENAI_API_KEY: z.string(),
+    RESEND_API_KEY: z.string(),
   },
 
   /**
@@ -51,6 +52,7 @@ export const env = createEnv({
     NEXT_PUBLIC_S3_IMAGE_URL: process.env.NEXT_PUBLIC_S3_IMAGE_URL,
     NEXT_PUBLIC_S3_BUCKET_NAME: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
     NEXT_PUBLIC_S3_BUCKET_ENDPOINT: process.env.NEXT_PUBLIC_S3_BUCKET_ENDPOINT,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
