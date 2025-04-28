@@ -56,9 +56,10 @@ import {
   TechCrunchTool,
   Tool,
 } from "@prisma/client";
+import { render } from "@react-email/render";
 import { Loader2, Plus, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -122,6 +123,10 @@ export function TechCrunchUpsertPage({
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
   const [query, setQuery] = useState("");
+
+  const [renderedEmailHtml, setRenderedEmailHtml] = useState<string | null>(
+    null,
+  );
 
   const toolsQuery = api.tools.fetchAll.useQuery(
     {
@@ -216,6 +221,42 @@ export function TechCrunchUpsertPage({
   function onSubmit(data: z.infer<typeof FormSchema>) {
     submit.mutate(data);
   }
+
+  useEffect(() => {
+    const renderEmail = async () => {
+      const html = await render(
+        <MarketingEmail
+          previewText={form.watch("subject")}
+          title={form.watch("title")}
+          subject={form.watch("subject")}
+          sponsors={form.watch("sponsors").map((sponsor) => ({
+            ...sponsor,
+            name: sponsor.name || "",
+            logo: sponsor.image || "", // Use actual image for logo
+            url: "", // We don't have tool URL in this data, keep empty for now
+          }))}
+          overview={form.watch("summaries").map((summary) => summary.summary)}
+          tools={form.watch("tools")}
+          breakingNews={form.watch("breakingNews")}
+        />,
+      );
+      setRenderedEmailHtml(html);
+    };
+
+    if (activeTab === "preview") {
+      renderEmail();
+    } else {
+      setRenderedEmailHtml(null); // Clear preview when not on preview tab
+    }
+  }, [
+    activeTab,
+    form.watch("subject"),
+    form.watch("title"),
+    form.watch("sponsors"),
+    form.watch("summaries"),
+    form.watch("tools"),
+    form.watch("breakingNews"),
+  ]);
 
   return (
     <div className="flex flex-col items-center">
@@ -892,22 +933,21 @@ export function TechCrunchUpsertPage({
                   </CardHeader>
                   <CardContent>
                     <div className="max-h-[600px] overflow-auto rounded-md border bg-background p-4">
-                      <MarketingEmail
-                        previewText={form.watch("subject")}
-                        title={form.watch("title")}
-                        subject={form.watch("subject")}
-                        sponsors={form.watch("sponsors").map((sponsor) => ({
-                          ...sponsor,
-                          name: sponsor.name || "",
-                          logo: "",
-                          url: "",
-                        }))}
-                        overview={form
-                          .watch("summaries")
-                          .map((summary) => summary.summary)}
-                        tools={form.watch("tools")}
-                        breakingNews={form.watch("breakingNews")}
-                      />
+                      {renderedEmailHtml ? (
+                        <iframe
+                          srcDoc={renderedEmailHtml}
+                          style={{
+                            width: "100%",
+                            height: "500px",
+                            border: "none",
+                          }}
+                          title="Email Preview"
+                        />
+                      ) : (
+                        <div className="flex h-[500px] items-center justify-center">
+                          <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
