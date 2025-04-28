@@ -290,9 +290,21 @@ model TechCrunch {
   createdAt DateTime         @default(now()) @db.Timestamptz
   updatedAt DateTime         @default(now()) @updatedAt @db.Timestamptz
 
-  TechCrunchSponsor TechCrunchSponsor[]
-  TechCrunchSummary TechCrunchSummary[]
-  TechCrunchTool    TechCrunchTool[]
+  TechCrunchSponsor      TechCrunchSponsor[]
+  TechCrunchSummary      TechCrunchSummary[]
+  TechCrunchTool         TechCrunchTool[]
+  TechCrunchBreakingNews TechCrunchBreakingNews[]
+}
+
+model TechCrunchBreakingNews {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  techCrunchId String
+  createdAt    DateTime @default(now()) @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  TechCrunch TechCrunch @relation(fields: [techCrunchId], references: [id], onDelete: Cascade)
 }
 
 model TechCrunchSponsor {

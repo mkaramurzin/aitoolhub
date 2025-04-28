@@ -15,7 +15,25 @@ import {
 import tailwindConfig from "tailwind.config";
 import { theme } from "./email-theme";
 
-export default function MarketingEmail() {
+interface MarketingEmailProps {
+  title: string;
+  previewText: string;
+  subject: string;
+  overview: string[];
+  breakingNews: { title: string; description: string }[];
+  tools: { name: string; description: string }[];
+  sponsors: { name: string; logo: string; url: string }[];
+}
+
+export default function MarketingEmail({
+  title,
+  previewText,
+  subject,
+  overview,
+  breakingNews,
+  tools,
+  sponsors,
+}: MarketingEmailProps) {
   return (
     <Html>
       <Head />
@@ -56,86 +74,13 @@ export default function MarketingEmail() {
             backgroundColor: theme.colors.background,
           }}
         >
-          <Overview
-            overview={[
-              "AI Tool Hub is the best place to find AI tools",
-              "We have a new tool for you to try out today",
-              "Check out our latest blog post on AI trends",
-              "Don't forget to check out our sponsors",
-              "We have a special offer for you",
-              "Join our community on Discord",
-            ]}
-          />
+          <Overview overview={overview} />
           <Section className="p-2" />
-          <BreakingNews
-            summaries={[
-              {
-                title: "AI Tool Hub is the best place to find AI tools",
-                description: "We have a new tool for you to try out today",
-              },
-              {
-                title: "Check out our latest blog post on AI trends",
-                description: "Don't forget to check out our sponsors",
-              },
-              {
-                title: "We have a special offer for you",
-                description: "Join our community on Discord",
-              },
-              {
-                title: "Follow us on Twitter for the latest updates",
-                description: "Check out our YouTube channel for tutorials",
-              },
-              {
-                title: "We have a new podcast episode out",
-                description: "Join our newsletter for exclusive content",
-              },
-            ]}
-          />
+          <BreakingNews summaries={breakingNews} />
           <Section className="p-2" />
-          <TopTenTools
-            tools={[
-              {
-                name: "AI Tool 1",
-                description: "Description of AI Tool 1",
-              },
-              {
-                name: "AI Tool 2",
-                description: "Description of AI Tool 2",
-              },
-              {
-                name: "AI Tool 3",
-                description: "Description of AI Tool 3",
-              },
-              {
-                name: "AI Tool 4",
-                description: "Description of AI Tool 4",
-              },
-              {
-                name: "AI Tool 5",
-                description: "Description of AI Tool 5",
-              },
-            ]}
-          />
+          <TopTenTools tools={tools} />
           <Section className="p-2" />
-          <Sponsors
-            sponsors={[
-              {
-                name: "Sponsor 1",
-                logo: "https://picsum.photos/200/300",
-                url: "https://example.com/sponsor1",
-              },
-              {
-                name: "Sponsor 2",
-                logo: "https://picsum.photos/200/300",
-                url: "https://example.com/sponsor2",
-              },
-              {
-                name: "Sponsor 3",
-                logo: "https://picsum.photos/200/300",
-                url: "https://example.com/sponsor3",
-              },
-            ]}
-          />
+          <Sponsors sponsors={sponsors} />
           <Feedback />
         </Body>
       </Tailwind>
@@ -155,7 +100,7 @@ function Overview({ overview }: { overview: string[] }) {
       </Text>
 
       <Text className="mb-4 mt-0 text-sm text-muted-foreground">
-        {`Here's a glimpse of what we have today:`}
+        {"Here's a glimpse of what we have today:"}
       </Text>
 
       {overview.map((item, index) => (
@@ -176,10 +121,7 @@ function Overview({ overview }: { overview: string[] }) {
 function TopTenTools({
   tools,
 }: {
-  tools: {
-    name: string;
-    description: string;
-  }[];
+  tools: { name: string; description: string }[];
 }) {
   return (
     <Section className="rounded-lg border border-solid border-border bg-card p-4">
@@ -209,10 +151,7 @@ function TopTenTools({
 function BreakingNews({
   summaries,
 }: {
-  summaries: {
-    title: string;
-    description: string;
-  }[];
+  summaries: { title: string; description: string }[];
 }) {
   return (
     <Section className="rounded-lg border border-solid border-border bg-card p-4">
@@ -242,7 +181,7 @@ function Sponsors({
   return (
     <Section className="rounded-lg border border-solid border-border bg-card p-4">
       <Text className="mb-2 mt-0 text-sm text-muted-foreground">
-        {`Today’s Sponsors`}
+        {"Today’s Sponsors"}
       </Text>
       <Heading as="h1" className="m-0 mb-4 mt-2 text-xl font-semibold">
         We are grateful for your support
@@ -301,7 +240,9 @@ function Feedback() {
               {[1, 2, 3, 4, 5].map((number) => (
                 <td align="center" className="p-[4px]" key={number}>
                   <Button
-                    style={{ color: theme.colors.primary.DEFAULT }}
+                    style={{
+                      color: theme.colors.primary.DEFAULT,
+                    }}
                     className="h-5 w-5 rounded-[8px] border border-solid p-[8px] font-semibold"
                     // Replace with the proper URL that saves the selected number
                     href="https://aitoolhub.com/feedback"

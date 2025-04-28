@@ -50,6 +50,7 @@ import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   TechCrunch,
+  TechCrunchBreakingNews,
   TechCrunchSponsor,
   TechCrunchSummary,
   TechCrunchTool,
@@ -61,6 +62,7 @@ import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import MarketingEmail from "../../../../emails/marketing-email";
 
 export type TechCrunchSponsorWithRelations = TechCrunchSponsor & {
   Tool: Tool;
@@ -70,6 +72,7 @@ export type TechCrunchWithRelations = TechCrunch & {
   TechCrunchSponsor: TechCrunchSponsorWithRelations[];
   TechCrunchSummary: TechCrunchSummary[];
   TechCrunchTool: TechCrunchTool[];
+  TechCrunchBreakingNews: TechCrunchBreakingNews[];
 };
 
 export type TechCrunchUpsertPageProps = {
@@ -81,34 +84,35 @@ const FormSchema = z.object({
   subject: z.string(),
   status: z.enum(["DRAFT", "PUBLISHED"]),
   id: z.string().uuid().optional(),
-  sponsors: z
-    .array(
-      z.object({
-        id: z.string().uuid().optional(),
-        toolId: z.string(),
-        name: z.string().optional(),
-        image: z.string().optional(),
-        description: z.string().optional(),
-      }),
-    )
-    .optional(),
-  summaries: z
-    .array(
-      z.object({
-        id: z.string().uuid().optional(),
-        summary: z.string(),
-      }),
-    )
-    .optional(),
-  tools: z
-    .array(
-      z.object({
-        id: z.string().uuid().optional(),
-        name: z.string(),
-        description: z.string(),
-      }),
-    )
-    .optional(),
+  sponsors: z.array(
+    z.object({
+      id: z.string().uuid().optional(),
+      toolId: z.string(),
+      name: z.string().optional(),
+      image: z.string().optional(),
+      description: z.string().optional(),
+    }),
+  ),
+  summaries: z.array(
+    z.object({
+      id: z.string().uuid().optional(),
+      summary: z.string(),
+    }),
+  ),
+  tools: z.array(
+    z.object({
+      id: z.string().uuid().optional(),
+      name: z.string(),
+      description: z.string(),
+    }),
+  ),
+  breakingNews: z.array(
+    z.object({
+      id: z.string().uuid().optional(),
+      title: z.string(),
+      description: z.string(),
+    }),
+  ),
 });
 
 export function TechCrunchUpsertPage({
@@ -156,6 +160,11 @@ export function TechCrunchUpsertPage({
             name: tool.name,
             description: tool.description,
           })),
+          breakingNews: techCrunch.TechCrunchBreakingNews.map((news) => ({
+            id: news.id,
+            title: news.title,
+            description: news.description,
+          })),
         }
       : {
           title: "",
@@ -164,6 +173,7 @@ export function TechCrunchUpsertPage({
           sponsors: [],
           summaries: [],
           tools: [],
+          breakingNews: [],
         },
   });
 
@@ -184,6 +194,12 @@ export function TechCrunchUpsertPage({
     append: addTool,
     remove: removeTool,
   } = useFieldArray({ control: form.control, name: "tools" });
+
+  const {
+    fields: breakingNewsFields,
+    append: addBreakingNews,
+    remove: removeBreakingNews,
+  } = useFieldArray({ control: form.control, name: "breakingNews" });
 
   const submit = api.techCrunch.upsert.useMutation({
     onSuccess: () => {
@@ -222,11 +238,13 @@ export function TechCrunchUpsertPage({
               className="w-full"
               onValueChange={setActiveTab}
             >
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="basic">Basic Info</TabsTrigger>
                 <TabsTrigger value="sponsors">Sponsors</TabsTrigger>
                 <TabsTrigger value="summaries">Summaries</TabsTrigger>
                 <TabsTrigger value="tools">Tools</TabsTrigger>
+                <TabsTrigger value="breaking-news">Breaking News</TabsTrigger>
+                <TabsTrigger value="preview">Preview Email</TabsTrigger>
               </TabsList>
 
               <TabsContent value="basic" className="mt-4">
@@ -657,9 +675,34 @@ export function TechCrunchUpsertPage({
                               <h4 className="text-sm font-medium">
                                 Tool {index + 1}
                               </h4>
-                              <Button variant="ghost" size="sm">
-                                <Trash className="h-4 w-4 text-destructive" />
-                              </Button>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <Trash className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Are you sure?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This action cannot be undone. This will
+                                      permanently delete this tool.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                      Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => removeTool(index)}
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
                             </div>
                             <div className="flex w-full flex-col items-start gap-4">
                               <div className="flex w-full flex-col">
@@ -711,6 +754,161 @@ export function TechCrunchUpsertPage({
                         </Button>
                       </>
                     )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="breaking-news" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Breaking News</CardTitle>
+                    <CardDescription>
+                      Add breaking news for this Tech Crunch article
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {breakingNewsFields.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <p className="text-muted-foreground">
+                          No breaking news added yet
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() =>
+                            addBreakingNews({ title: "", description: "" })
+                          }
+                          className="mt-4"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Your First Breaking News
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        {breakingNewsFields.map((field, index) => (
+                          <div
+                            key={field.id}
+                            className="flex flex-col space-y-4 rounded-md border p-4"
+                          >
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-medium">
+                                Breaking News {index + 1}
+                              </h4>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <Trash className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Are you sure?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This action cannot be undone. This will
+                                      permanently delete this breaking news
+                                      entry.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                      Cancel
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => removeBreakingNews(index)}
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                            <div className="flex w-full flex-col items-start gap-4">
+                              <div className="flex w-full flex-col">
+                                <FormField
+                                  control={form.control}
+                                  name={`breakingNews.${index}.title`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Title</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter title"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name={`breakingNews.${index}.description`}
+                                  render={({ field }) => (
+                                    <FormItem className="mt-2">
+                                      <FormLabel>Description</FormLabel>
+                                      <FormControl>
+                                        <Textarea
+                                          placeholder="Enter description"
+                                          className="min-h-[100px]"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() =>
+                            addBreakingNews({ title: "", description: "" })
+                          }
+                          className="w-full"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Another Breaking News
+                        </Button>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="preview" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Email Preview</CardTitle>
+                    <CardDescription>
+                      Preview how the marketing email will look with your
+                      current data
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="max-h-[600px] overflow-auto rounded-md border bg-background p-4">
+                      <MarketingEmail
+                        previewText={form.watch("subject")}
+                        title={form.watch("title")}
+                        subject={form.watch("subject")}
+                        sponsors={form.watch("sponsors").map((sponsor) => ({
+                          ...sponsor,
+                          name: sponsor.name || "",
+                          logo: "",
+                          url: "",
+                        }))}
+                        overview={form
+                          .watch("summaries")
+                          .map((summary) => summary.summary)}
+                        tools={form.watch("tools")}
+                        breakingNews={form.watch("breakingNews")}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>

@@ -25,6 +25,7 @@ export const techCrunchRouter = createTRPCRouter({
             },
             TechCrunchSummary: true,
             TechCrunchTool: true,
+            TechCrunchBreakingNews: true,
           },
           take: input.take,
           skip: (input.page - 1) * input.take,
@@ -55,6 +56,7 @@ export const techCrunchRouter = createTRPCRouter({
           },
           TechCrunchSummary: true,
           TechCrunchTool: true,
+          TechCrunchBreakingNews: true,
         },
       });
 
@@ -96,6 +98,15 @@ export const techCrunchRouter = createTRPCRouter({
             z.object({
               id: z.string().uuid().optional(),
               name: z.string(),
+              description: z.string(),
+            }),
+          )
+          .optional(),
+        breakingNews: z
+          .array(
+            z.object({
+              id: z.string().uuid().optional(),
+              title: z.string(),
               description: z.string(),
             }),
           )
@@ -158,6 +169,21 @@ export const techCrunchRouter = createTRPCRouter({
               techCrunchId: techCrunch.id,
               name: tool.name,
               description: tool.description,
+            },
+          });
+        }
+      }
+
+      if (input.breakingNews) {
+        await ctx.db.techCrunchBreakingNews.deleteMany({
+          where: { techCrunchId: techCrunch.id },
+        });
+        for (const news of input.breakingNews) {
+          await ctx.db.techCrunchBreakingNews.create({
+            data: {
+              techCrunchId: techCrunch.id,
+              title: news.title,
+              description: news.description,
             },
           });
         }
