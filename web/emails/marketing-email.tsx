@@ -76,11 +76,11 @@ export default function MarketingEmail({
         >
           <Overview overview={overview} />
           <Section className="p-2" />
+          <Sponsors sponsors={sponsors} />
+          <Section className="p-2" />
           <BreakingNews summaries={breakingNews} />
           <Section className="p-2" />
           <TopTenTools tools={tools} />
-          <Section className="p-2" />
-          <Sponsors sponsors={sponsors} />
           <Feedback />
         </Body>
       </Tailwind>
