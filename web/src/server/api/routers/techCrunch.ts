@@ -240,6 +240,7 @@ export const techCrunchRouter = createTRPCRouter({
         author: true,
       },
     });
+    console.log("Fetched twitterPosts:", twitterPosts.length);
 
     const ingestData = await ctx.db.ingestData.findMany({
       where: {
@@ -248,17 +249,18 @@ export const techCrunchRouter = createTRPCRouter({
         },
       },
     });
+    console.log("Fetched ingestData:", ingestData.length);
 
     // Breaking News
     const { object: breakingNewsObject } = await generateObject({
       model: openai("gpt-4o-mini"),
-      temperature: 0.5,
       maxRetries: 3,
+      mode: "json",
       schema: z.object({
         articles: z
           .array(
             z.object({
-              title: z.string().describe("Title of the recipe"),
+              title: z.string().describe("Creative title of the article"),
               description: z.string(),
             }),
           )
@@ -267,12 +269,16 @@ export const techCrunchRouter = createTRPCRouter({
       }),
       prompt: `You are a tech news generator. Generate a list of breaking news articles based on the latest data collected. Here are the latest data points: ${JSON.stringify(ingestData)}. Here are some popular twitter posts ${JSON.stringify(twitterPosts)} The articles should be relevant to the tech industry and should be engaging for readers. Each article should have a title and a description.`,
     });
+    console.log(
+      "Generated breakingNewsObject:",
+      breakingNewsObject.articles.length,
+    );
 
     // Trending on X
     const { object: trendingXIdsObject } = await generateObject({
       model: openai("gpt-4o-mini"),
-      temperature: 0.5,
       maxRetries: 3,
+      mode: "json",
       schema: z.object({
         ids: z
           .array(z.string().describe("Post ID"))
@@ -287,53 +293,45 @@ export const techCrunchRouter = createTRPCRouter({
           )
           .describe("A list of IDs of trending posts on X"),
       }),
-      prompt: `You are a tech news generator. Select IDs trending posts on X (formerly Twitter) based on the latest data collected. Here are some popular twitter posts ${JSON.stringify(
-        twitterPosts,
-      )} The posts should be relevant to the tech industry and should be engaging for readers. Select engaging posts. Avoid lists or tweets without context.`,
+      prompt: `You are a tech news generator. Select IDs trending posts on X (formerly Twitter) based on the latest data collected. Here are some popular twitter posts ${JSON.stringify(twitterPosts)} The posts should be relevant to the tech industry and should be engaging for readers. Select engaging posts. Avoid lists or tweets without context.`,
     });
+    console.log("Generated trendingXIdsObject:", trendingXIdsObject);
 
     const selectedPosts = twitterPosts.filter((post) =>
       trendingXIdsObject.ids.includes(post.id),
     );
-
-    // related posts
+    console.log("Filtered selectedPosts:", selectedPosts.length);
 
     // Recap
     const { object: recapObject } = await generateObject({
       model: openai("gpt-4o-mini"),
-      temperature: 0.5,
       maxRetries: 3,
+      mode: "json",
       schema: z.object({
         title: z.string(),
         subject: z
           .string()
           .describe("A short description of the recap used for Email"),
       }),
-      prompt: `You are a tech news generator. Generate a recap of the latest data collected. Here are the latest data points: ${JSON.stringify(
-        ingestData,
-      )} Here are some popular twitter posts ${JSON.stringify(
-        twitterPosts,
-      )} The recap should be relevant to the tech industry and should be engaging for readers. The recap should have a title and a subject. The subject should be a short description of the recap. The recap should be in a list format. Each item in the list should be a step in the recap.`,
+      prompt: `You are a tech news generator. Generate a recap of the latest data collected. Here are the latest data points: ${JSON.stringify(ingestData)} Here are some popular twitter posts ${JSON.stringify(twitterPosts)} The recap should be relevant to the tech industry and should be engaging for readers. The recap should have a title and a subject. The subject should be a short description of the recap. The recap should be in a list format. Each item in the list should be a step in the recap.`,
     });
+    console.log("Generated recapObject:", recapObject);
 
-    //summaries
+    // Summaries
     const { object: summariesObject } = await generateObject({
       model: openai("gpt-4o-mini"),
-      temperature: 0.5,
       maxRetries: 3,
+      mode: "json",
       schema: z.object({
         summaries: z.array(
           z.object({
-            summary: z.string().describe("Summary of the article").max(100),
+            summary: z.string().max(100),
           }),
         ),
       }),
-      prompt: `You are a tech news generator. Generate a list of summaries of the latest data collected. Here are the latest data points: ${JSON.stringify(
-        ingestData,
-      )} Here are some popular twitter posts ${JSON.stringify(
-        twitterPosts,
-      )} The summaries should be relevant to the tech industry and should be engaging for readers. The summaries should be in a list format. Each item in the list should be a summary of the article. The summaries should be short and concise.`,
+      prompt: `You are a tech news generator. Generate a list of short summaries of the latest data collected. Here are the latest data points: ${JSON.stringify(ingestData)} Here are some popular twitter posts ${JSON.stringify(twitterPosts)} The summaries should be relevant to the tech industry and should be engaging for readers. The summaries should be short and concise. The length should be no longer than 100 characters. The summaries should be in a list format. Each item in the list should be a summary.`,
     });
+    console.log("Generated summariesObject:", summariesObject.summaries.length);
 
     const techCrunch = await ctx.db.techCrunch.create({
       data: {
@@ -342,6 +340,7 @@ export const techCrunchRouter = createTRPCRouter({
         status: "DRAFT",
       },
     });
+    console.log("Created techCrunch entry:", techCrunch);
 
     await ctx.db.techCrunchBreakingNews.createMany({
       data: breakingNewsObject.articles.map((news) => ({
@@ -350,6 +349,7 @@ export const techCrunchRouter = createTRPCRouter({
         description: news.description,
       })),
     });
+    console.log("Created techCrunchBreakingNews entries");
 
     await ctx.db.techCrunchSummary.createMany({
       data: summariesObject.summaries.map((summary) => ({
@@ -357,6 +357,7 @@ export const techCrunchRouter = createTRPCRouter({
         summary: summary.summary,
       })),
     });
+    console.log("Created techCrunchSummary entries");
 
     await ctx.db.techCrunchIngestXData.createMany({
       data: selectedPosts.map((post) => ({
