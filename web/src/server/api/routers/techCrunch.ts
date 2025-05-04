@@ -29,6 +29,11 @@ export const techCrunchRouter = createTRPCRouter({
             TechCrunchSummary: true,
             TechCrunchTool: true,
             TechCrunchBreakingNews: true,
+            TechCrunchIngestXData: {
+              include: {
+                IngestXData: true,
+              },
+            },
           },
           take: input.take,
           skip: (input.page - 1) * input.take,
@@ -119,6 +124,11 @@ export const techCrunchRouter = createTRPCRouter({
             }),
           )
           .optional(),
+        tweets: z.array(
+          z.object({
+            tweetId: z.string(),
+          }),
+        ),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -197,6 +207,20 @@ export const techCrunchRouter = createTRPCRouter({
         }
       }
 
+      if (input.tweets) {
+        await ctx.db.techCrunchIngestXData.deleteMany({
+          where: { techCrunchId: techCrunch.id },
+        });
+        for (const tweet of input.tweets) {
+          await ctx.db.techCrunchIngestXData.create({
+            data: {
+              techCrunchId: techCrunch.id,
+              ingestXDataId: tweet.tweetId,
+            },
+          });
+        }
+      }
+
       return techCrunch;
     }),
   generate: authenticatedProcedure.mutation(async ({ ctx }) => {
@@ -229,55 +253,108 @@ export const techCrunchRouter = createTRPCRouter({
     const { object: breakingNewsObject } = await generateObject({
       model: openai("gpt-4o-mini"),
       schema: z.object({
-        recipe: z.array(
-          z.object({
-            title: z.string().describe("Title of the recipe"),
-            description: z.string(),
-          }),
-        ),
+        articles: z
+          .array(
+            z.object({
+              title: z.string().describe("Title of the recipe"),
+              description: z.string(),
+            }),
+          )
+          .min(1)
+          .max(5),
       }),
       prompt: `You are a tech news generator. Generate a list of breaking news articles based on the latest data collected. Here are the latest data points: ${JSON.stringify(ingestData)}. Here are some popular twitter posts ${JSON.stringify(twitterPosts)} The articles should be relevant to the tech industry and should be engaging for readers. Each article should have a title and a description.`,
     });
 
     // Trending on X
-    const { object: trendingXIds } = await generateObject({
+    const { object: trendingXIdsObject } = await generateObject({
       model: openai("gpt-4o-mini"),
-      schema: z
-        .array(z.string().describe("Post ID"))
-        .refine(
-          (ids) =>
-            ids.every((id) => twitterPosts.some((post) => post.id === id)),
-          {
-            message: "ID must be one of the trending posts",
-          },
-        )
-        .describe("A list of IDs of trending posts on X"),
+      schema: z.object({
+        ids: z
+          .array(z.string().describe("Post ID"))
+          .min(1)
+          .max(5)
+          .refine(
+            (ids) =>
+              ids.every((id) => twitterPosts.some((post) => post.id === id)),
+            {
+              message: "ID must be one of the trending posts",
+            },
+          )
+          .describe("A list of IDs of trending posts on X"),
+      }),
       prompt: `You are a tech news generator. Select IDs trending posts on X (formerly Twitter) based on the latest data collected. Here are some popular twitter posts ${JSON.stringify(
         twitterPosts,
       )} The posts should be relevant to the tech industry and should be engaging for readers. Select engaging posts. Avoid lists or tweets without context.`,
     });
 
     const selectedPosts = twitterPosts.filter((post) =>
-      trendingXIds.includes(post.id),
+      trendingXIdsObject.ids.includes(post.id),
     );
 
-    // tool hub picks & new
-    // rate us and our socials
     // related posts
 
     // Recap
     const { object: recapObject } = await generateObject({
       model: openai("gpt-4o-mini"),
       schema: z.object({
-        recipe: z.object({
-          name: z.string(),
-          ingredients: z.array(
-            z.object({ name: z.string(), amount: z.string() }),
-          ),
-          steps: z.array(z.string()),
-        }),
+        title: z.string(),
+        subject: z
+          .string()
+          .describe("A short description of the recap used for Email"),
       }),
-      prompt: "Generate a lasagna recipe.",
+      prompt: `You are a tech news generator. Generate a recap of the latest data collected. Here are the latest data points: ${JSON.stringify(
+        ingestData,
+      )} Here are some popular twitter posts ${JSON.stringify(
+        twitterPosts,
+      )} The recap should be relevant to the tech industry and should be engaging for readers. The recap should have a title and a subject. The subject should be a short description of the recap. The recap should be in a list format. Each item in the list should be a step in the recap.`,
+    });
+
+    //summaries
+    const { object: summariesObject } = await generateObject({
+      model: openai("gpt-4o-mini"),
+      schema: z.object({
+        summaries: z.array(
+          z.object({
+            summary: z.string().describe("Summary of the article").max(100),
+          }),
+        ),
+      }),
+      prompt: `You are a tech news generator. Generate a list of summaries of the latest data collected. Here are the latest data points: ${JSON.stringify(
+        ingestData,
+      )} Here are some popular twitter posts ${JSON.stringify(
+        twitterPosts,
+      )} The summaries should be relevant to the tech industry and should be engaging for readers. The summaries should be in a list format. Each item in the list should be a summary of the article. The summaries should be short and concise.`,
+    });
+
+    const techCrunch = await ctx.db.techCrunch.create({
+      data: {
+        title: recapObject.title,
+        subject: recapObject.subject,
+        status: "DRAFT",
+      },
+    });
+
+    await ctx.db.techCrunchBreakingNews.createMany({
+      data: breakingNewsObject.articles.map((news) => ({
+        techCrunchId: techCrunch.id,
+        title: news.title,
+        description: news.description,
+      })),
+    });
+
+    await ctx.db.techCrunchSummary.createMany({
+      data: summariesObject.summaries.map((summary) => ({
+        techCrunchId: techCrunch.id,
+        summary: summary.summary,
+      })),
+    });
+
+    await ctx.db.techCrunchIngestXData.createMany({
+      data: selectedPosts.map((post) => ({
+        techCrunchId: techCrunch.id,
+        ingestXDataId: post.id,
+      })),
     });
   }),
 });

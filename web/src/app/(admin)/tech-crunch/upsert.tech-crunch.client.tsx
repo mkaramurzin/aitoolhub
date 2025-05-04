@@ -124,6 +124,7 @@ const FormSchema = z.object({
   ),
   tweets: z.array(
     z.object({
+      tweetId: z.string(),
       profilePicture: z.string(),
       author: z.string(),
       handle: z.string(),
@@ -140,7 +141,6 @@ export function TechCrunchUpsertPage({
   techCrunch,
 }: TechCrunchUpsertPageProps) {
   const router = useRouter();
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [activeTab, setActiveTab] = useState("basic");
   const [query, setQuery] = useState("");
 
@@ -160,6 +160,8 @@ export function TechCrunchUpsertPage({
       enabled: query.length > 0 && activeTab === "sponsors",
     },
   );
+
+  const fetchTweetsQuery = api.ingest.fetchAll.useQuery();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -190,15 +192,23 @@ export function TechCrunchUpsertPage({
             title: news.title,
             description: news.description,
           })),
-          tweets: techCrunch.TechCrunchIngestXData.map((tweet) => ({
-            profilePicture: "",
-            author: "",
-            handle: "",
-            content: tweet.IngestXData.text,
-            url: tweet.IngestXData.url,
-            retweetCount: tweet.IngestXData.retweetCount,
-            replyCount: tweet.IngestXData.replyCount,
-            likeCount: tweet.IngestXData.likeCount,
+          tweets: techCrunch.TechCrunchIngestXData.flatMap(
+            (tweet) => tweet.IngestXData,
+          ).map((tweet) => ({
+            tweetId: tweet.id,
+            profilePicture: tweet.author
+              ? // @ts-ignore
+                tweet.author.profilePicture
+              : "None",
+            // @ts-ignore
+            author: tweet.author ? tweet.author.name : "None",
+            // @ts-ignore
+            handle: tweet.author ? tweet.author.userName : "None",
+            content: tweet.text,
+            url: tweet.url,
+            retweetCount: tweet.retweetCount,
+            replyCount: tweet.replyCount,
+            likeCount: tweet.likeCount,
           })),
         }
       : {
@@ -237,12 +247,18 @@ export function TechCrunchUpsertPage({
     remove: removeBreakingNews,
   } = useFieldArray({ control: form.control, name: "breakingNews" });
 
+  const {
+    fields: tweetFields,
+    append: addTweet,
+    remove: removeTweet,
+  } = useFieldArray<z.infer<typeof FormSchema>, "tweets">({
+    control: form.control,
+    name: "tweets",
+  });
+
   const submit = api.techCrunch.upsert.useMutation({
     onSuccess: () => {
-      setShowSuccessToast(true);
-      setTimeout(() => {
-        router.push("/tech-crunch");
-      }, 2000);
+      router.push("/tech-crunch");
     },
     onError: (error) => {
       toast(error.message);
@@ -289,6 +305,7 @@ export function TechCrunchUpsertPage({
     form.watch("summaries"),
     form.watch("tools"),
     form.watch("breakingNews"),
+    form.watch("tweets"),
   ]);
 
   return (
@@ -312,12 +329,13 @@ export function TechCrunchUpsertPage({
               className="w-full"
               onValueChange={setActiveTab}
             >
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-7">
                 <TabsTrigger value="basic">Basic Info</TabsTrigger>
                 <TabsTrigger value="sponsors">Sponsors</TabsTrigger>
                 <TabsTrigger value="summaries">Summaries</TabsTrigger>
                 <TabsTrigger value="tools">Tools</TabsTrigger>
                 <TabsTrigger value="breaking-news">Breaking News</TabsTrigger>
+                <TabsTrigger value="tweets">Tweets</TabsTrigger>
                 <TabsTrigger value="preview">Preview Email</TabsTrigger>
               </TabsList>
 
@@ -985,6 +1003,125 @@ export function TechCrunchUpsertPage({
                   </CardContent>
                 </Card>
               </TabsContent>
+
+              <TabsContent value="tweets" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Tweets</CardTitle>
+                    <CardDescription>
+                      Fetch and add tweets for this Tech Crunch article
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {fetchTweetsQuery.data &&
+                      fetchTweetsQuery.data.length > 0 && (
+                        <div className="flex w-full flex-col space-y-2 pt-4">
+                          <span className="text-muted-foreground">
+                            Fetched Tweets ({fetchTweetsQuery.data.length})
+                          </span>
+                          {fetchTweetsQuery.data.map((tweet) => (
+                            <div
+                              key={tweet.id}
+                              className="flex flex-col space-y-4 rounded-md border p-4"
+                            >
+                              <div className="flex items-center justify-between">
+                                <h4 className="text-sm font-medium">
+                                  Tweet from{" "}
+                                  {(tweet.author as any)?.name || "Unknown"}
+                                </h4>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={tweetFields.some(
+                                    (field) => field.tweetId === tweet.id,
+                                  )}
+                                  onClick={() => {
+                                    addTweet({
+                                      tweetId: tweet.id,
+                                      profilePicture: tweet.author
+                                        ? // @ts-ignore
+                                          tweet.author.profilePicture
+                                        : "None",
+                                      author: tweet.author
+                                        ? // @ts-ignore
+                                          tweet.author.name
+                                        : "None",
+                                      // @ts-ignore
+                                      handle: tweet.author
+                                        ? // @ts-ignore
+                                          tweet.author.userName
+                                        : "None",
+                                      content: tweet.text,
+                                      url: tweet.url,
+                                      retweetCount: tweet.retweetCount,
+                                      replyCount: tweet.replyCount,
+                                      likeCount: tweet.likeCount,
+                                    });
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {tweet.text}
+                              </p>
+                              <a
+                                href={tweet.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline"
+                              >
+                                Read on X
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                    {tweetFields.length > 0 && (
+                      <div className="flex w-full flex-col space-y-2 pt-4">
+                        <span className="text-muted-foreground">
+                          Selected Tweets ({tweetFields.length})
+                        </span>
+                        {tweetFields.map((field, index) => (
+                          <div
+                            key={field.id}
+                            className="flex flex-col space-y-4 rounded-md border p-4"
+                          >
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-medium">
+                                Tweet from{" "}
+                                {(field.author as any)?.name || "Unknown"}
+                              </h4>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  removeTweet(index);
+                                }}
+                              >
+                                <Trash className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {field.content}
+                            </p>
+                            <a
+                              href={field.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-500 hover:underline"
+                            >
+                              Read on X
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
             </Tabs>
 
             <div className="flex w-full justify-end">
@@ -1002,12 +1139,6 @@ export function TechCrunchUpsertPage({
             </div>
           </form>
         </Form>
-
-        {showSuccessToast && (
-          <div className="fixed bottom-4 right-4 z-50 rounded-md bg-green-500 px-4 py-2 text-white shadow-lg">
-            Tech Crunch article submitted successfully!
-          </div>
-        )}
       </div>
     </div>
   );

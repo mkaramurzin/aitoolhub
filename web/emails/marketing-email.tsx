@@ -123,14 +123,20 @@ function TrendingTwitterNews({ tweets }: { tweets: Tweet[] }) {
           className="mt-4 rounded-lg border border-solid border-border bg-card p-4"
         >
           <Row className="">
-            <Column width={40} className="mr-4">
+            <Column
+              width={40}
+              style={{ verticalAlign: "top", paddingTop: "4px" }}
+            >
               <Link className="cursor-pointer" href={tweet.url}>
                 <Img
                   src={tweet.profilePicture}
                   alt={tweet.author}
                   width={32}
                   height={32}
-                  style={{ display: "block", borderRadius: "99px" }}
+                  style={{
+                    display: "block",
+                    borderRadius: "99px",
+                  }}
                 />
               </Link>
             </Column>
@@ -138,7 +144,7 @@ function TrendingTwitterNews({ tweets }: { tweets: Tweet[] }) {
               <Link href={tweet.url} className="m-0 text-white">
                 <span className="text-sm">{tweet.author}</span>{" "}
                 <span className="text-sm text-muted-foreground">
-                  {tweet.handle}
+                  @{tweet.handle}
                 </span>
               </Link>
               <Text className="m-0 mt-1 text-sm">

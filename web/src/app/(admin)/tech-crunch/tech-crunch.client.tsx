@@ -35,21 +35,19 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
     parse: (v) => parseInt(v),
   });
 
-  const [refreshInterval, setRefreshInterval] = useState<number>(5000); // Default refresh interval
   const [pageSize, setPageSize] = useState<number>(10); // Default page size
   const [pageSizeLabel, setPageSizeLabel] = useState<string>("Page Size");
 
-  const techCrunchQuery = api.techCrunch.fetchAll.useQuery(
-    {
-      page: page || 1,
-      take: pageSize,
-    },
-    {
-      refetchInterval: refreshInterval,
-    },
-  );
+  const techCrunchQuery = api.techCrunch.fetchAll.useQuery({
+    page: page || 1,
+    take: pageSize,
+  });
 
-  const generate = api.techCrunch.generate.useMutation({});
+  const generate = api.techCrunch.generate.useMutation({
+    onSuccess: () => {
+      techCrunchQuery.refetch();
+    },
+  });
 
   const totalCount = techCrunchQuery.data?.count ?? 0;
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -136,6 +134,7 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
               <TableHead>Sponsors</TableHead>
               <TableHead>Summaries</TableHead>
               <TableHead>Tools</TableHead>
+              <TableHead>Tweets</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
             </TableRow>
@@ -180,13 +179,7 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
                   <TableCell>
                     {item.TechCrunchSummary.length > 0 ? (
                       <div className="flex flex-col gap-1">
-                        {item.TechCrunchSummary.map((summary) => (
-                          <span key={summary.id} className="text-xs">
-                            {summary.summary.length > 50
-                              ? `${summary.summary.substring(0, 50)}...`
-                              : summary.summary}
-                          </span>
-                        ))}
+                        {item.TechCrunchSummary.length}
                       </div>
                     ) : (
                       <span className="italic text-muted-foreground">
@@ -209,6 +202,17 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
                     ) : (
                       <span className="italic text-muted-foreground">
                         No tools
+                      </span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {item.TechCrunchIngestXData.length > 0 ? (
+                      <div className="flex flex-col gap-1">
+                        {item.TechCrunchIngestXData.length}
+                      </div>
+                    ) : (
+                      <span className="italic text-muted-foreground">
+                        No tweets
                       </span>
                     )}
                   </TableCell>

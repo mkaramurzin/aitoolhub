@@ -1,3 +1,4 @@
+import { subDays } from "date-fns";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 
@@ -103,4 +104,17 @@ export const ingestRouter = createTRPCRouter({
       });
       return {};
     }),
+  fetchAll: publicProcedure.query(async ({ ctx }) => {
+    const twentyFourHoursAgo = subDays(new Date(), 1);
+
+    const tweets = await ctx.db.ingestXData.findMany({
+      where: {
+        createdAt: {
+          gte: twentyFourHoursAgo,
+        },
+      },
+    });
+
+    return tweets;
+  }),
 });

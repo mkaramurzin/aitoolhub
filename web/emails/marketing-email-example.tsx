@@ -66,7 +66,8 @@ const exampleProps: MarketingEmailProps = {
       profilePicture: "https://picsum.photos/200",
       author: "Alice Martin",
       handle: "@alicemartin",
-      content: "AI is revolutionizing everything! #innovation",
+      content:
+        "AI is revolutionizing everything! #innovationAI is revolutionizing everything! #innovationAI is revolutionizing everything! #innovationAI is revolutionizing everything! #innovation",
       url: "https://twitter.com/alicemartin",
       retweetCount: 15,
       replyCount: 3,
