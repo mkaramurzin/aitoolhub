@@ -319,7 +319,7 @@ export const techCrunchRouter = createTRPCRouter({
     //summaries
     const { object: summariesObject } = await generateObject({
       model: openai("gpt-4o-mini"),
-      temperature: 3,
+      temperature: 0.5,
       maxRetries: 3,
       schema: z.object({
         summaries: z.array(
