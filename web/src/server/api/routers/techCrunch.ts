@@ -357,4 +357,28 @@ export const techCrunchRouter = createTRPCRouter({
       })),
     });
   }),
+  delete: authenticatedProcedure
+    .input(
+      z.object({
+        id: z.string().uuid(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const techCrunch = await ctx.db.techCrunch.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!techCrunch) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Tech Crunch entry not found",
+        });
+      }
+
+      await ctx.db.techCrunch.delete({
+        where: { id: input.id },
+      });
+
+      return techCrunch;
+    }),
 });

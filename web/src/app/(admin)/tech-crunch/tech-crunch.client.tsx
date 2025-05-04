@@ -4,6 +4,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -19,11 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAreYouSure } from "@/hooks/use-are-you-sure";
 import { usePagination } from "@/hooks/use-pagination";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { format } from "date-fns";
-import { Loader2 } from "lucide-react";
+import { Ellipsis, Loader2, Send, Trash2 } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useState } from "react";
 export type TechCrunchClientPageProps = {};
@@ -35,6 +37,10 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
     parse: (v) => parseInt(v),
   });
 
+  const { AreYouSure, setShowAreYouSure, setObject, object } = useAreYouSure<{
+    id?: string;
+  }>({});
+
   const [pageSize, setPageSize] = useState<number>(10); // Default page size
   const [pageSizeLabel, setPageSizeLabel] = useState<string>("Page Size");
 
@@ -44,6 +50,12 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
   });
 
   const generate = api.techCrunch.generate.useMutation({
+    onSuccess: () => {
+      techCrunchQuery.refetch();
+    },
+  });
+
+  const deleteMutation = api.techCrunch.delete.useMutation({
     onSuccess: () => {
       techCrunchQuery.refetch();
     },
@@ -71,6 +83,17 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
 
   return (
     <div className="flex min-h-dvh w-full flex-col items-center space-y-6 p-6">
+      <AreYouSure
+        title="Are you sure?"
+        description="This action cannot be undone."
+        isPending={deleteMutation.isPending}
+        onConfirm={async () => {
+          if (!object || !object.id) return;
+          deleteMutation.mutate({ id: object.id });
+          setShowAreYouSure(false);
+        }}
+        onCancel={async () => setShowAreYouSure(false)}
+      />
       <div className="w-full">
         <div className="flex items-center justify-between">
           <h1 className="mb-4 text-2xl font-bold">Tech Crunch</h1>
@@ -137,6 +160,7 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
               <TableHead>Tweets</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -229,6 +253,31 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
                   </TableCell>
                   <TableCell>
                     {format(new Date(item.createdAt), "MMM d, yyyy h:mm a")}
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <Ellipsis className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          className="flex gap-2"
+                          onClick={() => {
+                            setShowAreYouSure(true);
+                            setObject({ id: item.id });
+                          }}
+                        >
+                          <Trash2 className="size-4" />
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="flex gap-2">
+                          <Send className="size-4" />
+                          <span>Send</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))

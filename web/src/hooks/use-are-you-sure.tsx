@@ -13,7 +13,9 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
-export type useAreYouSureProps = {};
+export type useAreYouSureProps<T> = {
+  initialObject?: T;
+};
 
 export type AreYouSureProps = {
   title?: string;
@@ -23,8 +25,11 @@ export type AreYouSureProps = {
   onCancel?: () => Promise<void>;
 };
 
-export function useAreYouSure({}: useAreYouSureProps) {
+export function useAreYouSure<T>({
+  initialObject,
+}: useAreYouSureProps<T> = {}) {
   const [showAreYouSure, setShowAreYouSure] = useState(false);
+  const [object, setObject] = useState<T | undefined>(initialObject);
 
   function AreYouSure({
     title = "Are you sure?",
@@ -74,5 +79,7 @@ export function useAreYouSure({}: useAreYouSureProps) {
     AreYouSure,
     setShowAreYouSure,
     showAreYouSure,
+    setObject,
+    object,
   };
 }
