@@ -50,8 +50,10 @@ import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  IngestXData,
   TechCrunch,
   TechCrunchBreakingNews,
+  TechCrunchIngestXData,
   TechCrunchSponsor,
   TechCrunchSummary,
   TechCrunchTool,
@@ -66,6 +68,10 @@ import { toast } from "sonner";
 import { z } from "zod";
 import MarketingEmail from "../../../../emails/marketing-email";
 
+export type TechCrunchIngestXDataWithRelations = TechCrunchIngestXData & {
+  IngestXData: IngestXData;
+};
+
 export type TechCrunchSponsorWithRelations = TechCrunchSponsor & {
   Tool: Tool;
 };
@@ -75,6 +81,7 @@ export type TechCrunchWithRelations = TechCrunch & {
   TechCrunchSummary: TechCrunchSummary[];
   TechCrunchTool: TechCrunchTool[];
   TechCrunchBreakingNews: TechCrunchBreakingNews[];
+  TechCrunchIngestXData: TechCrunchIngestXDataWithRelations[];
 };
 
 export type TechCrunchUpsertPageProps = {
@@ -113,6 +120,18 @@ const FormSchema = z.object({
       id: z.string().uuid().optional(),
       title: z.string(),
       description: z.string(),
+    }),
+  ),
+  tweets: z.array(
+    z.object({
+      profilePicture: z.string(),
+      author: z.string(),
+      handle: z.string(),
+      content: z.string(),
+      url: z.string(),
+      retweetCount: z.number(),
+      replyCount: z.number(),
+      likeCount: z.number(),
     }),
   ),
 });
@@ -171,6 +190,16 @@ export function TechCrunchUpsertPage({
             title: news.title,
             description: news.description,
           })),
+          tweets: techCrunch.TechCrunchIngestXData.map((tweet) => ({
+            profilePicture: "",
+            author: "",
+            handle: "",
+            content: tweet.IngestXData.text,
+            url: tweet.IngestXData.url,
+            retweetCount: tweet.IngestXData.retweetCount,
+            replyCount: tweet.IngestXData.replyCount,
+            likeCount: tweet.IngestXData.likeCount,
+          })),
         }
       : {
           title: "",
@@ -180,6 +209,7 @@ export function TechCrunchUpsertPage({
           summaries: [],
           tools: [],
           breakingNews: [],
+          tweets: [],
         },
   });
 
@@ -227,6 +257,7 @@ export function TechCrunchUpsertPage({
     const renderEmail = async () => {
       const html = await render(
         <MarketingEmail
+          tweets={form.watch("tweets")}
           baseUrl={env.NEXT_PUBLIC_BASE_URL}
           previewText={form.watch("subject")}
           title={form.watch("title")}

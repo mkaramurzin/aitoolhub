@@ -60,6 +60,11 @@ export const techCrunchRouter = createTRPCRouter({
           TechCrunchSummary: true,
           TechCrunchTool: true,
           TechCrunchBreakingNews: true,
+          TechCrunchIngestXData: {
+            include: {
+              IngestXData: true,
+            },
+          },
         },
       });
 
