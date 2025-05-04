@@ -3,6 +3,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { contactUsRouter } from "./routers/contact-us";
 import { emailRouter } from "./routers/email";
 import { imagesRouter } from "./routers/images";
+import { ingestRouter } from "./routers/ingestRouter";
 import { parserRouter } from "./routers/parse";
 import { reviewsRouter } from "./routers/reviews";
 import { tagsRouter } from "./routers/tags";
@@ -26,6 +27,7 @@ export const appRouter = createTRPCRouter({
   groomer: parserRouter,
   emails: emailRouter,
   techCrunch: techCrunchRouter,
+  ingest: ingestRouter,
 });
 
 // export type definition of API

@@ -1,0 +1,32 @@
+-- CreateTable
+CREATE TABLE "IngestXData" (
+    "id" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "url" TEXT NOT NULL,
+    "twitterUrl" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "source" TEXT NOT NULL,
+    "retweetCount" INTEGER NOT NULL,
+    "replyCount" INTEGER NOT NULL,
+    "likeCount" INTEGER NOT NULL,
+    "quoteCount" INTEGER NOT NULL,
+    "viewCount" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL,
+    "lang" TEXT NOT NULL,
+    "bookmarkCount" INTEGER NOT NULL,
+    "isReply" BOOLEAN NOT NULL,
+    "inReplyToId" TEXT,
+    "conversationId" TEXT NOT NULL,
+    "inReplyToUserId" TEXT,
+    "inReplyToUsername" TEXT,
+    "author" JSONB NOT NULL,
+    "extendedEntities" JSONB NOT NULL,
+    "card" JSONB,
+    "place" JSONB NOT NULL,
+    "entities" JSONB NOT NULL,
+    "quoted_tweet" JSONB,
+    "retweeted_tweet" JSONB,
+    "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "IngestXData_pkey" PRIMARY KEY ("id")
+);

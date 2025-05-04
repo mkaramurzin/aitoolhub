@@ -24,7 +24,8 @@
     "stripe": "stripe listen --forward-to localhost:3000/api/webhooks/stripe",
     "typecheck": "tsc --noEmit",
     "s3": "node ./s3/s3.js",
-    "email:dev": "email dev"
+    "email:dev": "email dev",
+    "tunnel": "ngrok http --domain=many-macaque-evolving.ngrok-free.app 3000"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^0.1.6",

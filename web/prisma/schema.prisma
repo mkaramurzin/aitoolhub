@@ -337,3 +337,46 @@ model TechCrunchTool {
   updatedAt    DateTime   @default(now()) @updatedAt @db.Timestamptz
   TechCrunch   TechCrunch @relation(fields: [techCrunchId], references: [id], onDelete: Cascade)
 }
+
+model IngestData {
+  id     String   @id @default(uuid())
+  postId String?
+  link   String?
+  source String
+  text   String
+  date   DateTime
+
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz
+}
+
+model IngestXData {
+  id                String   @id
+  type              String
+  url               String
+  twitterUrl        String
+  text              String
+  source            String
+  retweetCount      Int
+  replyCount        Int
+  likeCount         Int
+  quoteCount        Int
+  viewCount         Int
+  createdAt         DateTime
+  lang              String
+  bookmarkCount     Int
+  isReply           Boolean
+  inReplyToId       String?
+  conversationId    String
+  inReplyToUserId   String?
+  inReplyToUsername String?
+  author            Json
+  extendedEntities  Json
+  card              Json?
+  place             Json
+  entities          Json
+  quoted_tweet      Json?
+  retweeted_tweet   Json?
+
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz
+}
