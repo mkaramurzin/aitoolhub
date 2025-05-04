@@ -166,13 +166,13 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
           <TableBody>
             {techCrunchQuery.isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center">
+                <TableCell colSpan={8} className="py-8 text-center">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : techCrunchQuery.data?.techCrunchItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-8 text-center">
+                <TableCell colSpan={8} className="py-8 text-center">
                   No tech crunch items found.
                 </TableCell>
               </TableRow>
