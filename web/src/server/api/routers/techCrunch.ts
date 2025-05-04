@@ -1,4 +1,7 @@
+import { openai } from "@ai-sdk/openai";
 import { TRPCError } from "@trpc/server";
+import { generateObject } from "ai";
+import { subDays } from "date-fns";
 import { z } from "zod";
 import {
   adminProcedure,
@@ -191,4 +194,85 @@ export const techCrunchRouter = createTRPCRouter({
 
       return techCrunch;
     }),
+  generate: authenticatedProcedure.mutation(async ({ ctx }) => {
+    const twitterPosts = await ctx.db.ingestXData.findMany({
+      where: {
+        createdAt: {
+          gte: subDays(new Date(), 1),
+        },
+      },
+      select: {
+        id: true,
+        viewCount: true,
+        likeCount: true,
+        retweetCount: true,
+        bookmarkCount: true,
+        text: true,
+        author: true,
+      },
+    });
+
+    const ingestData = await ctx.db.ingestData.findMany({
+      where: {
+        createdAt: {
+          gte: subDays(new Date(), 1),
+        },
+      },
+    });
+
+    // Breaking News
+    const { object: breakingNewsObject } = await generateObject({
+      model: openai("gpt-4o-mini"),
+      schema: z.object({
+        recipe: z.array(
+          z.object({
+            title: z.string().describe("Title of the recipe"),
+            description: z.string(),
+          }),
+        ),
+      }),
+      prompt: `You are a tech news generator. Generate a list of breaking news articles based on the latest data collected. Here are the latest data points: ${JSON.stringify(ingestData)}. Here are some popular twitter posts ${JSON.stringify(twitterPosts)} The articles should be relevant to the tech industry and should be engaging for readers. Each article should have a title and a description.`,
+    });
+
+    // Trending on X
+    const { object: trendingXIds } = await generateObject({
+      model: openai("gpt-4o-mini"),
+      schema: z
+        .array(z.string().describe("Post ID"))
+        .refine(
+          (ids) =>
+            ids.every((id) => twitterPosts.some((post) => post.id === id)),
+          {
+            message: "ID must be one of the trending posts",
+          },
+        )
+        .describe("A list of IDs of trending posts on X"),
+      prompt: `You are a tech news generator. Select IDs trending posts on X (formerly Twitter) based on the latest data collected. Here are some popular twitter posts ${JSON.stringify(
+        twitterPosts,
+      )} The posts should be relevant to the tech industry and should be engaging for readers. Select engaging posts. Avoid lists or tweets without context.`,
+    });
+
+    const selectedPosts = twitterPosts.filter((post) =>
+      trendingXIds.includes(post.id),
+    );
+
+    // tool hub picks & new
+    // rate us and our socials
+    // related posts
+
+    // Recap
+    const { object: recapObject } = await generateObject({
+      model: openai("gpt-4o-mini"),
+      schema: z.object({
+        recipe: z.object({
+          name: z.string(),
+          ingredients: z.array(
+            z.object({ name: z.string(), amount: z.string() }),
+          ),
+          steps: z.array(z.string()),
+        }),
+      }),
+      prompt: "Generate a lasagna recipe.",
+    });
+  }),
 });

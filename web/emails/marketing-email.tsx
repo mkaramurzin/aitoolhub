@@ -15,24 +15,39 @@ import {
 import tailwindConfig from "tailwind.config";
 import { theme } from "./email-theme";
 
-interface MarketingEmailProps {
+interface Tweet {
+  profilePicture: string;
+  author: string;
+  handle: string;
+  content: string;
+  url: string;
+  retweetCount: number;
+  replyCount: number;
+  likeCount: number;
+}
+
+export interface MarketingEmailProps {
   title: string;
   previewText: string;
   subject: string;
   overview: string[];
+  baseUrl: string;
   breakingNews: { title: string; description: string }[];
   tools: { name: string; description: string }[];
   sponsors: { name: string; logo: string; url: string }[];
+  tweets: Tweet[];
 }
 
 export default function MarketingEmail({
   title,
   previewText,
   subject,
+  baseUrl,
   overview,
   breakingNews,
   tools,
   sponsors,
+  tweets,
 }: MarketingEmailProps) {
   return (
     <Html>
@@ -74,13 +89,18 @@ export default function MarketingEmail({
             backgroundColor: theme.colors.background,
           }}
         >
-          <Overview overview={overview} />
+          <Overview overview={overview} baseUrl={baseUrl} />
           <Section className="p-2" />
-          <Sponsors sponsors={sponsors} />
+          <Sponsors sponsors={sponsors} baseUrl={baseUrl} />
           <Section className="p-2" />
           <BreakingNews summaries={breakingNews} />
           <Section className="p-2" />
-          <TopTenTools tools={tools} />
+          <TrendingTwitterNews tweets={tweets} />
+          <Section className="p-2" />
+          <Section className="mt-4 border-t border-solid pt-4 text-center text-sm" />
+          <Section className="p-2" />
+
+          <TopTenTools tools={tools} baseUrl={baseUrl} />
           <Feedback />
         </Body>
       </Tailwind>
@@ -88,7 +108,59 @@ export default function MarketingEmail({
   );
 }
 
-function Overview({ overview }: { overview: string[] }) {
+function TrendingTwitterNews({ tweets }: { tweets: Tweet[] }) {
+  return (
+    <Section className="">
+      {/* Title */}
+      <Section className="">
+        <Heading as="h1" className="m-0 mb-0 text-xl font-semibold">
+          {"Trending on Twitter"}
+        </Heading>
+      </Section>
+      {tweets.map((tweet, idx) => (
+        <Section
+          key={idx}
+          className="mt-4 rounded-lg border border-solid border-border bg-card p-4"
+        >
+          <Row className="">
+            <Column width={40} className="mr-4">
+              <Link className="cursor-pointer" href={tweet.url}>
+                <Img
+                  src={tweet.profilePicture}
+                  alt={tweet.author}
+                  width={32}
+                  height={32}
+                  style={{ display: "block", borderRadius: "99px" }}
+                />
+              </Link>
+            </Column>
+            <Column>
+              <Link href={tweet.url} className="m-0 text-white">
+                <span className="text-sm">{tweet.author}</span>{" "}
+                <span className="text-sm text-muted-foreground">
+                  {tweet.handle}
+                </span>
+              </Link>
+              <Text className="m-0 mt-1 text-sm">
+                <Link className="text-white" href={tweet.url}>
+                  {tweet.content}
+                </Link>
+              </Text>
+            </Column>
+          </Row>
+        </Section>
+      ))}
+    </Section>
+  );
+}
+
+function Overview({
+  overview,
+  baseUrl,
+}: {
+  overview: string[];
+  baseUrl: string;
+}) {
   return (
     <Section className="rounded-lg border border-solid border-border bg-card p-4">
       <Heading as="h1" className="m-0 text-xl font-semibold">
@@ -112,7 +184,12 @@ function Overview({ overview }: { overview: string[] }) {
 
       <Text className="text-md mb-0 mt-4">
         Stop receiving our newsletter{" "}
-        <Link className="cursor-pointer text-orange-400">here</Link>
+        <Link
+          href={baseUrl + "/unsubscribe"}
+          className="cursor-pointer text-orange-400"
+        >
+          here
+        </Link>
       </Text>
     </Section>
   );
@@ -120,8 +197,10 @@ function Overview({ overview }: { overview: string[] }) {
 
 function TopTenTools({
   tools,
+  baseUrl,
 }: {
   tools: { name: string; description: string }[];
+  baseUrl: string;
 }) {
   return (
     <Section className="rounded-lg border border-solid border-border bg-card p-4">
@@ -140,7 +219,10 @@ function TopTenTools({
 
       <Section className="mt-4 border-t border-solid pt-4 text-center text-sm">
         <Text className="m-0">Have an AI tool that should be featured?</Text>
-        <Link className="cursor-pointer text-orange-400">
+        <Link
+          href={baseUrl + "/contact-us"}
+          className="cursor-pointer text-orange-400"
+        >
           Submit your AI tool to the #1 AI tools marketplace
         </Link>
       </Section>
@@ -175,8 +257,10 @@ function BreakingNews({
 
 function Sponsors({
   sponsors,
+  baseUrl,
 }: {
   sponsors: { name: string; logo: string; url: string }[];
+  baseUrl: string;
 }) {
   return (
     <Section className="rounded-lg border border-solid border-border bg-card p-4">
@@ -206,14 +290,22 @@ function Sponsors({
 
           {/* name cell */}
           <Column width="auto" style={{ verticalAlign: "middle" }}>
-            <span className="text-lg font-semibold">{sponsor.name}</span>
+            <Link
+              className="cursor-pointer text-white underline underline-offset-1"
+              href={sponsor.url}
+            >
+              <span className="text-lg font-semibold">{sponsor.name}</span>
+            </Link>
           </Column>
         </Row>
       ))}
 
-      <Button className="text-sm text-orange-400">
+      <Link
+        href={baseUrl + "/contact-us"}
+        className="cursor-pointer text-orange-400"
+      >
         Click here to learn more about becoming a sponsor
-      </Button>
+      </Link>
     </Section>
   );
 }

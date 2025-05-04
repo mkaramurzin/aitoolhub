@@ -294,6 +294,7 @@ model TechCrunch {
   TechCrunchSummary      TechCrunchSummary[]
   TechCrunchTool         TechCrunchTool[]
   TechCrunchBreakingNews TechCrunchBreakingNews[]
+  TechCrunchIngestXData  TechCrunchIngestXData[]
 }
 
 model TechCrunchBreakingNews {
@@ -338,6 +339,17 @@ model TechCrunchTool {
   TechCrunch   TechCrunch @relation(fields: [techCrunchId], references: [id], onDelete: Cascade)
 }
 
+model TechCrunchIngestXData {
+  ingestXDataId String
+  techCrunchId  String
+  createdAt     DateTime    @default(now()) @db.Timestamptz
+  updatedAt     DateTime    @default(now()) @updatedAt @db.Timestamptz
+  IngestXData   IngestXData @relation(fields: [ingestXDataId], references: [id], onDelete: Cascade)
+  TechCrunch    TechCrunch  @relation(fields: [techCrunchId], references: [id], onDelete: Cascade)
+
+  @@id([ingestXDataId, techCrunchId])
+}
+
 model IngestData {
   id     String   @id @default(uuid())
   postId String?
@@ -378,5 +390,6 @@ model IngestXData {
   quoted_tweet      Json?
   retweeted_tweet   Json?
 
-  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz
+  updatedAt             DateTime                @default(now()) @updatedAt @db.Timestamptz
+  TechCrunchIngestXData TechCrunchIngestXData[]
 }

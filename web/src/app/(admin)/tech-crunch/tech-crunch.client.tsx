@@ -20,11 +20,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { usePagination } from "@/hooks/use-pagination";
+import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { format } from "date-fns";
+import { Loader2 } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useState } from "react";
-
 export type TechCrunchClientPageProps = {};
 
 export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
@@ -47,6 +48,8 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
       refetchInterval: refreshInterval,
     },
   );
+
+  const generate = api.techCrunch.generate.useMutation({});
 
   const totalCount = techCrunchQuery.data?.count ?? 0;
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -75,6 +78,24 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
           <h1 className="mb-4 text-2xl font-bold">Tech Crunch</h1>
 
           <div className="flex space-x-4">
+            <Button
+              disabled={generate.isPending}
+              onClick={() => {
+                generate.mutate();
+              }}
+              className="flex gap-2"
+            >
+              <span
+                className={cn(generate.isPending ? "opacity-0" : "opacity-100")}
+              >
+                Generate
+              </span>
+
+              {generate.isPending && (
+                <Loader2 className="absolute size-4 animate-spin" />
+              )}
+            </Button>
+
             <a className={buttonVariants()} href="/tech-crunch/new">
               + New Tech Crunch
             </a>

@@ -45,6 +45,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { env } from "@/env";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -226,6 +227,7 @@ export function TechCrunchUpsertPage({
     const renderEmail = async () => {
       const html = await render(
         <MarketingEmail
+          baseUrl={env.NEXT_PUBLIC_BASE_URL}
           previewText={form.watch("subject")}
           title={form.watch("title")}
           subject={form.watch("subject")}
