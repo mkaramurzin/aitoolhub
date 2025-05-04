@@ -252,6 +252,8 @@ export const techCrunchRouter = createTRPCRouter({
     // Breaking News
     const { object: breakingNewsObject } = await generateObject({
       model: openai("gpt-4o-mini"),
+      temperature: 0.5,
+      maxRetries: 3,
       schema: z.object({
         articles: z
           .array(
@@ -269,6 +271,8 @@ export const techCrunchRouter = createTRPCRouter({
     // Trending on X
     const { object: trendingXIdsObject } = await generateObject({
       model: openai("gpt-4o-mini"),
+      temperature: 0.5,
+      maxRetries: 3,
       schema: z.object({
         ids: z
           .array(z.string().describe("Post ID"))
@@ -297,6 +301,8 @@ export const techCrunchRouter = createTRPCRouter({
     // Recap
     const { object: recapObject } = await generateObject({
       model: openai("gpt-4o-mini"),
+      temperature: 0.5,
+      maxRetries: 3,
       schema: z.object({
         title: z.string(),
         subject: z
@@ -313,6 +319,8 @@ export const techCrunchRouter = createTRPCRouter({
     //summaries
     const { object: summariesObject } = await generateObject({
       model: openai("gpt-4o-mini"),
+      temperature: 3,
+      maxRetries: 3,
       schema: z.object({
         summaries: z.array(
           z.object({
