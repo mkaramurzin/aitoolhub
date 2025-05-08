@@ -393,3 +393,11 @@ model IngestXData {
   updatedAt             DateTime                @default(now()) @updatedAt @db.Timestamptz
   TechCrunchIngestXData TechCrunchIngestXData[]
 }
+
+model KeyValueStore {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now()) @db.Timestamptz
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz
+}
