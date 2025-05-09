@@ -7,6 +7,7 @@ import {
   Html,
   Img,
   Link,
+  Preview,
   Row,
   Section,
   Tailwind,
@@ -53,7 +54,10 @@ export default function MarketingEmail({
 }: MarketingEmailProps) {
   return (
     <Html>
-      <Head />
+      <Head>
+        <title>{title}</title>
+      </Head>
+      <Preview>{previewText}</Preview>
       <Tailwind
         config={{
           ...tailwindConfig,

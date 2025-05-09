@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useState } from "react";
+import { toast } from "sonner";
 export type TechCrunchClientPageProps = {};
 
 export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
@@ -53,6 +54,16 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
 
   const [pageSize, setPageSize] = useState<number>(10); // Default page size
   const [pageSizeLabel, setPageSizeLabel] = useState<string>("Page Size");
+
+  const sendMutation = api.emails.send.useMutation({
+    onSuccess: () => {
+      techCrunchQuery.refetch();
+      toast.success("TechCrunch item sent successfully!");
+    },
+    onError: (error) => {
+      toast.error(`Error sending TechCrunch item: ${error.message}`);
+    },
+  });
 
   const techCrunchQuery = api.techCrunch.fetchAll.useQuery({
     page: page || 1,
@@ -294,13 +305,13 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
                   </TableCell>
                   <TableCell>
                     <span
-                      className={`rounded-md px-2 py-1 text-xs ${
+                      className={`rounded-md px-2 py-1 text-xs capitalize ${
                         item.status === "PUBLISHED"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
+                          ? "bg-green-300/90 text-green-800"
+                          : "bg-yellow-300/90 text-yellow-800"
                       }`}
                     >
-                      {item.status || "DRAFT"}
+                      {item.status.toLowerCase() || "Draft"}
                     </span>
                   </TableCell>
                   <TableCell>
@@ -315,6 +326,17 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
+                          onClick={() => {
+                            sendMutation.mutate({
+                              techCrunchId: item.id,
+                            });
+                          }}
+                          className="flex gap-2"
+                        >
+                          <Send className="size-4" />
+                          <span>Send</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           className="flex gap-2"
                           onClick={() => {
                             setShowAreYouSure(true);
@@ -323,10 +345,6 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
                         >
                           <Trash2 className="size-4" />
                           <span>Delete</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="flex gap-2">
-                          <Send className="size-4" />
-                          <span>Send</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

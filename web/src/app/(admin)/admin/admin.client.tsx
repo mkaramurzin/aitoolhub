@@ -6,18 +6,16 @@ import { api } from "@/trpc/react";
 export type AdminClientPageProps = {};
 
 function AdminClientPage({}: AdminClientPageProps) {
-  const sendEmailMutation = api.emails.send.useMutation();
+  const backfill = api.emails.backfill.useMutation();
   return (
     <div className="flex h-full w-full items-center justify-center">
       <Button
-        disabled={sendEmailMutation.isPending}
+        disabled={backfill.isPending}
         onClick={() => {
-          sendEmailMutation.mutate({
-            email: "dylancronkhite1@gmail.com",
-          });
+          backfill.mutate();
         }}
       >
-        {sendEmailMutation.isPending ? "Sending..." : "Send Email"}
+        {backfill.isPending ? "Backfilling..." : "Backfill Emails"}
       </Button>
     </div>
   );

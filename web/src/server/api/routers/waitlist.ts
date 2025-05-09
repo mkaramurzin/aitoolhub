@@ -89,7 +89,7 @@ export const waitlistRouter = createTRPCRouter({
     }),
 });
 
-async function createContact({ email }: { email: string }) {
+export async function createContact({ email }: { email: string }) {
   await resend.contacts.create({
     audienceId: "a7a52ebc-4cb9-4c96-85a1-ac758a2b912a",
     email,
