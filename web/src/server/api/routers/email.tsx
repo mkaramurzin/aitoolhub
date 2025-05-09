@@ -122,6 +122,7 @@ export const emailRouter = createTRPCRouter({
         `Creating contact for ${item.email} (${index + 1} of ${emails.length})`,
       );
       await createContact({ email: item.email });
+      index = index + 1;
     }
   }),
 });
