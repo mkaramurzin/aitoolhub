@@ -38,6 +38,9 @@ import { useState } from "react";
 export type TechCrunchClientPageProps = {};
 
 export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
+  const latestTimestampsQuery =
+    api.techCrunch.getLatestIngestTimestamps.useQuery();
+
   const [page, setPage] = useQueryState("page", {
     shallow: false,
     history: "push",
@@ -103,7 +106,35 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
       />
       <div className="w-full">
         <div className="flex items-center justify-between">
-          <h1 className="mb-4 text-2xl font-bold">Tech Crunch</h1>
+          <div>
+            <h1 className="mb-2 text-2xl font-bold">Tech Crunch</h1>
+            {latestTimestampsQuery.data && (
+              <div className="text-sm text-muted-foreground">
+                <p>
+                  Latest Web Scraping:{" "}
+                  {latestTimestampsQuery.data.latestIngestDataUpdatedAt
+                    ? format(
+                        new Date(
+                          latestTimestampsQuery.data.latestIngestDataUpdatedAt,
+                        ),
+                        "MMM d, yyyy h:mm a",
+                      )
+                    : "N/A"}
+                </p>
+                <p>
+                  Latest Twitter:{" "}
+                  {latestTimestampsQuery.data.latestIngestXDataUpdatedAt
+                    ? format(
+                        new Date(
+                          latestTimestampsQuery.data.latestIngestXDataUpdatedAt,
+                        ),
+                        "MMM d, yyyy h:mm a",
+                      )
+                    : "N/A"}
+                </p>
+              </div>
+            )}
+          </div>
 
           <div className="flex space-x-4">
             <a

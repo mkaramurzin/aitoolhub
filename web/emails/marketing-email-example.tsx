@@ -1,5 +1,6 @@
 import MarketingEmail, { MarketingEmailProps } from "./marketing-email";
 const exampleProps: MarketingEmailProps = {
+  id: "example-email",
   title: "AI Insights Newsletter",
   previewText: "Latest trends and updates in AI",
   subject: "Your Daily Dose of AI Innovations",

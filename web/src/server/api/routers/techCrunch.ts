@@ -7,6 +7,7 @@ import {
   adminProcedure,
   authenticatedProcedure,
   createTRPCRouter,
+  publicProcedure,
 } from "../trpc";
 
 export const techCrunchRouter = createTRPCRouter({
@@ -411,6 +412,24 @@ export const techCrunchRouter = createTRPCRouter({
         ingestXDataId: post.id,
       })),
     });
+  }),
+  getLatestIngestTimestamps: publicProcedure.query(async ({ ctx }) => {
+    const latestIngestData = await ctx.db.ingestData.findFirst({
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+
+    const latestIngestXData = await ctx.db.ingestXData.findFirst({
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+
+    return {
+      latestIngestDataUpdatedAt: latestIngestData?.updatedAt,
+      latestIngestXDataUpdatedAt: latestIngestXData?.updatedAt,
+    };
   }),
   delete: authenticatedProcedure
     .input(
