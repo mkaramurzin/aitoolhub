@@ -232,8 +232,8 @@ export const techCrunchRouter = createTRPCRouter({
       where: { key: "breaking-news-prompt" },
     });
 
-    const recapPrompt = await ctx.db.keyValueStore.findUnique({
-      where: { key: "recap-prompt" },
+    const metadataPrompt = await ctx.db.keyValueStore.findUnique({
+      where: { key: "metadata-prompt" },
     });
 
     const summariesPrompt = await ctx.db.keyValueStore.findUnique({
@@ -254,10 +254,10 @@ export const techCrunchRouter = createTRPCRouter({
       });
     }
 
-    if (!recapPrompt) {
+    if (!metadataPrompt) {
       throw new TRPCError({
         code: "NOT_FOUND",
-        message: "Recap prompt not found",
+        message: "Metadata prompt not found",
       });
     }
 
@@ -347,7 +347,7 @@ export const techCrunchRouter = createTRPCRouter({
     console.log("Filtered selectedPosts:", selectedPosts.length);
 
     // Recap
-    const { object: recapObject } = await generateObject({
+    const { object: metadataObject } = await generateObject({
       model: openai("gpt-4o-mini"),
       maxRetries: 3,
       mode: "json",
@@ -357,9 +357,9 @@ export const techCrunchRouter = createTRPCRouter({
           .string()
           .describe("A short description of the recap used for Email"),
       }),
-      prompt: `${recapPrompt.value} Here are the latest data points: ${JSON.stringify(ingestData)} Here are some popular twitter posts ${JSON.stringify(twitterPosts)}`,
+      prompt: `${metadataPrompt.value} Here are the latest data points: ${JSON.stringify(ingestData)} Here are some popular twitter posts ${JSON.stringify(twitterPosts)}`,
     });
-    console.log("Generated recapObject:", recapObject);
+    console.log("Generated metadataObject:", metadataObject);
 
     // Summaries
     const { object: summariesObject } = await generateObject({
@@ -381,8 +381,8 @@ export const techCrunchRouter = createTRPCRouter({
 
     const techCrunch = await ctx.db.techCrunch.create({
       data: {
-        title: recapObject.title,
-        subject: recapObject.subject,
+        title: metadataObject.title,
+        subject: metadataObject.subject,
         status: "DRAFT",
       },
     });

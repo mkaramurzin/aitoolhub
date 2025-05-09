@@ -91,16 +91,24 @@ export default function MarketingEmail({
         >
           <Overview overview={overview} baseUrl={baseUrl} />
           <Section className="p-2" />
-          <Sponsors sponsors={sponsors} baseUrl={baseUrl} />
-          <Section className="p-2" />
+          {sponsors.length > 0 && (
+            <>
+              <Sponsors sponsors={sponsors} baseUrl={baseUrl} />
+              <Section className="p-2" />
+            </>
+          )}
           <BreakingNews summaries={breakingNews} />
           <Section className="p-2" />
           <TrendingTwitterNews tweets={tweets} />
           <Section className="p-2" />
-          <Section className="mt-4 border-t border-solid pt-4 text-center text-sm" />
-          <Section className="p-2" />
 
-          <TopTenTools tools={tools} baseUrl={baseUrl} />
+          {tools.length > 0 && (
+            <>
+              <Section className="mt-4 border-t border-solid pt-4 text-center text-sm" />
+              <Section className="p-2" />
+              <TopTenTools tools={tools} baseUrl={baseUrl} />
+            </>
+          )}
           <Feedback />
         </Body>
       </Tailwind>
