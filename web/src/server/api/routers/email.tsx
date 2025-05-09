@@ -110,9 +110,7 @@ export const emailRouter = createTRPCRouter({
 
   backfill: adminProcedure.mutation(async ({ ctx }) => {
     const emails = await ctx.db.waitlist.findMany({
-      where: {
-        isContact: false,
-      },
+      where: {},
     });
 
     console.log(`Found ${emails.length} emails to backfill`);
