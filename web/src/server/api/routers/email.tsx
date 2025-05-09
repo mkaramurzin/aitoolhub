@@ -121,6 +121,8 @@ export const emailRouter = createTRPCRouter({
       );
       await createContact({ email: item.email });
       index = index + 1;
+      // Wait for 1 second to avoid hitting the rate limit
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }),
 });
