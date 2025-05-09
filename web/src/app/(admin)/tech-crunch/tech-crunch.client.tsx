@@ -27,6 +27,7 @@ import { api } from "@/trpc/react";
 import { format } from "date-fns";
 import {
   Ellipsis,
+  Goal,
   Loader2,
   MailPlus,
   MessageSquareText,
@@ -79,6 +80,15 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
   const deleteMutation = api.techCrunch.delete.useMutation({
     onSuccess: () => {
       techCrunchQuery.refetch();
+    },
+  });
+
+  const testEmailMutation = api.emails.test.useMutation({
+    onSuccess: () => {
+      toast.success("Test email sent successfully!");
+    },
+    onError: (error) => {
+      toast.error(`Error sending test email: ${error.message}`);
     },
   });
 
@@ -335,6 +345,17 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
                         >
                           <Send className="size-4" />
                           <span>Send</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            testEmailMutation.mutate({
+                              techCrunchId: item.id,
+                            });
+                          }}
+                          className="flex gap-2"
+                        >
+                          <Goal className="size-4" />
+                          <span>Test Email</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="flex gap-2"

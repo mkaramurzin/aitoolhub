@@ -125,4 +125,85 @@ export const emailRouter = createTRPCRouter({
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }),
+
+  test: adminProcedure
+    .input(z.object({ techCrunchId: z.string().uuid() }))
+    .mutation(async ({ ctx, input }) => {
+      const techCrunch = await ctx.db.techCrunch.findUnique({
+        where: { id: input.techCrunchId },
+        include: {
+          TechCrunchSponsor: {
+            include: {
+              Tool: true,
+            },
+          },
+          TechCrunchSummary: true,
+          TechCrunchTool: true,
+          TechCrunchBreakingNews: true,
+          TechCrunchIngestXData: {
+            include: {
+              IngestXData: true,
+            },
+          },
+        },
+      });
+
+      if (!techCrunch) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Tech Crunch entry not found",
+        });
+      }
+
+      await resend.emails.send({
+        to: [ctx.user.email],
+        from: "AiToolHub.co <hello@aitoolhub.co>",
+        subject: techCrunch.subject,
+        react: (
+          <MarketingEmail
+            title={techCrunch.title}
+            id={techCrunch.id}
+            baseUrl={env.NEXT_PUBLIC_BASE_URL}
+            tweets={techCrunch.TechCrunchIngestXData.flatMap(
+              (tweet) => tweet.IngestXData,
+            ).map((tweet) => ({
+              tweetId: tweet.id,
+              profilePicture: tweet.author
+                ? // @ts-ignore
+                  tweet.author.profilePicture
+                : "None",
+              // @ts-ignore
+              author: tweet.author ? tweet.author.name : "None",
+              // @ts-ignore
+              handle: tweet.author ? tweet.author.userName : "None",
+              content: tweet.text,
+              url: tweet.url,
+              retweetCount: tweet.retweetCount,
+              replyCount: tweet.replyCount,
+              likeCount: tweet.likeCount,
+            }))}
+            breakingNews={techCrunch.TechCrunchBreakingNews.map((news) => ({
+              id: news.id,
+              title: news.title,
+              description: news.description,
+            }))}
+            overview={techCrunch.TechCrunchSummary.map(
+              (summary) => summary.summary,
+            )}
+            tools={techCrunch.TechCrunchTool.map((tool) => ({
+              id: tool.id,
+              name: tool.name,
+              description: tool.description,
+            }))}
+            sponsors={techCrunch.TechCrunchSponsor.map((sponsor) => ({
+              name: sponsor.Tool.name,
+              logo: sponsor.Tool.image,
+              url: sponsor.Tool.url,
+            }))}
+            subject={techCrunch.subject}
+            previewText={techCrunch.subject}
+          />
+        ),
+      });
+    }),
 });
