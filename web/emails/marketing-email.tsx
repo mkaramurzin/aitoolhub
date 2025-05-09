@@ -89,7 +89,7 @@ export default function MarketingEmail({
         }}
       >
         <Body
-          className="p-4 text-white"
+          className="max-w-xl p-4 text-white"
           style={{
             fontFamily: theme.fontFamily.sans,
             backgroundColor: theme.colors.background,
