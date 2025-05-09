@@ -224,6 +224,50 @@ export const techCrunchRouter = createTRPCRouter({
       return techCrunch;
     }),
   generate: authenticatedProcedure.mutation(async ({ ctx }) => {
+    const twitterPrompt = await ctx.db.keyValueStore.findUnique({
+      where: { key: "twitter-post-selection-prompt" },
+    });
+
+    const breakingNewsPrompt = await ctx.db.keyValueStore.findUnique({
+      where: { key: "breaking-news-prompt" },
+    });
+
+    const recapPrompt = await ctx.db.keyValueStore.findUnique({
+      where: { key: "recap-prompt" },
+    });
+
+    const summariesPrompt = await ctx.db.keyValueStore.findUnique({
+      where: { key: "summaries-prompt" },
+    });
+
+    if (!breakingNewsPrompt) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Breaking news prompt not found",
+      });
+    }
+
+    if (!twitterPrompt) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Twitter prompt not found",
+      });
+    }
+
+    if (!recapPrompt) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Recap prompt not found",
+      });
+    }
+
+    if (!summariesPrompt) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Summaries prompt not found",
+      });
+    }
+
     const twitterPosts = await ctx.db.ingestXData.findMany({
       where: {
         createdAt: {
@@ -267,7 +311,7 @@ export const techCrunchRouter = createTRPCRouter({
           .min(1)
           .max(5),
       }),
-      prompt: `You are a tech news generator. Generate a list of breaking news articles based on the latest data collected. Here are the latest data points: ${JSON.stringify(ingestData)}. Here are some popular twitter posts ${JSON.stringify(twitterPosts)} The articles should be relevant to the tech industry and should be engaging for readers. Each article should have a title and a description.`,
+      prompt: `${breakingNewsPrompt.value} Here are the latest data points: ${JSON.stringify(ingestData)}. Here are some popular twitter posts ${JSON.stringify(twitterPosts)}`,
     });
     console.log(
       "Generated breakingNewsObject:",
@@ -293,7 +337,7 @@ export const techCrunchRouter = createTRPCRouter({
           )
           .describe("A list of IDs of trending posts on X"),
       }),
-      prompt: `You are a tech news generator. Select IDs trending posts on X (formerly Twitter) based on the latest data collected. Here are some popular twitter posts ${JSON.stringify(twitterPosts)} The posts should be relevant to the tech industry and should be engaging for readers. Select engaging posts. Avoid lists or tweets without context.`,
+      prompt: `${twitterPrompt.value} Here are some popular twitter posts ${JSON.stringify(twitterPosts)}`,
     });
     console.log("Generated trendingXIdsObject:", trendingXIdsObject);
 
@@ -313,7 +357,7 @@ export const techCrunchRouter = createTRPCRouter({
           .string()
           .describe("A short description of the recap used for Email"),
       }),
-      prompt: `You are a tech news generator. Generate a recap of the latest data collected. Here are the latest data points: ${JSON.stringify(ingestData)} Here are some popular twitter posts ${JSON.stringify(twitterPosts)} The recap should be relevant to the tech industry and should be engaging for readers. The recap should have a title and a subject. The subject should be a short description of the recap. The recap should be in a list format. Each item in the list should be a step in the recap.`,
+      prompt: `${recapPrompt.value} Here are the latest data points: ${JSON.stringify(ingestData)} Here are some popular twitter posts ${JSON.stringify(twitterPosts)}`,
     });
     console.log("Generated recapObject:", recapObject);
 
@@ -323,13 +367,15 @@ export const techCrunchRouter = createTRPCRouter({
       maxRetries: 3,
       mode: "json",
       schema: z.object({
-        summaries: z.array(
-          z.object({
-            summary: z.string().max(100),
-          }),
-        ),
+        summaries: z
+          .array(
+            z.object({
+              summary: z.string().max(100),
+            }),
+          )
+          .max(10),
       }),
-      prompt: `You are a tech news generator. Generate a list of short summaries of the latest data collected. Here are the latest data points: ${JSON.stringify(ingestData)} Here are some popular twitter posts ${JSON.stringify(twitterPosts)} The summaries should be relevant to the tech industry and should be engaging for readers. The summaries should be short and concise. The length should be no longer than 100 characters. The summaries should be in a list format. Each item in the list should be a summary.`,
+      prompt: `${summariesPrompt.value} Here are the latest data points: ${JSON.stringify(ingestData)} Here are some popular twitter posts ${JSON.stringify(twitterPosts)}`,
     });
     console.log("Generated summariesObject:", summariesObject.summaries.length);
 

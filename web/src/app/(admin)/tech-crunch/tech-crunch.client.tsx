@@ -25,7 +25,14 @@ import { usePagination } from "@/hooks/use-pagination";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { format } from "date-fns";
-import { Ellipsis, Loader2, Send, Trash2 } from "lucide-react";
+import {
+  Ellipsis,
+  Loader2,
+  MailPlus,
+  MessageSquareText,
+  Send,
+  Trash2,
+} from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useState } from "react";
 export type TechCrunchClientPageProps = {};
@@ -99,16 +106,30 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
           <h1 className="mb-4 text-2xl font-bold">Tech Crunch</h1>
 
           <div className="flex space-x-4">
+            <a
+              className={buttonVariants({
+                className: "flex gap-2",
+              })}
+              href="/kv"
+            >
+              <MessageSquareText className="size-4" />
+              <span>Prompts</span>
+            </a>
+
             <Button
               disabled={generate.isPending}
               onClick={() => {
                 generate.mutate();
               }}
-              className="flex gap-2"
+              className="relative flex"
             >
               <span
-                className={cn(generate.isPending ? "opacity-0" : "opacity-100")}
+                className={cn(
+                  generate.isPending ? "opacity-0" : "opacity-100",
+                  "flex items-center gap-2",
+                )}
               >
+                <MailPlus className="size-4" />
                 Generate
               </span>
 
