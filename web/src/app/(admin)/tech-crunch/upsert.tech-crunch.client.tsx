@@ -273,6 +273,7 @@ export function TechCrunchUpsertPage({
     const renderEmail = async () => {
       const html = await render(
         <MarketingEmail
+          id={techCrunch?.id ?? ""}
           tweets={form.watch("tweets")}
           baseUrl={env.NEXT_PUBLIC_BASE_URL}
           previewText={form.watch("subject")}

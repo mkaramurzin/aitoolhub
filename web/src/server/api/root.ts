@@ -2,6 +2,7 @@ import { userRouter } from "@/server/api/routers/users";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { contactUsRouter } from "./routers/contact-us";
 import { emailRouter } from "./routers/email";
+import { emailReviewRouter } from "./routers/emailReviewRouter";
 import { imagesRouter } from "./routers/images";
 import { ingestRouter } from "./routers/ingestRouter";
 import { keyValueRouter } from "./routers/keyValueStore";
@@ -30,6 +31,7 @@ export const appRouter = createTRPCRouter({
   techCrunch: techCrunchRouter,
   ingest: ingestRouter,
   keyValue: keyValueRouter,
+  emailReview: emailReviewRouter,
 });
 
 // export type definition of API

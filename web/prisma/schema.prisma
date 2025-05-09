@@ -182,6 +182,18 @@ model Waitlist {
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz
 }
 
+model EmailReview {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now()) @db.Timestamptz
+  updatedAt    DateTime @default(now()) @updatedAt @db.Timestamptz
+  email        String   @unique // Store in lowercase
+  techCrunchId String
+  rating       Int
+
+  @@index([email])
+  @@index([techCrunchId])
+}
+
 model ContactUs {
   id               String   @id @default(uuid())
   firstName        String

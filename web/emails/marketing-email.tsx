@@ -36,6 +36,7 @@ export interface MarketingEmailProps {
   tools: { name: string; description: string }[];
   sponsors: { name: string; logo: string; url: string }[];
   tweets: Tweet[];
+  id: string;
 }
 
 export default function MarketingEmail({
@@ -48,6 +49,7 @@ export default function MarketingEmail({
   tools,
   sponsors,
   tweets,
+  id,
 }: MarketingEmailProps) {
   return (
     <Html>
@@ -109,7 +111,7 @@ export default function MarketingEmail({
               <TopTenTools tools={tools} baseUrl={baseUrl} />
             </>
           )}
-          <Feedback />
+          <Feedback baseUrl={baseUrl} id={id} />
         </Body>
       </Tailwind>
     </Html>
@@ -324,7 +326,7 @@ function Sponsors({
   );
 }
 
-function Feedback() {
+function Feedback({ id, baseUrl }: { id: string; baseUrl: string }) {
   return (
     <Section className="border border-border p-6 text-center">
       <Text className="my-[8px] text-lg font-semibold leading-[28px] text-primary">
@@ -351,7 +353,7 @@ function Feedback() {
                     }}
                     className="h-5 w-5 rounded-[8px] border border-solid p-[8px] font-semibold"
                     // Replace with the proper URL that saves the selected number
-                    href="https://aitoolhub.com/feedback"
+                    href={`${baseUrl}/feedback/${id}?rating=${number}`}
                   >
                     {number}
                   </Button>
