@@ -407,11 +407,7 @@ export const techCrunchRouter = createTRPCRouter({
       mode: "json",
       schema: z.object({
         summaries: z
-          .array(
-            z.object({
-              summary: z.string().max(100),
-            }),
-          )
+          .array(z.string().max(100).describe("A short summary of the article"))
           .max(10),
       }),
       prompt: `${summariesPrompt.value} Here are the latest data points: ${JSON.stringify(ingestData)} Here are some popular twitter posts ${JSON.stringify(twitterPosts)}`,
@@ -468,7 +464,7 @@ export const techCrunchRouter = createTRPCRouter({
     await ctx.db.techCrunchSummary.createMany({
       data: summariesObject.summaries.map((summary) => ({
         techCrunchId: techCrunch.id,
-        summary: summary.summary,
+        summary: summary,
       })),
     });
     console.log(
