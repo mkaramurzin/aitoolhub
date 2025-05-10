@@ -40,7 +40,7 @@ export const emailRouter = createTRPCRouter({
         audienceId: "a7a52ebc-4cb9-4c96-85a1-ac758a2b912a",
         from: "AiToolHub.co <hello@aitoolhub.co>",
         name: techCrunch.title,
-        subject: techCrunch.subject,
+        subject: techCrunch.title,
         previewText: techCrunch.subject,
         react: (
           <MarketingEmail
@@ -167,7 +167,7 @@ export const emailRouter = createTRPCRouter({
       await resend.emails.send({
         to: [ctx.user.email],
         from: "AiToolHub.co <hello@aitoolhub.co>",
-        subject: techCrunch.subject,
+        subject: techCrunch.title,
         react: (
           <MarketingEmail
             title={techCrunch.title}
