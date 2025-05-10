@@ -9,6 +9,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -114,44 +115,32 @@ export default function FeedbackPage({
                 className="space-y-5"
               >
                 <div>
-                  <label
-                    htmlFor="email"
-                    className="mb-1 block text-sm font-medium text-gray-300"
-                  >
-                    Email
-                  </label>
-                  <div className="relative">
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="email"
-                              id="email"
-                              placeholder="Your email address"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            id="email"
+                            placeholder="Your email address"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
                 <div>
-                  <label
-                    htmlFor="feedback"
-                    className="mb-1 block text-sm font-medium text-gray-300"
-                  >
-                    Feedback
-                  </label>
                   <FormField
                     control={form.control}
                     name="feedback"
                     render={({ field }) => (
                       <FormItem>
+                        <FormLabel>Feedback</FormLabel>
                         <FormControl>
                           <Textarea
                             id="feedback"
@@ -167,14 +156,11 @@ export default function FeedbackPage({
                   />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-300">
-                    Rating
-                  </label>
+                  <label className="mb-2 text-sm font-medium">Rating</label>
                   <StarRating
                     rating={form.watch("rating")}
                     onRatingChange={(value) => form.setValue("rating", value)}
-                  />{" "}
-                  {/* Using form.watch and form.setValue */}
+                  />
                 </div>
                 <Button
                   className="w-full"
