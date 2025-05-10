@@ -120,6 +120,7 @@ const FormSchema = z.object({
       id: z.string().uuid().optional(),
       title: z.string(),
       description: z.string(),
+      url: z.string(),
     }),
   ),
   tweets: z.array(
@@ -133,6 +134,7 @@ const FormSchema = z.object({
       retweetCount: z.number(),
       replyCount: z.number(),
       likeCount: z.number(),
+      image: z.string().url().optional(),
     }),
   ),
 });
@@ -191,6 +193,7 @@ export function TechCrunchUpsertPage({
             id: news.id,
             title: news.title,
             description: news.description,
+            url: news.url,
           })),
           tweets: techCrunch.TechCrunchIngestXData.flatMap(
             (tweet) => tweet.IngestXData,
@@ -209,6 +212,14 @@ export function TechCrunchUpsertPage({
             retweetCount: tweet.retweetCount,
             replyCount: tweet.replyCount,
             likeCount: tweet.likeCount,
+            image:
+              typeof tweet.extendedEntities === "object" &&
+              tweet.extendedEntities !== null &&
+              "media" in tweet.extendedEntities &&
+              Array.isArray((tweet.extendedEntities as any).media) &&
+              (tweet.extendedEntities as any).media.length > 0
+                ? (tweet.extendedEntities as any).media[0].media_url_https
+                : undefined,
           })),
         }
       : {
@@ -869,7 +880,11 @@ export function TechCrunchUpsertPage({
                           type="button"
                           variant="outline"
                           onClick={() =>
-                            addBreakingNews({ title: "", description: "" })
+                            addBreakingNews({
+                              title: "",
+                              description: "",
+                              url: "",
+                            })
                           }
                           className="mt-4"
                         >
@@ -953,6 +968,22 @@ export function TechCrunchUpsertPage({
                                     </FormItem>
                                   )}
                                 />
+                                <FormField
+                                  control={form.control}
+                                  name={`breakingNews.${index}.url`}
+                                  render={({ field }) => (
+                                    <FormItem className="mt-2">
+                                      <FormLabel>URL</FormLabel>
+                                      <FormControl>
+                                        <Input
+                                          placeholder="Enter URL"
+                                          {...field}
+                                        />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
                               </div>
                             </div>
                           </div>
@@ -961,7 +992,11 @@ export function TechCrunchUpsertPage({
                           type="button"
                           variant="outline"
                           onClick={() =>
-                            addBreakingNews({ title: "", description: "" })
+                            addBreakingNews({
+                              title: "",
+                              description: "",
+                              url: "",
+                            })
                           }
                           className="w-full"
                         >
@@ -984,19 +1019,19 @@ export function TechCrunchUpsertPage({
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="max-h-[600px] overflow-auto rounded-md border bg-background p-4">
+                    <div className="max-h-[800px] overflow-auto rounded-md border bg-background p-4">
                       {renderedEmailHtml ? (
                         <iframe
                           srcDoc={renderedEmailHtml}
                           style={{
                             width: "100%",
-                            height: "500px",
+                            height: "700px",
                             border: "none",
                           }}
                           title="Email Preview"
                         />
                       ) : (
-                        <div className="flex h-[500px] items-center justify-center">
+                        <div className="flex h-[700px] items-center justify-center">
                           <Loader2 className="h-8 w-8 animate-spin" />
                         </div>
                       )}

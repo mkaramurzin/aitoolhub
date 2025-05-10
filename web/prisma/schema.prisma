@@ -313,6 +313,7 @@ model TechCrunchBreakingNews {
   id           String   @id @default(uuid())
   title        String
   description  String
+  url          String
   techCrunchId String
   createdAt    DateTime @default(now()) @db.Timestamptz
   updatedAt    DateTime @default(now()) @updatedAt @db.Timestamptz

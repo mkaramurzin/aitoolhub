@@ -13,11 +13,13 @@ const exampleProps: MarketingEmailProps = {
       title: "New AI Model Released",
       description:
         "A new cutting-edge AI model has been released, offering faster processing.",
+      url: "https://example.com/news1",
     },
     {
       title: "Tech Giant Invests in AI",
       description:
         "A major tech company has announced a significant investment in AI technologies.",
+      url: "https://example.com/news1",
     },
   ],
   tools: [
@@ -47,11 +49,12 @@ const exampleProps: MarketingEmailProps = {
       profilePicture: "https://picsum.photos/200",
       author: "Jane Doe",
       handle: "@janedoe",
-      content: "Excited about the future of AI!",
+      content: "Excited about the future\n\n of AI!",
       url: "https://twitter.com/janedoe",
       retweetCount: 10,
       replyCount: 2,
       likeCount: 50,
+      image: "https://picsum.photos/200",
     },
     {
       profilePicture: "https://picsum.photos/200",

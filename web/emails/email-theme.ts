@@ -53,6 +53,7 @@ export const theme = {
   },
 
   fontFamily: {
+    arial: "Arial, sans-serif",
     sans: "Inter, sans-serif",
     serif: "Merriweather, serif",
     mono: "JetBrains Mono, monospace",

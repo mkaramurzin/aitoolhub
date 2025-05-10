@@ -7,6 +7,7 @@ import {
   Html,
   Img,
   Link,
+  Markdown,
   Preview,
   Row,
   Section,
@@ -25,6 +26,7 @@ interface Tweet {
   retweetCount: number;
   replyCount: number;
   likeCount: number;
+  image?: string;
 }
 
 export interface MarketingEmailProps {
@@ -33,7 +35,7 @@ export interface MarketingEmailProps {
   subject: string;
   overview: string[];
   baseUrl: string;
-  breakingNews: { title: string; description: string }[];
+  breakingNews: { title: string; description: string; url: string }[];
   tools: { name: string; description: string }[];
   sponsors: { name: string; logo: string; url: string }[];
   tweets: Tweet[];
@@ -89,33 +91,35 @@ export default function MarketingEmail({
         }}
       >
         <Body
-          className="max-w-xl p-4 text-white"
+          className="p-4 text-white"
           style={{
-            fontFamily: theme.fontFamily.sans,
+            fontFamily: theme.fontFamily.arial,
             backgroundColor: theme.colors.background,
           }}
         >
-          <Overview overview={overview} baseUrl={baseUrl} />
-          <Section className="p-2" />
-          {sponsors.length > 0 && (
-            <>
-              <Sponsors sponsors={sponsors} baseUrl={baseUrl} />
-              <Section className="p-2" />
-            </>
-          )}
-          <BreakingNews summaries={breakingNews} />
-          <Section className="p-2" />
-          <TrendingTwitterNews tweets={tweets} />
-          <Section className="p-2" />
+          <Section className="mx-auto max-w-2xl">
+            <Overview overview={overview} baseUrl={baseUrl} />
+            <Section className="p-2" />
+            {sponsors.length > 0 && (
+              <>
+                <Sponsors sponsors={sponsors} baseUrl={baseUrl} />
+                <Section className="p-2" />
+              </>
+            )}
+            <BreakingNews summaries={breakingNews} />
+            <Section className="p-2" />
+            <TrendingTwitterNews tweets={tweets} />
+            <Section className="p-2" />
 
-          {tools.length > 0 && (
-            <>
-              <Section className="mt-4 border-t border-solid pt-4 text-center text-sm" />
-              <Section className="p-2" />
-              <TopTenTools tools={tools} baseUrl={baseUrl} />
-            </>
-          )}
-          <Feedback baseUrl={baseUrl} id={id} />
+            {tools.length > 0 && (
+              <>
+                <Section className="mt-4 border-t border-solid pt-4 text-center text-sm" />
+                <Section className="p-2" />
+                <TopTenTools tools={tools} baseUrl={baseUrl} />
+              </>
+            )}
+            <Feedback baseUrl={baseUrl} id={id} />
+          </Section>
         </Body>
       </Tailwind>
     </Html>
@@ -127,7 +131,7 @@ function TrendingTwitterNews({ tweets }: { tweets: Tweet[] }) {
     <Section className="">
       {/* Title */}
       <Section className="">
-        <Heading as="h1" className="m-0 mb-0 text-xl font-semibold">
+        <Heading as="h1" className="m-0 mb-0 text-2xl font-semibold">
           {"Trending on Twitter"}
         </Heading>
       </Section>
@@ -156,16 +160,36 @@ function TrendingTwitterNews({ tweets }: { tweets: Tweet[] }) {
             </Column>
             <Column>
               <Link href={tweet.url} className="m-0 text-white">
-                <span className="text-sm">{tweet.author}</span>{" "}
-                <span className="text-sm text-muted-foreground">
+                <span className="text-lg">{tweet.author}</span>{" "}
+                <span className="text-lg text-muted-foreground">
                   @{tweet.handle}
                 </span>
               </Link>
-              <Text className="m-0 mt-1 text-sm">
+              <Text className="m-0 mt-1 text-base">
                 <Link className="text-white" href={tweet.url}>
-                  {tweet.content}
+                  <Markdown
+                    markdownCustomStyles={{
+                      p: {
+                        marginTop: "0px",
+                      },
+                    }}
+                    children={tweet.content}
+                  />
                 </Link>
               </Text>
+              {tweet.image && (
+                <Img
+                  src={tweet.image}
+                  alt="Tweet image"
+                  style={{
+                    width: "100%",
+                    display: "block",
+                    borderRadius: "8px",
+                    marginTop: "8px",
+                    marginBottom: "8px",
+                  }}
+                />
+              )}
             </Column>
           </Row>
         </Section>
@@ -183,26 +207,26 @@ function Overview({
 }) {
   return (
     <Section className="rounded-lg border border-solid border-border bg-card p-4">
-      <Heading as="h1" className="m-0 text-xl font-semibold">
+      <Heading as="h1" className="m-0 text-2xl font-semibold">
         Hey AI Enthusiast!
       </Heading>
 
-      <Text className="mb-2 mt-0 text-lg font-semibold text-primary">
+      <Text className="mb-2 mt-0 text-xl font-semibold text-primary">
         Welcome back to the worlds #1 AI newsletter.
       </Text>
 
-      <Text className="mb-4 mt-0 text-sm text-muted-foreground">
+      <Text className="mb-4 mt-0 text-base text-muted-foreground">
         {"Here's a glimpse of what we have today:"}
       </Text>
 
       {overview.map((item, index) => (
-        <Text key={index} className="my-2 text-sm">
+        <Text key={index} className="my-2 text-base">
           <span className="text-primary">•</span>
           {` ${item}`}
         </Text>
       ))}
 
-      <Text className="text-md mb-0 mt-4">
+      <Text className="mb-0 mt-4 text-lg">
         Stop receiving our newsletter{" "}
         <Link
           href={baseUrl + "/unsubscribe"}
@@ -224,7 +248,7 @@ function TopTenTools({
 }) {
   return (
     <Section className="rounded-lg border border-solid border-border bg-card p-4">
-      <Heading as="h1" className="m-0 mb-4 text-xl font-semibold">
+      <Heading as="h1" className="m-0 mb-4 text-2xl font-semibold">
         Top 10 AI Tools of the Day
       </Heading>
 
@@ -232,7 +256,7 @@ function TopTenTools({
         return (
           <Row key={index} className="mt-2">
             <Text className="m-0 font-semibold">{tool.name}</Text>
-            <Text className="m-0 text-sm">{tool.description}</Text>
+            <Text className="m-0 text-base">{tool.description}</Text>
           </Row>
         );
       })}
@@ -253,21 +277,24 @@ function TopTenTools({
 function BreakingNews({
   summaries,
 }: {
-  summaries: { title: string; description: string }[];
+  summaries: { title: string; description: string; url: string }[];
 }) {
   return (
     <Section className="rounded-lg border border-solid border-border bg-card p-4">
-      <Heading as="h1" className="m-0 mb-4 text-xl font-semibold">
+      <Heading as="h1" className="m-0 mb-4 text-2xl font-semibold">
         The latest developments in AI
       </Heading>
 
       {summaries.map((summary, index) => {
         return (
           <Row key={index} className="mt-2">
-            <Text className="m-0 font-semibold text-orange-400">
+            <Link
+              href={summary.url}
+              className="m-0 text-base font-semibold text-orange-400"
+            >
               {summary.title}
-            </Text>
-            <Text className="m-0 text-sm">{summary.description}</Text>
+            </Link>
+            <Text className="m-0 text-base">{summary.description}</Text>
           </Row>
         );
       })}
@@ -284,10 +311,10 @@ function Sponsors({
 }) {
   return (
     <Section className="rounded-lg border border-solid border-border bg-card p-4">
-      <Text className="mb-2 mt-0 text-sm text-muted-foreground">
+      <Text className="mb-2 mt-0 text-base text-muted-foreground">
         {"Today’s Sponsors"}
       </Text>
-      <Heading as="h1" className="m-0 mb-4 mt-2 text-xl font-semibold">
+      <Heading as="h1" className="m-0 mb-4 mt-2 text-2xl font-semibold">
         We are grateful for your support
       </Heading>
 
@@ -333,16 +360,16 @@ function Sponsors({
 function Feedback({ id, baseUrl }: { id: string; baseUrl: string }) {
   return (
     <Section className="border border-border p-6 text-center">
-      <Text className="my-[8px] text-lg font-semibold leading-[28px] text-primary">
+      <Text className="my-[8px] text-xl font-semibold leading-[28px] text-primary">
         Your opinion matters
       </Text>
       <Heading
         as="h1"
-        className="m-0 mt-[8px] text-xl font-semibold leading-[36px]"
+        className="m-0 mt-[8px] text-2xl font-semibold leading-[36px]"
       >
         We want to hear from you
       </Heading>
-      <Text className="text-4 leading-[24px] text-primary/60">
+      <Text className="text-5 leading-[24px] text-primary/60">
         How would you rate todays email on a scale from 1 to 5?
       </Text>
       <Row>

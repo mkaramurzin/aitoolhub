@@ -122,6 +122,7 @@ export const techCrunchRouter = createTRPCRouter({
               id: z.string().uuid().optional(),
               title: z.string(),
               description: z.string(),
+              url: z.string().url(),
             }),
           )
           .optional(),
@@ -203,6 +204,7 @@ export const techCrunchRouter = createTRPCRouter({
               techCrunchId: techCrunch.id,
               title: news.title,
               description: news.description,
+              url: news.url,
             },
           });
         }
@@ -307,12 +309,13 @@ export const techCrunchRouter = createTRPCRouter({
             z.object({
               title: z.string().describe("Creative title of the article"),
               description: z.string(),
+              id: z.string().describe("ID of the article"),
             }),
           )
           .min(1)
           .max(5),
       }),
-      prompt: `${breakingNewsPrompt.value} Here are the latest data points: ${JSON.stringify(ingestData)}. Here are some popular twitter posts ${JSON.stringify(twitterPosts)}`,
+      prompt: `${breakingNewsPrompt.value} Here are the latest data points: ${JSON.stringify(ingestData)}}`,
     });
     console.log(
       "Generated breakingNewsObject:",
@@ -390,11 +393,31 @@ export const techCrunchRouter = createTRPCRouter({
     console.log("Created techCrunch entry:", techCrunch);
 
     await ctx.db.techCrunchBreakingNews.createMany({
-      data: breakingNewsObject.articles.map((news) => ({
-        techCrunchId: techCrunch.id,
-        title: news.title,
-        description: news.description,
-      })),
+      data: breakingNewsObject.articles.map((news) => {
+        const url = ingestData.find((data) => data.id === news.id)?.link;
+        const validatedUrl = z.string().url().safeParse(url);
+
+        if (!url) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `URL not found for news ID: ${news.id}`,
+          });
+        }
+
+        if (!validatedUrl.success) {
+          throw new TRPCError({
+            code: "PARSE_ERROR",
+            message: `Invalid URL for news ID: ${news.id}`,
+          });
+        }
+
+        return {
+          techCrunchId: techCrunch.id,
+          title: news.title,
+          description: news.description,
+          url: validatedUrl.data,
+        };
+      }),
     });
     console.log("Created techCrunchBreakingNews entries");
 

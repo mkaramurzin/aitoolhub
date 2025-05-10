@@ -64,11 +64,20 @@ export const emailRouter = createTRPCRouter({
               retweetCount: tweet.retweetCount,
               replyCount: tweet.replyCount,
               likeCount: tweet.likeCount,
+              image:
+                typeof tweet.extendedEntities === "object" &&
+                tweet.extendedEntities !== null &&
+                "media" in tweet.extendedEntities &&
+                Array.isArray((tweet.extendedEntities as any).media) &&
+                (tweet.extendedEntities as any).media.length > 0
+                  ? (tweet.extendedEntities as any).media[0].media_url_https
+                  : undefined,
             }))}
             breakingNews={techCrunch.TechCrunchBreakingNews.map((news) => ({
               id: news.id,
               title: news.title,
               description: news.description,
+              url: news.url,
             }))}
             overview={techCrunch.TechCrunchSummary.map(
               (summary) => summary.summary,
@@ -181,11 +190,20 @@ export const emailRouter = createTRPCRouter({
               retweetCount: tweet.retweetCount,
               replyCount: tweet.replyCount,
               likeCount: tweet.likeCount,
+              image:
+                typeof tweet.extendedEntities === "object" &&
+                tweet.extendedEntities !== null &&
+                "media" in tweet.extendedEntities &&
+                Array.isArray((tweet.extendedEntities as any).media) &&
+                (tweet.extendedEntities as any).media.length > 0
+                  ? (tweet.extendedEntities as any).media[0].media_url_https
+                  : undefined,
             }))}
             breakingNews={techCrunch.TechCrunchBreakingNews.map((news) => ({
               id: news.id,
               title: news.title,
               description: news.description,
+              url: news.url,
             }))}
             overview={techCrunch.TechCrunchSummary.map(
               (summary) => summary.summary,
