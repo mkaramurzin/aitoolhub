@@ -188,6 +188,7 @@ model EmailReview {
   updatedAt    DateTime @default(now()) @updatedAt @db.Timestamptz
   email        String   @unique // Store in lowercase
   techCrunchId String
+  feedback     String?
   rating       Int
 
   @@index([email])

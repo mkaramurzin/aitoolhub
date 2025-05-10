@@ -8,18 +8,24 @@ export const emailReviewRouter = createTRPCRouter({
         email: z.string().email(),
         techCrunchId: z.string(),
         rating: z.number().int().min(1).max(5), // Added rating field with validation
+        feedback: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const lowerCaseEmail = input.email.toLowerCase();
       return ctx.db.emailReview.upsert({
         where: { email: lowerCaseEmail },
-        update: { techCrunchId: input.techCrunchId, rating: input.rating }, // Include rating in update
+        update: {
+          techCrunchId: input.techCrunchId,
+          rating: input.rating,
+          feedback: input.feedback,
+        }, // Include rating in update
         create: {
           email: lowerCaseEmail,
           techCrunchId: input.techCrunchId,
           rating: input.rating,
-        }, // Include rating in create
+          feedback: input.feedback,
+        },
       });
     }),
 });

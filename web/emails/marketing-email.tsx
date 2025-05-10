@@ -98,7 +98,7 @@ export default function MarketingEmail({
           }}
         >
           <Section className="mx-auto max-w-2xl">
-            <Title />
+            <Title baseUrl={baseUrl} />
             <Overview overview={overview} baseUrl={baseUrl} />
             <Section className="p-2" />
             {sponsors.length > 0 && (
@@ -127,12 +127,15 @@ export default function MarketingEmail({
   );
 }
 
-function Title() {
+function Title({ baseUrl }: { baseUrl: string }) {
   return (
     <Section className="rounded-lg py-14 text-center">
-      <Heading as="h1" className="m-0 text-4xl font-semibold">
+      <Link
+        href={baseUrl}
+        className="m-0 cursor-pointer text-4xl font-semibold text-white"
+      >
         {"Aitoolhub.co"}
-      </Heading>
+      </Link>
     </Section>
   );
 }
