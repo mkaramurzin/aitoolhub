@@ -182,6 +182,7 @@ function TrendingTwitterNews({ tweets }: { tweets: Tweet[] }) {
                     markdownCustomStyles={{
                       p: {
                         marginTop: "0px",
+                        fontSize: "17px",
                       },
                     }}
                     children={tweet.content}
@@ -223,7 +224,7 @@ function Overview({
       </Heading>
 
       <Text className="mb-2 mt-0 text-xl font-semibold text-primary">
-        Welcome back to the worlds #1 AI newsletter.
+        Welcome back! What is happening in AI right now?
       </Text>
 
       <Text className="mb-4 mt-0 text-base text-muted-foreground">
