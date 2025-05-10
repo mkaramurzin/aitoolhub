@@ -227,6 +227,10 @@ export const techCrunchRouter = createTRPCRouter({
       return techCrunch;
     }),
   generate: authenticatedProcedure.mutation(async ({ ctx }) => {
+    console.log("🚀 Starting TechCrunch generation process");
+
+    // Fetch prompts
+    console.log("📥 Fetching prompts from database");
     const twitterPrompt = await ctx.db.keyValueStore.findUnique({
       where: { key: "twitter-post-selection-prompt" },
     });
@@ -242,6 +246,7 @@ export const techCrunchRouter = createTRPCRouter({
     const summariesPrompt = await ctx.db.keyValueStore.findUnique({
       where: { key: "summaries-prompt" },
     });
+    console.log("✅ Prompts fetched successfully");
 
     if (!breakingNewsPrompt) {
       throw new TRPCError({
@@ -271,6 +276,9 @@ export const techCrunchRouter = createTRPCRouter({
       });
     }
 
+    // Fetch Twitter posts
+    console.log("📥 Fetching recent Twitter posts (last 24h)");
+    const startTwitterFetch = performance.now();
     const twitterPosts = await ctx.db.ingestXData.findMany({
       where: {
         createdAt: {
@@ -287,8 +295,14 @@ export const techCrunchRouter = createTRPCRouter({
         author: true,
       },
     });
-    console.log("Fetched twitterPosts:", twitterPosts.length);
+    const endTwitterFetch = performance.now();
+    console.log(
+      `✅ Fetched ${twitterPosts.length} Twitter posts in ${Math.round(endTwitterFetch - startTwitterFetch)}ms`,
+    );
 
+    // Fetch ingest data
+    console.log("📥 Fetching recent ingest data (last 24h)");
+    const startIngestFetch = performance.now();
     const ingestData = await ctx.db.ingestData.findMany({
       where: {
         createdAt: {
@@ -296,9 +310,14 @@ export const techCrunchRouter = createTRPCRouter({
         },
       },
     });
-    console.log("Fetched ingestData:", ingestData.length);
+    const endIngestFetch = performance.now();
+    console.log(
+      `✅ Fetched ${ingestData.length} ingest data points in ${Math.round(endIngestFetch - startIngestFetch)}ms`,
+    );
 
-    // Breaking News
+    // Generate Breaking News
+    console.log("🧠 Generating breaking news content");
+    const startBreakingNews = performance.now();
     const { object: breakingNewsObject } = await generateObject({
       model: openai("gpt-4o-mini"),
       maxRetries: 3,
@@ -317,12 +336,14 @@ export const techCrunchRouter = createTRPCRouter({
       }),
       prompt: `${breakingNewsPrompt.value} Here are the latest data points: ${JSON.stringify(ingestData)}}`,
     });
+    const endBreakingNews = performance.now();
     console.log(
-      "Generated breakingNewsObject:",
-      breakingNewsObject.articles.length,
+      `✅ Generated ${breakingNewsObject.articles.length} breaking news articles in ${Math.round(endBreakingNews - startBreakingNews)}ms`,
     );
 
-    // Trending on X
+    // Generate Trending on X
+    console.log("🧠 Identifying trending posts on X");
+    const startTrendingX = performance.now();
     const { object: trendingXIdsObject } = await generateObject({
       model: openai("gpt-4o-mini"),
       maxRetries: 3,
@@ -343,14 +364,21 @@ export const techCrunchRouter = createTRPCRouter({
       }),
       prompt: `${twitterPrompt.value} Here are some popular twitter posts ${JSON.stringify(twitterPosts)}`,
     });
-    console.log("Generated trendingXIdsObject:", trendingXIdsObject);
+    const endTrendingX = performance.now();
+    console.log(
+      `✅ Identified ${trendingXIdsObject.ids.length} trending X posts in ${Math.round(endTrendingX - startTrendingX)}ms`,
+    );
 
     const selectedPosts = twitterPosts.filter((post) =>
       trendingXIdsObject.ids.includes(post.id),
     );
-    console.log("Filtered selectedPosts:", selectedPosts.length);
+    console.log(
+      `📊 Selected ${selectedPosts.length} posts from ${twitterPosts.length} available posts`,
+    );
 
-    // Recap
+    // Generate Recap metadata
+    console.log("🧠 Generating newsletter metadata");
+    const startMetadata = performance.now();
     const { object: metadataObject } = await generateObject({
       model: openai("gpt-4o-mini"),
       maxRetries: 3,
@@ -363,9 +391,16 @@ export const techCrunchRouter = createTRPCRouter({
       }),
       prompt: `${metadataPrompt.value} Here are the latest data points: ${JSON.stringify(ingestData)} Here are some popular twitter posts ${JSON.stringify(twitterPosts)}`,
     });
-    console.log("Generated metadataObject:", metadataObject);
+    const endMetadata = performance.now();
+    console.log(
+      `✅ Generated newsletter metadata in ${Math.round(endMetadata - startMetadata)}ms`,
+    );
+    console.log(`📝 Title: "${metadataObject.title}"`);
+    console.log(`📝 Subject: "${metadataObject.subject}"`);
 
-    // Summaries
+    // Generate Summaries
+    console.log("🧠 Generating newsletter summaries");
+    const startSummaries = performance.now();
     const { object: summariesObject } = await generateObject({
       model: openai("gpt-4o-mini"),
       maxRetries: 3,
@@ -381,8 +416,13 @@ export const techCrunchRouter = createTRPCRouter({
       }),
       prompt: `${summariesPrompt.value} Here are the latest data points: ${JSON.stringify(ingestData)} Here are some popular twitter posts ${JSON.stringify(twitterPosts)}`,
     });
-    console.log("Generated summariesObject:", summariesObject.summaries.length);
+    const endSummaries = performance.now();
+    console.log(
+      `✅ Generated ${summariesObject.summaries.length} summaries in ${Math.round(endSummaries - startSummaries)}ms`,
+    );
 
+    // Create database entries
+    console.log("💾 Creating TechCrunch database entry");
     const techCrunch = await ctx.db.techCrunch.create({
       data: {
         title: metadataObject.title,
@@ -390,8 +430,9 @@ export const techCrunchRouter = createTRPCRouter({
         status: "DRAFT",
       },
     });
-    console.log("Created techCrunch entry:", techCrunch);
+    console.log(`✅ Created TechCrunch entry with ID: ${techCrunch.id}`);
 
+    console.log("💾 Creating breaking news entries");
     await ctx.db.techCrunchBreakingNews.createMany({
       data: breakingNewsObject.articles.map((news) => {
         const url = ingestData.find((data) => data.id === news.id)?.link;
@@ -419,22 +460,32 @@ export const techCrunchRouter = createTRPCRouter({
         };
       }),
     });
-    console.log("Created techCrunchBreakingNews entries");
+    console.log(
+      `✅ Created ${breakingNewsObject.articles.length} breaking news entries`,
+    );
 
+    console.log("💾 Creating summary entries");
     await ctx.db.techCrunchSummary.createMany({
       data: summariesObject.summaries.map((summary) => ({
         techCrunchId: techCrunch.id,
         summary: summary.summary,
       })),
     });
-    console.log("Created techCrunchSummary entries");
+    console.log(
+      `✅ Created ${summariesObject.summaries.length} summary entries`,
+    );
 
+    console.log("💾 Creating X post entries");
     await ctx.db.techCrunchIngestXData.createMany({
       data: selectedPosts.map((post) => ({
         techCrunchId: techCrunch.id,
         ingestXDataId: post.id,
       })),
     });
+    console.log(`✅ Created ${selectedPosts.length} X post entries`);
+
+    console.log(`🎉 TechCrunch generation complete! ID: ${techCrunch.id}`);
+    return techCrunch;
   }),
   getLatestIngestTimestamps: publicProcedure.query(async ({ ctx }) => {
     const latestIngestData = await ctx.db.ingestData.findFirst({
