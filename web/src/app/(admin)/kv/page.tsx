@@ -1,5 +1,6 @@
 "use client";
 
+import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -123,7 +124,8 @@ export default function KeyValueStorePage() {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto space-y-4 py-8">
+      <BackButton link="/tech-crunch" label="Back to Tech Crunch" />
       <Card>
         <CardHeader>
           <CardTitle>Key Value Store</CardTitle>
