@@ -296,32 +296,47 @@ export function ToolsClientPage({
                 </div>
               </div>
 
-              {/* images */}
-              {/* <div className="mb-6 aspect-video w-full">
-                <img
-                  src={tool.image}
-                  alt={tool.name}
-                  className="h-full w-full rounded-md object-cover"
-                />
-              </div> */}
+              <div
+                className={cn(
+                  "flex flex-col gap-4",
+                  tool.screenshotUrl && "lg:flex-row",
+                )}
+              >
+                {/* images */}
+                {tool.screenshotUrl && (
+                  <div className="mb-6 aspect-video w-full lg:w-2/3">
+                    <img
+                      src={tool.screenshotUrl}
+                      alt={tool.name}
+                      className="h-full w-full rounded-md object-cover"
+                    />
+                  </div>
+                )}
 
-              {/* Description */}
-              <div className="group mb-4 flex w-full flex-col space-y-2 rounded-md">
-                <span className="text-xl">About {tool.name}</span>
-                <span className="text-muted-foreground">
-                  {tool.description}
-                </span>
-              </div>
+                <div
+                  className={cn(
+                    "flex flex-col gap-4",
+                    tool.screenshotUrl && "lg:w-1/3",
+                  )}
+                >
+                  {/* Description */}
+                  <div className="group mb-4 flex w-full flex-col space-y-2 rounded-md">
+                    <span className="text-xl">About {tool.name}</span>
+                    <span className="text-muted-foreground">
+                      {tool.description}
+                    </span>
+                  </div>
+                  {/* Pricing */}
+                  <div className="group flex w-full flex-col space-y-2 rounded-md border-border bg-primary/10 p-4">
+                    <span className="text-xl">Pricing</span>
 
-              {/* Pricing */}
-              <div className="group flex w-full flex-col space-y-2 rounded-md border-border bg-primary/10 p-4">
-                <span className="text-xl">Pricing</span>
-
-                <div className="flex w-full gap-4">
-                  <span>Model</span>
-                  <span className="text-muted-foreground">
-                    {getPricing(tool.pricing)}
-                  </span>
+                    <div className="flex w-full gap-4">
+                      <span>Model</span>
+                      <span className="text-muted-foreground">
+                        {getPricing(tool.pricing)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
