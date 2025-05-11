@@ -297,13 +297,13 @@ export function ToolsClientPage({
               </div>
 
               {/* images */}
-              <div className="mb-6 aspect-video w-full">
+              {/* <div className="mb-6 aspect-video w-full">
                 <img
                   src={tool.image}
                   alt={tool.name}
                   className="h-full w-full rounded-md object-cover"
                 />
-              </div>
+              </div> */}
 
               {/* Description */}
               <div className="group mb-4 flex w-full flex-col space-y-2 rounded-md">
