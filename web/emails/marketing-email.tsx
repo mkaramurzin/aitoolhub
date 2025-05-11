@@ -120,6 +120,39 @@ export default function MarketingEmail({
               </>
             )}
             <Feedback baseUrl={baseUrl} id={id} />
+            <Section className="p-2" />
+            <SocialMediaLink
+              links={[
+                {
+                  url: "https://www.instagram.com/aitoolhub.co",
+                  image:
+                    "https://aitoolhub.s3.us-west-2.amazonaws.com/insta.png",
+                  alt: "Instagram",
+                },
+                {
+                  url: "https://x.com/AiTool35148",
+                  image: "https://aitoolhub.s3.us-west-2.amazonaws.com/x.png",
+                  alt: "X",
+                },
+                {
+                  url: "https://www.linkedin.com/company/aitoolhub-co/",
+                  image:
+                    "https://aitoolhub.s3.us-west-2.amazonaws.com/linkin.png",
+                  alt: "LinkedIn",
+                },
+                {
+                  url: "https://www.tiktok.com/@aitoolhub.co",
+                  image: "https://aitoolhub.s3.us-west-2.amazonaws.com/tt.png",
+                  alt: "TikTok",
+                },
+                {
+                  url: "https://discord.gg/mXzpCqQ5MM",
+                  image:
+                    "https://aitoolhub.s3.us-west-2.amazonaws.com/discord.png",
+                  alt: "Discord",
+                },
+              ]}
+            />
           </Section>
         </Body>
       </Tailwind>
@@ -410,5 +443,39 @@ function Feedback({ id, baseUrl }: { id: string; baseUrl: string }) {
         </Column>
       </Row>
     </Section>
+  );
+}
+
+function SocialMediaLink({
+  links,
+}: {
+  links: {
+    url: string;
+    image: string;
+    alt: string;
+  }[];
+}) {
+  return (
+    <Row>
+      <Column align="center">
+        <table>
+          <tr>
+            {links.map((link, index) => (
+              <td align="center" key={link.url} className="px-1">
+                <Link href={link.url} className="w-8 cursor-pointer">
+                  <Img
+                    src={link.image}
+                    alt={link.alt}
+                    width={32}
+                    height={32}
+                    style={{ display: "block", borderRadius: "8px" }}
+                  />
+                </Link>
+              </td>
+            ))}
+          </tr>
+        </table>
+      </Column>
+    </Row>
   );
 }
