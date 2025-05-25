@@ -45,7 +45,7 @@ export function FavoriteClientPage(props: FavoriteClientPageProps) {
             <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {tools.map((tool) => (
                 <ToolCard
-                  href={`/tools/${tool.id}`}
+                  href={`/tools/${tool.slug}`}
                   tool={tool}
                   key={tool.id}
                   tags={tool.ToolTags.flatMap((tag) => tag.Tag)}
