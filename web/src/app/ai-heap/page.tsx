@@ -32,6 +32,54 @@ const exampleData: AiHeapNode[] = [
       },
     ],
   },
+  {
+    id: "enterprise",
+    name: "Enterprise",
+    category: "enterprise",
+    children: [
+      {
+        id: "crm",
+        name: "CRM Tools",
+        category: "enterprise",
+      },
+    ],
+  },
+  {
+    id: "coding",
+    name: "Coding",
+    category: "coding",
+    children: [
+      {
+        id: "copilot",
+        name: "GitHub Copilot",
+        category: "coding",
+      },
+    ],
+  },
+  {
+    id: "agent",
+    name: "Agents",
+    category: "agent",
+    children: [
+      {
+        id: "autogpt",
+        name: "AutoGPT",
+        category: "agent",
+      },
+    ],
+  },
+  {
+    id: "benchmarks",
+    name: "Benchmarks",
+    category: "benchmarks",
+    children: [
+      {
+        id: "lmsys",
+        name: "LMSYS",
+        category: "benchmarks",
+      },
+    ],
+  },
 ];
 
 export default function AiHeapPage() {
