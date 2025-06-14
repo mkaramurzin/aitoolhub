@@ -1,4 +1,4 @@
-import { tools } from "@/lib/ai_tools";
+// import { tools } from "@/lib/ai_tools";
 import { slugify } from "@/lib/slugify";
 import { openai } from "@ai-sdk/openai";
 import { Prisma } from "@prisma/client";
@@ -439,62 +439,62 @@ export const toolsRouter = createTRPCRouter({
 
       return {};
     }),
-  gentoolsandtags: publicProcedure
-    .input(z.object({}))
-    .mutation(async ({ ctx }) => {
-      for (const id in tools) {
-        // @ts-ignore
-        const tool = tools[id] as any;
+  // gentoolsandtags: publicProcedure
+  //   .input(z.object({}))
+  //   .mutation(async ({ ctx }) => {
+  //     for (const id in tools) {
+  //       // @ts-ignore
+  //       const tool = tools[id] as any;
 
-        // //create tool
-        try {
-          const newTool = await ctx.db.tool.create({
-            data: {
-              description: tool.description,
-              name: tool.tool_name,
-              url: tool["Link to tool"],
-              image: tool.logo_url,
-              pricing: tool.pricing ?? "No data",
-            },
-          });
-          console.log(tool.tool_name);
+  //       // //create tool
+  //       try {
+  //         const newTool = await ctx.db.tool.create({
+  //           data: {
+  //             description: tool.description,
+  //             name: tool.tool_name,
+  //             url: tool["Link to tool"],
+  //             image: tool.logo_url,
+  //             pricing: tool.pricing ?? "No data",
+  //           },
+  //         });
+  //         console.log(tool.tool_name);
 
-          if (typeof tool.other_tags === "string") continue;
-          // @ts-ignore
-          for (const tag of tool.other_tags) {
-            // console.log(tag);
-            await ctx.db.tag.upsert({
-              where: {
-                name: tag,
-              },
-              create: {
-                name: tag,
-              },
-              update: {
-                uses: {
-                  increment: 1,
-                },
-              },
-            });
-            await ctx.db.toolTags.upsert({
-              where: {
-                toolId_tag: {
-                  tag: tag,
-                  toolId: newTool.id,
-                },
-              },
-              create: {
-                tag: tag,
-                toolId: newTool.id,
-              },
-              update: {},
-            });
-          }
-        } catch {}
-      }
+  //         if (typeof tool.other_tags === "string") continue;
+  //         // @ts-ignore
+  //         for (const tag of tool.other_tags) {
+  //           // console.log(tag);
+  //           await ctx.db.tag.upsert({
+  //             where: {
+  //               name: tag,
+  //             },
+  //             create: {
+  //               name: tag,
+  //             },
+  //             update: {
+  //               uses: {
+  //                 increment: 1,
+  //               },
+  //             },
+  //           });
+  //           await ctx.db.toolTags.upsert({
+  //             where: {
+  //               toolId_tag: {
+  //                 tag: tag,
+  //                 toolId: newTool.id,
+  //               },
+  //             },
+  //             create: {
+  //               tag: tag,
+  //               toolId: newTool.id,
+  //             },
+  //             update: {},
+  //           });
+  //         }
+  //       } catch {}
+  //     }
 
-      return;
-    }),
+  //     return;
+  //   }),
   count: publicProcedure.query(async ({ ctx }) => {
     const count = await ctx.db.tool.count();
     return { count };
