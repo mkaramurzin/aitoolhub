@@ -185,8 +185,10 @@ export default function AiHeapManagementClient() {
                 render={({ field }) => (
                   <FormItem className="md:col-span-1">
                     <Select
-                      onValueChange={field.onChange}
-                      value={field.value ?? ""}
+                      onValueChange={(val) =>
+                        field.onChange(val === "none" ? undefined : val)
+                      }
+                      value={field.value ?? "none"}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -194,7 +196,7 @@ export default function AiHeapManagementClient() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">None</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
                         {allNodes.map((n) => (
                           <SelectItem key={n.id} value={n.id}>
                             {n.name}
