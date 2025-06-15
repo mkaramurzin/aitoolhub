@@ -415,3 +415,19 @@ model KeyValueStore {
   createdAt DateTime @default(now()) @db.Timestamptz
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz
 }
+
+model AiHeapNode {
+  id        String       @id @default(uuid())
+  name      String
+  category  String
+  url       String?
+  image     String?
+  metadata  Json?
+  parentId  String?
+  parent    AiHeapNode?  @relation("AiHeapHierarchy", fields: [parentId], references: [id])
+  children  AiHeapNode[] @relation("AiHeapHierarchy")
+  createdAt DateTime     @default(now()) @db.Timestamptz
+  updatedAt DateTime     @default(now()) @updatedAt @db.Timestamptz
+
+  @@index([parentId])
+}

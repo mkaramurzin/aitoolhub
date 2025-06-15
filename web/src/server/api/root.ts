@@ -6,6 +6,7 @@ import { emailReviewRouter } from "./routers/emailReviewRouter";
 import { imagesRouter } from "./routers/images";
 import { ingestRouter } from "./routers/ingestRouter";
 import { keyValueRouter } from "./routers/keyValueStore";
+import { aiHeapRouter } from "./routers/aiHeap";
 import { parserRouter } from "./routers/parse";
 import { reviewsRouter } from "./routers/reviews";
 import { tagsRouter } from "./routers/tags";
@@ -32,6 +33,7 @@ export const appRouter = createTRPCRouter({
   ingest: ingestRouter,
   keyValue: keyValueRouter,
   emailReview: emailReviewRouter,
+  aiHeap: aiHeapRouter,
 });
 
 // export type definition of API
