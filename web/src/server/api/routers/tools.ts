@@ -3,7 +3,7 @@ import { slugify } from "@/lib/slugify";
 import { openai } from "@ai-sdk/openai";
 import { Prisma } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import { embed } from "ai";
+import { embed, generateText } from "ai";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import {
@@ -254,6 +254,55 @@ export const toolsRouter = createTRPCRouter({
       ]);
 
       return { tools, count: totalCount };
+    }),
+  clarifySearch: publicProcedure
+    .input(z.object({ query: z.string().max(100) }))
+    .query(async ({ input, ctx }) => {
+      const { embedding } = await embed({
+        model: openai.embedding("text-embedding-3-small"),
+        value: `With AI I want to ${input.query}`,
+      });
+
+      const closest = (await ctx.db.$queryRaw`
+        SELECT vector <=> ${embedding}::vector as distance
+        FROM "Tool"
+        WHERE vector IS NOT NULL
+          AND "deletedAt" IS NULL
+        ORDER BY distance
+        LIMIT 1
+      `) as { distance: number }[];
+
+      const distance = closest[0]?.distance ?? 1;
+      const confidence = 1 - distance;
+
+      if (confidence < 0.5) {
+        const { text } = await generateText({
+          model: openai("gpt-4o-mini"),
+          maxRetries: 3,
+          prompt: `A user searched for "${input.query}". Ask a short clarifying question to better understand the request.`,
+        });
+
+        return { confidence, question: text };
+      }
+
+      const results = (await ctx.db.$queryRaw`
+        SELECT id
+        FROM "Tool"
+        WHERE vector IS NOT NULL
+          AND vector <=> ${embedding}::vector < 0.5
+          AND "deletedAt" IS NULL
+        ORDER BY vector <=> ${embedding}::vector
+        LIMIT 10
+      `) as { id: string }[];
+
+      const tools = await ctx.db.tool.findMany({
+        where: { id: { in: results.map((r) => r.id) } },
+        include: {
+          ToolTags: { include: { Tag: true } },
+        },
+      });
+
+      return { confidence, tools };
     }),
   magicSearch: publicProcedure
     .input(
