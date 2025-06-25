@@ -1,4 +1,6 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import FilterDrawer from "@/components/ui/sidebar/filters-side-bar";
 import { usePagination } from "@/hooks/use-pagination";
@@ -6,6 +8,7 @@ import { api } from "@/trpc/react";
 import { Tag } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
+import { useEffect, useRef, useState } from "react";
 import { SearchBox } from "../(app)/search/_components/search-box";
 import { SearchHomePage } from "../(app)/search/_components/search-home";
 import { SearchOptions } from "../(app)/search/_components/search-options";
@@ -64,6 +67,39 @@ export function SearchResultsPage({
     parse: (v) => (["free", "paid", "free-paid"].includes(v) ? v : undefined),
   });
 
+  const skipClarifyRef = useRef(false);
+  const [clarifyDone, setClarifyDone] = useState(!query);
+  const [clarifyQuestion, setClarifyQuestion] = useState<string | null>(null);
+  const [clarifyAnswer, setClarifyAnswer] = useState("");
+
+  const clarifyQuery = api.tools.clarifySearch.useQuery(
+    { query: query ?? "" },
+    {
+      enabled: !!query && !clarifyDone,
+      refetchOnWindowFocus: false,
+    },
+  );
+
+  useEffect(() => {
+    if (clarifyQuery.data) {
+      if ("question" in clarifyQuery.data && clarifyQuery.data.question) {
+        setClarifyQuestion(clarifyQuery.data.question);
+      } else {
+        setClarifyDone(true);
+      }
+    }
+  }, [clarifyQuery.data]);
+
+  useEffect(() => {
+    if (skipClarifyRef.current) {
+      skipClarifyRef.current = false;
+      return;
+    }
+    setClarifyDone(!query);
+    setClarifyQuestion(null);
+    setClarifyAnswer("");
+  }, [query]);
+
   const toolSkeletons = Array.from({ length: 20 }, (_, i) => (
     <ToolCard.Skeleton key={i} />
   ));
@@ -81,6 +117,7 @@ export function SearchResultsPage({
     },
     {
       refetchOnWindowFocus: false,
+      enabled: clarifyDone,
     },
   );
 
@@ -104,6 +141,30 @@ export function SearchResultsPage({
           </div>
           <SearchOptions />
           <div className="my-4"></div>
+          {clarifyQuestion && (
+            <div className="mb-4 flex w-full max-w-xl flex-col items-center gap-2 px-4">
+              <p className="text-center">{clarifyQuestion}</p>
+              <div className="flex w-full items-center gap-2">
+                <Input
+                  value={clarifyAnswer}
+                  onChange={(e) => setClarifyAnswer(e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={() => {
+                    const newQuery = `${query ?? ""} ${clarifyAnswer}`.trim();
+                    skipClarifyRef.current = true;
+                    setQuery(newQuery);
+                    setClarifyDone(true);
+                    setClarifyQuestion(null);
+                    setClarifyAnswer("");
+                  }}
+                >
+                  Submit
+                </Button>
+              </div>
+            </div>
+          )}
         </>
       )}
 
