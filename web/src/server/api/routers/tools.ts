@@ -74,7 +74,7 @@ export const toolsRouter = createTRPCRouter({
       if (input.magicSearch) {
         const { embedding } = await embed({
           model: openai.embedding("text-embedding-3-small"),
-          value: `With AI I want to ${input.query}}`,
+          value: `With AI I want to ${input.query}`,
         });
 
         // Build dynamic SQL snippets using Prisma.sql helpers
