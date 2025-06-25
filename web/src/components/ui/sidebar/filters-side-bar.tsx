@@ -41,6 +41,11 @@ function FilterDrawer({}: React.PropsWithChildren<FilterDrawerProps>) {
     history: "push",
     defaultValue: "",
   });
+  const [page, setPage] = useQueryState("page", {
+    shallow: false,
+    history: "push",
+    parse: (v) => parseInt(v),
+  });
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -72,6 +77,7 @@ function FilterDrawer({}: React.PropsWithChildren<FilterDrawerProps>) {
     // check if tag already exists
     if (tags.includes(tag)) return;
 
+    setPage(1);
     setTags([...tags, tag]);
   }
 
@@ -115,6 +121,7 @@ function FilterDrawer({}: React.PropsWithChildren<FilterDrawerProps>) {
             <Button
               variant={"ghost"}
               onClick={() => {
+                setPage(1);
                 setTags([]);
                 setPricing("");
               }}
@@ -145,7 +152,10 @@ function FilterDrawer({}: React.PropsWithChildren<FilterDrawerProps>) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setTags([])}
+              onClick={() => {
+                setPage(1);
+                setTags([]);
+              }}
               title="Reset categories"
               aria-label="Reset categories"
               className="size-6 px-2 text-primary"
@@ -164,6 +174,7 @@ function FilterDrawer({}: React.PropsWithChildren<FilterDrawerProps>) {
                     <Badge
                       key={s + i}
                       onClick={() => {
+                        setPage(1);
                         if (tags.includes(s)) {
                           const newTags = tags.filter((t) => t !== s);
                           setTags(newTags);
@@ -242,7 +253,10 @@ function FilterDrawer({}: React.PropsWithChildren<FilterDrawerProps>) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setPricing("")}
+              onClick={() => {
+                setPage(1);
+                setPricing("");
+              }}
               title="Reset pricing"
               aria-label="Reset pricing"
               className="size-6 px-2 text-primary"
@@ -258,6 +272,7 @@ function FilterDrawer({}: React.PropsWithChildren<FilterDrawerProps>) {
             onValueChange={(value) => {
               // Normal selection: set the selected pricing value
               if (pricing !== value) {
+                setPage(1);
                 setPricing(value);
               }
             }}
@@ -271,6 +286,7 @@ function FilterDrawer({}: React.PropsWithChildren<FilterDrawerProps>) {
                 key={s.value}
                 onClick={() => {
                   if (pricing === s.value) {
+                    setPage(1);
                     setPricing("");
                   }
                 }}
