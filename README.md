@@ -59,6 +59,19 @@ pip install seleniumbase pandas
 python scraper/find_ai.py
 ```
 
+## Clarifying Questions
+
+The search interface now asks short clarifying questions when it is unsure about a query. If similarity confidence is below 50%, a question generated with OpenAI's GPT-4o model appears above the results. Answering it refines the search and improves the tools shown.
+
+## Running Tests
+
+Vitest is used for server-side tests located under `web/src/server/api/routers/__tests__`.
+
+```bash
+cd web
+yarn test
+```
+
 ## Additional Resources
 
 - The `web/README.md` file contains information specific to the underlying T3 Stack setup.
