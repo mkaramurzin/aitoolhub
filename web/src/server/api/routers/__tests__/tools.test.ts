@@ -50,6 +50,8 @@ describe("toolsRouter", () => {
     caller = createCaller({
       db,
       headers: new Headers(),
+      user: undefined,
+      session: undefined,
     });
   });
 
