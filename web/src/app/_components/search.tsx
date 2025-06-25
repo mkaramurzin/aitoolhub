@@ -71,6 +71,7 @@ export function SearchResultsPage({
   const [clarifyDone, setClarifyDone] = useState(!query);
   const [clarifyQuestion, setClarifyQuestion] = useState<string | null>(null);
   const [clarifyAnswer, setClarifyAnswer] = useState("");
+  const [originalQuery, setOriginalQuery] = useState<string | undefined>(undefined);
 
   const clarifyQuery = api.tools.clarifySearch.useQuery(
     { query: query ?? "" },
@@ -96,6 +97,7 @@ export function SearchResultsPage({
       return;
     }
     setClarifyDone(!query);
+    setOriginalQuery(undefined);
     setClarifyQuestion(null);
     setClarifyAnswer("");
   }, [query]);
@@ -109,6 +111,7 @@ export function SearchResultsPage({
     {
       page: page ?? 1,
       query: query ?? undefined,
+      originalQuery,
       tags: tags ?? undefined,
       pricing: pricing ?? undefined,
       orderBy,
@@ -154,6 +157,7 @@ export function SearchResultsPage({
                   onClick={() => {
                     const newQuery = `${query ?? ""} ${clarifyAnswer}`.trim();
                     skipClarifyRef.current = true;
+                    setOriginalQuery(query ?? undefined);
                     setQuery(newQuery);
                     setClarifyDone(true);
                     setClarifyQuestion(null);

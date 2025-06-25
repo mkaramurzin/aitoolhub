@@ -212,6 +212,8 @@ model SearchHistory {
   id        String   @id @default(uuid())
   userId    String?
   query     String
+  originalQuery String?
+  refinedQuery String?
   tags      String[]
   pricing   String
   createdAt DateTime @default(now()) @db.Timestamptz

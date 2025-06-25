@@ -25,7 +25,8 @@
     "typecheck": "tsc --noEmit",
     "s3": "node ./s3/s3.js",
     "email:dev": "email dev --port 4000",
-    "tunnel": "ngrok http --domain=many-macaque-evolving.ngrok-free.app 3000"
+    "tunnel": "ngrok http --domain=many-macaque-evolving.ngrok-free.app 3000",
+    "test": "vitest run"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^0.1.6",
@@ -134,7 +135,9 @@
     "react-email": "4.0.7",
     "tailwind-scrollbar": "^4.0.0",
     "tailwindcss": "^3.4.3",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "vitest": "^1.5.0",
+    "vite-tsconfig-paths": "^4.3.2"
   },
   "ct3aMetadata": {
     "initVersion": "7.38.1"

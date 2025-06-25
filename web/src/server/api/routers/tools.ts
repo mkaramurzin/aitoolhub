@@ -53,6 +53,7 @@ export const toolsRouter = createTRPCRouter({
         take: z.number().max(50).optional().default(10),
         magicSearch: z.boolean().optional().default(false),
         searchHistory: z.boolean().optional().default(true),
+        originalQuery: z.string().max(100).optional(),
       }),
     )
     .query(async ({ input, ctx }) => {
@@ -60,6 +61,8 @@ export const toolsRouter = createTRPCRouter({
         await ctx.db.searchHistory.create({
           data: {
             query: input.query ?? "",
+            originalQuery: input.originalQuery,
+            refinedQuery: input.originalQuery ? input.query ?? "" : undefined,
             userId: ctx.user?.id,
             tags: input.tags ?? [],
             pricing: input.pricing ?? "",
