@@ -85,7 +85,7 @@ function ToolCard({
           <div className="h-16 min-h-16 w-16 min-w-16 rounded-md bg-secondary"></div>
         )}
         <div className="flex w-full flex-col">
-          <div className="mb-2 flex w-full items-center justify-between">
+          <div className="mb-2 flex flex-1 w-full items-center justify-between">
             <span className="w-fit cursor-pointer underline-offset-1 hover:underline">
               {tool.name}
             </span>
@@ -104,6 +104,14 @@ function ToolCard({
                 </span>
               </div>
             )}
+          </div>
+          {/* Summary */}
+          <div className="mb-2 flex flex-1 w-full items-center justify-between gap-2">
+            {tool.summary !== '' &&
+              <span className="text-muted-foreground line-clamp-1 text-xs">
+                {tool.summary}
+              </span>
+            }
           </div>
         </div>
       </div>

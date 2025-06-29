@@ -127,6 +127,7 @@ model Tool {
   pricing           String                       @default("")
   excerpt           String?
   description       String
+  summary           String                       @default("")
   url               String
   image             String
   logoImageUrl      String?

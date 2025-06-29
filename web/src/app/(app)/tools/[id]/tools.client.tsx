@@ -199,8 +199,26 @@ export function ToolsClientPage({
               className="size-20 rounded-md object-cover"
             />
             <div className="flex flex-col">
-              <span className="text-2xl">{tool.name}</span>
+              <span className="flex text-2xl">{tool.name}</span>
+              {/* link to tool */}
+              <div className="flex">
+                <a
+                  href={tool.url}
+                  target="_blank"
+                  className={cn(buttonVariants(), "flex gap-2")}
+                  onClick={() => {
+                    tryItNowTrackingMutation.mutate({
+                      id: tool.id,
+                      tryItNowClicks: true,
+                    });
+                  }}
+                >
+                  <span>Try it now</span>
+                  <ExternalLink className="size-4" />
+                </a>
+              </div>
             </div>
+            
           </div>
 
           {/* Actions */}
@@ -230,21 +248,6 @@ export function ToolsClientPage({
                 )}
               </Button>
             )}
-
-            <a
-              href={tool.url}
-              target="_blank"
-              className={cn(buttonVariants(), "flex gap-2")}
-              onClick={() => {
-                tryItNowTrackingMutation.mutate({
-                  id: tool.id,
-                  tryItNowClicks: true,
-                });
-              }}
-            >
-              <span>Try it now</span>
-              <ExternalLink className="size-4" />
-            </a>
           </div>
         </div>
 

@@ -4,11 +4,12 @@ import { Input } from "@/components/ui/input";
 import { PaginationBar } from "@/components/ui/pagination-bar";
 import FilterDrawer from "@/components/ui/sidebar/filters-side-bar";
 import { usePagination } from "@/hooks/use-pagination";
+import { useSearch } from "@/hooks/use-search";
 import { api } from "@/trpc/react";
 import { Tag } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { SearchBox } from "../(app)/search/_components/search-box";
 import { SearchHomePage } from "../(app)/search/_components/search-home";
 import { SearchOptions } from "../(app)/search/_components/search-options";
@@ -21,16 +22,17 @@ export type SearchPageProps = {
 };
 
 export function SearchPage(props: SearchPageProps) {
+  const { query } = useSearch();
   const [tags, setTags] = useQueryState("tags", {
     shallow: false,
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
 
-  const [query, setQuery] = useQueryState("query", { shallow: false });
+  const showHomePage = (!tags || tags.length < 1) && !query && !props.orderBy;
 
   return (
     <div className="flex w-full flex-col items-center py-10">
-      {(!tags || tags.length < 1) && !query && !props.orderBy ? (
+      {showHomePage ? (
         <SearchHomePage tags={props.tags} />
       ) : (
         <SearchResultsPage orderBy={props.orderBy} />
@@ -49,13 +51,21 @@ export function SearchResultsPage({
   orderBy?: "trending" | "new";
 }) {
   const PAGE_SIZE = 18;
-  // Query states for tags, query string, and page number
+  
+  // Use custom search hook for better state management
+  const { query, setQuery, debouncedQuery, isSearching, hasQuery } = useSearch();
+  
+  // Add state for conversation refinements that don't immediately update URL
+  const [conversationQuery, setConversationQuery] = useState<string>('');
+  const [shouldPreserveChat, setShouldPreserveChat] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Query states for filters and pagination
   const [tags, setTags] = useQueryState("tags", {
     shallow: false,
     history: "push",
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
-  const [query, setQuery] = useQueryState("query", { shallow: false });
   const [page, setPage] = useQueryState("page", {
     shallow: false,
     history: "push",
@@ -67,60 +77,42 @@ export function SearchResultsPage({
     parse: (v) => (["free", "paid", "free-paid"].includes(v) ? v : undefined),
   });
 
-  const skipClarifyRef = useRef(false);
-  const [clarifyDone, setClarifyDone] = useState(!query);
-  const [clarifyQuestion, setClarifyQuestion] = useState<string | null>(null);
-  const [clarifyAnswer, setClarifyAnswer] = useState("");
-  const [originalQuery, setOriginalQuery] = useState<string | undefined>(undefined);
-
-  const clarifyQuery = api.tools.clarifySearch.useQuery(
-    { query: query ?? "" },
-    {
-      enabled: !!query && !clarifyDone,
-      refetchOnWindowFocus: false,
-    },
-  );
-
+  // Reset page when search parameters change
   useEffect(() => {
-    if (clarifyQuery.data) {
-      if ("question" in clarifyQuery.data && clarifyQuery.data.question) {
-        setClarifyQuestion(clarifyQuery.data.question);
-      } else {
-        setClarifyDone(true);
-      }
+    if (page && page > 1) {
+      setPage(1);
     }
-  }, [clarifyQuery.data]);
+  }, [query, tags, pricing, setPage]);
 
+  // Initialize conversation query when main query changes (but not from conversation)
   useEffect(() => {
-    if (skipClarifyRef.current) {
-      skipClarifyRef.current = false;
-      return;
+    if (!shouldPreserveChat && debouncedQuery) {
+      setConversationQuery(debouncedQuery);
     }
-    setClarifyDone(!query);
-    setOriginalQuery(undefined);
-    setClarifyQuestion(null);
-    setClarifyAnswer("");
-  }, [query]);
+  }, [debouncedQuery, shouldPreserveChat]);
 
-  const toolSkeletons = Array.from({ length: 20 }, (_, i) => (
+  const toolSkeletons = Array.from({ length: PAGE_SIZE }, (_, i) => (
     <ToolCard.Skeleton key={i} />
   ));
+
+  // Use conversation query for API calls when available, fall back to debounced query  
+  const effectiveQuery = conversationQuery || debouncedQuery;
 
   // Call the API with page number, query and tags
   const toolsQuery = api.tools.fetchAll.useQuery(
     {
       page: page ?? 1,
-      query: query ?? undefined,
-      originalQuery,
+      query: effectiveQuery ?? undefined,
       tags: tags ?? undefined,
       pricing: pricing ?? undefined,
       orderBy,
       take: PAGE_SIZE,
-      magicSearch: query ? query.length > 0 : false,
+      magicSearch: !!effectiveQuery, // Use the effective query condition
+      searchHistory: true,
     },
     {
       refetchOnWindowFocus: false,
-      enabled: clarifyDone,
+      enabled: true, // Always enabled, no blocking clarification
     },
   );
 
@@ -133,6 +125,36 @@ export function SearchResultsPage({
     paginationItemsToDisplay: 5,
   });
 
+  const isLoading = toolsQuery.isPending || isSearching;
+  const hasResults = toolsQuery.data && toolsQuery.data.tools.length > 0;
+
+  // Handle conversation-driven search refinement
+  const handleConversationRefine = useCallback((refinedQuery: string) => {
+    setShouldPreserveChat(true);
+    setConversationQuery(refinedQuery);
+    
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    // Debounce URL update to prevent chat destruction
+    timeoutRef.current = setTimeout(() => {
+      setQuery(refinedQuery);
+      setShouldPreserveChat(false);
+      timeoutRef.current = null;
+    }, 1000);
+  }, [setQuery]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="flex w-full max-w-6xl flex-col items-center">
       {showSearch && (
@@ -140,40 +162,38 @@ export function SearchResultsPage({
           <SearchTitle />
           <div className="my-3"></div>
           <div className="mb-6 flex w-full max-w-xl flex-col gap-6 px-4">
-            <SearchBox />
+            <SearchBox 
+              conversationResponse={toolsQuery.data?.conversationResponse || toolsQuery.data?.clarificationSuggestion || undefined}
+              suggestedRefinements={toolsQuery.data?.conversationRefinements || toolsQuery.data?.clarificationTags || []}
+              confidence={toolsQuery.data?.confidence || 0}
+              onRefine={handleConversationRefine}
+              currentQuery={conversationQuery || effectiveQuery || ''}
+              toolCount={totalCount}
+            />
           </div>
           <SearchOptions />
           <div className="my-4"></div>
-          {clarifyQuestion && (
-            <div className="mb-4 flex w-full max-w-xl flex-col items-center gap-2 px-4">
-              <p className="text-center">{clarifyQuestion}</p>
-              <div className="flex w-full items-center gap-2">
-                <Input
-                  value={clarifyAnswer}
-                  onChange={(e) => setClarifyAnswer(e.target.value)}
-                  className="flex-1"
-                />
-                <Button
-                  onClick={() => {
-                    const newQuery = `${query ?? ""} ${clarifyAnswer}`.trim();
-                    skipClarifyRef.current = true;
-                    setOriginalQuery(query ?? undefined);
-                    setQuery(newQuery);
-                    setClarifyDone(true);
-                    setClarifyQuestion(null);
-                    setClarifyAnswer("");
-                  }}
-                >
-                  Submit
-                </Button>
-              </div>
-            </div>
-          )}
         </>
       )}
 
-      {toolsQuery.data && toolsQuery.data.tools.length > 0 ? (
+      {/* Search status indicator */}
+      {isSearching && (
+        <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+          Searching...
+        </div>
+      )}
+
+      {hasResults ? (
         <>
+          {/* Results count */}
+          <div className="mb-4 w-full px-4 text-sm text-muted-foreground">
+            {totalCount} {totalCount === 1 ? 'tool' : 'tools'} found
+            {effectiveQuery && (
+              <span> for "{effectiveQuery}"</span>
+            )}
+          </div>
+          
           <div className="flex w-full flex-col items-center px-4">
             <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {toolsQuery.data.tools.map((tool) => (
@@ -188,26 +208,41 @@ export function SearchResultsPage({
               ))}
             </div>
           </div>
+          
           {/* Pagination UI */}
-          <PaginationBar
-            page={page ?? 1}
-            totalPages={totalPages}
-            pages={pages}
-            showLeftEllipsis={showLeftEllipsis}
-            showRightEllipsis={showRightEllipsis}
-            setPage={setPage}
-          />
+          {totalPages > 1 && (
+            <PaginationBar
+              page={page ?? 1}
+              totalPages={totalPages}
+              pages={pages}
+              showLeftEllipsis={showLeftEllipsis}
+              showRightEllipsis={showRightEllipsis}
+              setPage={setPage}
+            />
+          )}
         </>
       ) : (
-        <div className="flex h-full w-full items-center justify-center">
-          {toolsQuery.isPending ? (
+        <div className="flex h-full w-full items-center justify-center py-12">
+          {isLoading ? (
             <div className="flex w-full flex-col items-center px-4">
               <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {toolSkeletons}
               </div>
             </div>
           ) : (
-            <span className="text-3xl text-muted">No tools found.</span>
+            <div className="flex flex-col items-center gap-4 text-center">
+              <span className="text-3xl text-muted-foreground">No tools found</span>
+              {(effectiveQuery || tags?.length || pricing) && (
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>Try adjusting your search criteria:</p>
+                  <ul className="space-y-1">
+                    {effectiveQuery && <li>• Try different keywords</li>}
+                    {tags?.length && <li>• Remove some tag filters</li>}
+                    {pricing && <li>• Change pricing filter</li>}
+                  </ul>
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}
@@ -243,5 +278,5 @@ export function SelectedTags() {
         </div>
       )}
     </div>
-  );
-}
+  )
+} 
