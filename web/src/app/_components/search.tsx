@@ -24,7 +24,7 @@ export type SearchPageProps = {
 export function SearchPage(props: SearchPageProps) {
   const { query } = useSearch();
   const [tags, setTags] = useQueryState("tags", {
-    shallow: false,
+    shallow: true,
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
 
@@ -51,28 +51,29 @@ export function SearchResultsPage({
   orderBy?: "trending" | "new";
 }) {
   const PAGE_SIZE = 18;
-  
+
   // Use custom search hook for better state management
-  const { query, setQuery, debouncedQuery, isSearching, hasQuery } = useSearch();
-  
+  const { query, setQuery, debouncedQuery, isSearching, hasQuery } =
+    useSearch();
+
   // Add state for conversation refinements that don't immediately update URL
-  const [conversationQuery, setConversationQuery] = useState<string>('');
+  const [conversationQuery, setConversationQuery] = useState<string>("");
   const [shouldPreserveChat, setShouldPreserveChat] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Query states for filters and pagination
   const [tags, setTags] = useQueryState("tags", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
   const [page, setPage] = useQueryState("page", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => parseInt(v),
   });
   const [pricing, setPricing] = useQueryState("pricing", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => (["free", "paid", "free-paid"].includes(v) ? v : undefined),
   });
@@ -95,7 +96,7 @@ export function SearchResultsPage({
     <ToolCard.Skeleton key={i} />
   ));
 
-  // Use conversation query for API calls when available, fall back to debounced query  
+  // Use conversation query for API calls when available, fall back to debounced query
   const effectiveQuery = conversationQuery || debouncedQuery;
 
   // Call the API with page number, query and tags
@@ -129,22 +130,25 @@ export function SearchResultsPage({
   const hasResults = toolsQuery.data && toolsQuery.data.tools.length > 0;
 
   // Handle conversation-driven search refinement
-  const handleConversationRefine = useCallback((refinedQuery: string) => {
-    setShouldPreserveChat(true);
-    setConversationQuery(refinedQuery);
-    
-    // Clear any existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    // Debounce URL update to prevent chat destruction
-    timeoutRef.current = setTimeout(() => {
-      setQuery(refinedQuery);
-      setShouldPreserveChat(false);
-      timeoutRef.current = null;
-    }, 1000);
-  }, [setQuery]);
+  const handleConversationRefine = useCallback(
+    (refinedQuery: string) => {
+      setShouldPreserveChat(true);
+      setConversationQuery(refinedQuery);
+
+      // Clear any existing timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      // Debounce URL update to prevent chat destruction
+      timeoutRef.current = setTimeout(() => {
+        setQuery(refinedQuery);
+        setShouldPreserveChat(false);
+        timeoutRef.current = null;
+      }, 1000);
+    },
+    [setQuery],
+  );
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -162,12 +166,20 @@ export function SearchResultsPage({
           <SearchTitle />
           <div className="my-3"></div>
           <div className="mb-6 flex w-full max-w-xl flex-col gap-6 px-4">
-            <SearchBox 
-              conversationResponse={toolsQuery.data?.conversationResponse || toolsQuery.data?.clarificationSuggestion || undefined}
-              suggestedRefinements={toolsQuery.data?.conversationRefinements || toolsQuery.data?.clarificationTags || []}
+            <SearchBox
+              conversationResponse={
+                toolsQuery.data?.conversationResponse ||
+                toolsQuery.data?.clarificationSuggestion ||
+                undefined
+              }
+              suggestedRefinements={
+                toolsQuery.data?.conversationRefinements ||
+                toolsQuery.data?.clarificationTags ||
+                []
+              }
               confidence={toolsQuery.data?.confidence || 0}
               onRefine={handleConversationRefine}
-              currentQuery={conversationQuery || effectiveQuery || ''}
+              currentQuery={conversationQuery || effectiveQuery || ""}
               toolCount={totalCount}
             />
           </div>
@@ -188,12 +200,10 @@ export function SearchResultsPage({
         <>
           {/* Results count */}
           <div className="mb-4 w-full px-4 text-sm text-muted-foreground">
-            {totalCount} {totalCount === 1 ? 'tool' : 'tools'} found
-            {effectiveQuery && (
-              <span> for "{effectiveQuery}"</span>
-            )}
+            {totalCount} {totalCount === 1 ? "tool" : "tools"} found
+            {effectiveQuery && <span> for "{effectiveQuery}"</span>}
           </div>
-          
+
           <div className="flex w-full flex-col items-center px-4">
             <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {toolsQuery.data.tools.map((tool) => (
@@ -208,7 +218,7 @@ export function SearchResultsPage({
               ))}
             </div>
           </div>
-          
+
           {/* Pagination UI */}
           {totalPages > 1 && (
             <PaginationBar
@@ -231,7 +241,9 @@ export function SearchResultsPage({
             </div>
           ) : (
             <div className="flex flex-col items-center gap-4 text-center">
-              <span className="text-3xl text-muted-foreground">No tools found</span>
+              <span className="text-3xl text-muted-foreground">
+                No tools found
+              </span>
               {(effectiveQuery || tags?.length || pricing) && (
                 <div className="space-y-2 text-sm text-muted-foreground">
                   <p>Try adjusting your search criteria:</p>
@@ -253,7 +265,7 @@ export function SearchResultsPage({
 export function SelectedTags() {
   const router = useRouter();
   const [tags, setTags] = useQueryState("tags", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
@@ -278,5 +290,5 @@ export function SelectedTags() {
         </div>
       )}
     </div>
-  )
-} 
+  );
+}
