@@ -4,13 +4,20 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useFilterDrawer } from "@/store/useFilterDrawer";
 import { api } from "@/trpc/react";
-import { ChevronUp, Filter, Loader2, Send, WandSparkles, X } from "lucide-react";
+import {
+  ChevronUp,
+  Filter,
+  Loader2,
+  Send,
+  WandSparkles,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
 import { useEffect, useState, useRef } from "react";
 
 interface ConversationMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
 }
@@ -35,14 +42,15 @@ export function SearchBox({
   suggestedRefinements = [],
   confidence = 0,
   onRefine,
-  currentQuery = '',
-  toolCount = 0
+  currentQuery = "",
+  toolCount = 0,
 }: SearchBoxProps = {}) {
   const [search, setSearch] = useState("");
-  const { setOpen: setFilterDrawerOpen, open: filterDrawerOpen } = useFilterDrawer();
+  const { setOpen: setFilterDrawerOpen, open: filterDrawerOpen } =
+    useFilterDrawer();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  
+
   // Chat functionality states
   const [isChatMode, setIsChatMode] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -53,12 +61,12 @@ export function SearchBox({
   const conversationInitialized = useRef(false);
 
   const [tags, setTags] = useQueryState("tags", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
   const [page, setPage] = useQueryState("page", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => parseInt(v),
   });
@@ -72,21 +80,28 @@ export function SearchBox({
   // API for continuing conversation
   const continueConversation = api.tools.continueConversation.useMutation({
     onSuccess: (data) => {
-      setConversation(prev => [...prev, {
-        role: 'assistant',
-        content: data.response,
-        timestamp: new Date()
-      }]);
-      
-      if (data.searchSuggestion && data.searchSuggestion !== currentQuery && onRefine) {
+      setConversation((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.response,
+          timestamp: new Date(),
+        },
+      ]);
+
+      if (
+        data.searchSuggestion &&
+        data.searchSuggestion !== currentQuery &&
+        onRefine
+      ) {
         onRefine(data.searchSuggestion);
       }
-      
+
       setIsTyping(false);
     },
     onError: () => {
       setIsTyping(false);
-    }
+    },
   });
 
   // Initialize chat mode when AI responds
@@ -94,19 +109,19 @@ export function SearchBox({
     if (conversationResponse && !conversationInitialized.current) {
       setConversation([
         {
-          role: 'user',
+          role: "user",
           content: query || currentQuery,
-          timestamp: new Date()
+          timestamp: new Date(),
         },
         {
-          role: 'assistant', 
+          role: "assistant",
           content: conversationResponse,
-          timestamp: new Date()
-        }
+          timestamp: new Date(),
+        },
       ]);
       conversationInitialized.current = true;
       setIsChatMode(true);
-      
+
       // Auto-expand after a brief delay for smooth transition
       setTimeout(() => setIsExpanded(true), 300);
     }
@@ -115,16 +130,19 @@ export function SearchBox({
   // Auto-exit chat mode when confidence is high enough or no conversation response
   useEffect(() => {
     const CONFIDENCE_THRESHOLD = 80; // Match the API threshold for regular search
-    
-    if (isChatMode && (confidence >= CONFIDENCE_THRESHOLD || !conversationResponse)) {
+
+    if (
+      isChatMode &&
+      (confidence >= CONFIDENCE_THRESHOLD || !conversationResponse)
+    ) {
       // Add a final message explaining the exit
       if (confidence >= CONFIDENCE_THRESHOLD && toolCount > 0) {
         const exitMessage: ConversationMessage = {
-          role: 'assistant',
+          role: "assistant",
           content: `Great! I found ${toolCount} relevant tools with high confidence (${confidence}%). You can now browse the results below or start a new search.`,
-          timestamp: new Date()
+          timestamp: new Date(),
         };
-        setConversation(prev => [...prev, exitMessage]);
+        setConversation((prev) => [...prev, exitMessage]);
       }
 
       // Delay exit to allow user to see the improved results
@@ -189,27 +207,27 @@ export function SearchBox({
 
   const handleSendMessage = () => {
     if (!newMessage.trim() || isTyping) return;
-    
+
     const userMessage: ConversationMessage = {
-      role: 'user',
+      role: "user",
       content: newMessage.trim(),
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-    
-    setConversation(prev => [...prev, userMessage]);
+
+    setConversation((prev) => [...prev, userMessage]);
     setIsTyping(true);
-    
-    const conversationHistory = conversation.map(msg => ({
+
+    const conversationHistory = conversation.map((msg) => ({
       role: msg.role,
-      content: msg.content
+      content: msg.content,
     }));
-    
+
     continueConversation.mutate({
-      originalQuery: query || '',
+      originalQuery: query || "",
       message: newMessage.trim(),
-      conversationHistory
+      conversationHistory,
     });
-    
+
     setNewMessage("");
   };
 
@@ -221,7 +239,7 @@ export function SearchBox({
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (isChatMode && isExpanded) {
         handleSendMessage();
@@ -244,23 +262,27 @@ export function SearchBox({
     <div className="relative flex w-full items-center">
       <div className="relative flex w-full flex-col items-center">
         {/* Main search/chat container - morphs dynamically */}
-                  <div
-            className={cn(
-              "group relative w-full transition-all duration-500 ease-in-out",
-              (search.length > 0 || isChatMode) && "glow-box",
-              isChatMode && "border rounded-lg bg-card shadow-lg",
-              isExpanded ? "min-h-[400px]" : "h-12"
-            )}
+        <div
+          className={cn(
+            "group relative w-full transition-all duration-500 ease-in-out",
+            (search.length > 0 || isChatMode) && "glow-box",
+            isChatMode && "rounded-lg border bg-card shadow-lg",
+            isExpanded ? "min-h-[400px]" : "h-12",
+          )}
         >
           {/* Original search input - stays visible but transforms */}
-          <div className={cn(
-            "relative transition-all duration-300",
-            isChatMode && isExpanded && "border-b bg-muted/30"
-          )}>
+          <div
+            className={cn(
+              "relative transition-all duration-300",
+              isChatMode && isExpanded && "border-b bg-muted/30",
+            )}
+          >
             <Input
               className={cn(
-                "relative w-full border-none outline-none focus-visible:ring-0 transition-all duration-300",
-                isChatMode ? "bg-transparent pl-12 pr-12 h-14" : "h-12 bg-secondary pl-12 pr-4"
+                "relative w-full border-none outline-none transition-all duration-300 focus-visible:ring-0",
+                isChatMode
+                  ? "h-14 bg-transparent pl-12 pr-12"
+                  : "h-12 bg-secondary pl-12 pr-4",
               )}
               value={isChatMode && isExpanded ? currentQuery : search}
               maxLength={100}
@@ -278,7 +300,7 @@ export function SearchBox({
 
             {/* Chat mode indicator */}
             {isChatMode && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-green-500"></div>
                 <span className="text-xs text-muted-foreground">AI Chat</span>
                 <Button
@@ -308,27 +330,35 @@ export function SearchBox({
 
           {/* Expanded chat content - morphs in smoothly */}
           {isChatMode && (
-            <div 
+            <div
               className={cn(
-                "transition-all duration-300 overflow-hidden",
-                isExpanded ? "opacity-100 max-h-[400px]" : "opacity-0 max-h-0"
+                "overflow-hidden transition-all duration-300",
+                isExpanded ? "max-h-[400px] opacity-100" : "max-h-0 opacity-0",
               )}
             >
               {/* AI info header */}
               {isExpanded && (
-                <div className="px-4 py-2 border-b bg-muted/20">
+                <div className="border-b bg-muted/20 px-4 py-2">
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
-                        <span className="text-xs font-medium text-primary">AI</span>
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                        <span className="text-xs font-medium text-primary">
+                          AI
+                        </span>
                       </div>
-                      <span className="text-muted-foreground">Search Assistant • Confidence: {confidence}%</span>
+                      <span className="text-muted-foreground">
+                        Search Assistant • Confidence: {confidence}%
+                      </span>
                     </div>
-                    <span className={cn(
-                      "text-muted-foreground",
-                      toolCount === 0 && "text-orange-600 font-medium"
-                    )}>
-                      {toolCount === 0 ? "No tools found" : `${toolCount} tools found`}
+                    <span
+                      className={cn(
+                        "text-muted-foreground",
+                        toolCount === 0 && "font-medium text-orange-600",
+                      )}
+                    >
+                      {toolCount === 0
+                        ? "No tools found"
+                        : `${toolCount} tools found`}
                     </span>
                   </div>
                 </div>
@@ -336,16 +366,25 @@ export function SearchBox({
 
               {/* No tools found special message */}
               {isExpanded && toolCount === 0 && (
-                <div className="px-4 py-3 bg-orange-50 border-l-4 border-orange-400">
+                <div className="border-l-4 border-orange-400 bg-orange-50 px-4 py-3">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      <svg
+                        className="h-5 w-5 text-orange-400"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     </div>
                     <div className="ml-3">
                       <p className="text-sm text-orange-700">
-                        I couldn't find any tools matching your search. Let's try refining your request to get better results.
+                        I couldn't find any tools matching your search. Let's
+                        try refining your request to get better results.
                       </p>
                     </div>
                   </div>
@@ -354,44 +393,50 @@ export function SearchBox({
 
               {/* Chat messages */}
               {isExpanded && (
-                <div className="max-h-64 overflow-y-auto p-4 space-y-3">
+                <div className="max-h-64 space-y-3 overflow-y-auto p-4">
                   {conversation.map((message, index) => (
                     <div
                       key={index}
                       className={cn(
-                        "flex gap-2 animate-in slide-in-from-bottom-2 duration-300",
-                        message.role === 'user' ? "justify-end" : "justify-start"
+                        "flex gap-2 duration-300 animate-in slide-in-from-bottom-2",
+                        message.role === "user"
+                          ? "justify-end"
+                          : "justify-start",
                       )}
                     >
-                      {message.role === 'assistant' && (
-                        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <span className="text-xs font-medium text-primary">AI</span>
+                      {message.role === "assistant" && (
+                        <div className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <span className="text-xs font-medium text-primary">
+                            AI
+                          </span>
                         </div>
                       )}
                       <div
                         className={cn(
                           "max-w-[75%] rounded-lg px-3 py-2 text-sm",
-                          message.role === 'user'
-                            ? "bg-primary text-primary-foreground ml-auto"
-                            : "bg-muted text-muted-foreground"
+                          message.role === "user"
+                            ? "ml-auto bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground",
                         )}
                       >
                         {message.content}
                       </div>
-                      {message.role === 'user' && (
-                        <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
+                      {message.role === "user" && (
+                        <div className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-secondary">
                           <span className="text-xs font-medium">You</span>
                         </div>
                       )}
                     </div>
                   ))}
-                  
+
                   {isTyping && (
-                    <div className="flex gap-2 justify-start animate-in slide-in-from-bottom-2 duration-300">
-                      <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-xs font-medium text-primary">AI</span>
+                    <div className="flex justify-start gap-2 duration-300 animate-in slide-in-from-bottom-2">
+                      <div className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
+                        <span className="text-xs font-medium text-primary">
+                          AI
+                        </span>
                       </div>
-                      <div className="bg-muted text-muted-foreground rounded-lg px-3 py-2 text-sm flex items-center gap-2">
+                      <div className="flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
                         <Loader2 className="h-3 w-3 animate-spin" />
                         Thinking...
                       </div>
@@ -403,14 +448,16 @@ export function SearchBox({
 
               {/* Suggested refinements */}
               {isExpanded && suggestedRefinements.length > 0 && (
-                <div className="px-4 pb-3 border-t bg-muted/10">
-                  <p className="text-xs font-medium text-muted-foreground mb-2 pt-2">Quick suggestions:</p>
+                <div className="border-t bg-muted/10 px-4 pb-3">
+                  <p className="mb-2 pt-2 text-xs font-medium text-muted-foreground">
+                    Quick suggestions:
+                  </p>
                   <div className="flex flex-wrap gap-1.5">
                     {suggestedRefinements.map((refinement) => (
                       <Badge
                         key={refinement}
                         variant="outline"
-                        className="cursor-pointer transition-all hover:bg-primary/20 text-xs py-1 hover:scale-105"
+                        className="cursor-pointer py-1 text-xs transition-all hover:scale-105 hover:bg-primary/20"
                         onClick={() => handleRefinementClick(refinement)}
                       >
                         {refinement}
@@ -422,7 +469,7 @@ export function SearchBox({
 
               {/* Chat input - appears at bottom */}
               {isExpanded && (
-                <div className="border-t p-3 bg-card">
+                <div className="border-t bg-card p-3">
                   <div className="flex items-center gap-2">
                     <Input
                       placeholder="Continue the conversation..."
@@ -430,13 +477,13 @@ export function SearchBox({
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
                       disabled={isTyping}
-                      className="flex-1 h-9 text-sm"
+                      className="h-9 flex-1 text-sm"
                     />
                     <Button
                       onClick={handleSendMessage}
                       disabled={!newMessage.trim() || isTyping}
                       size="sm"
-                      className="px-3 h-9"
+                      className="h-9 px-3"
                     >
                       {isTyping ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

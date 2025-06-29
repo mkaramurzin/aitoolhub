@@ -12,12 +12,12 @@ import { useQueryState } from "nuqs";
 
 export function SearchOptions() {
   const [page, setPage] = useQueryState("page", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => parseInt(v),
   });
   const [orderBy, setOrderBy] = useQueryState("orderBy", {
-    shallow: false,
+    shallow: true,
     history: "push",
   });
   return (
