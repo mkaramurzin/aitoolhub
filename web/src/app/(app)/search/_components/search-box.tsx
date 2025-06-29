@@ -53,12 +53,12 @@ export function SearchBox({
   const conversationInitialized = useRef(false);
 
   const [tags, setTags] = useQueryState("tags", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
   const [page, setPage] = useQueryState("page", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => parseInt(v),
   });

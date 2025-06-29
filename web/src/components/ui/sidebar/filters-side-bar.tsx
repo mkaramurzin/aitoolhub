@@ -31,18 +31,18 @@ function FilterDrawer({}: React.PropsWithChildren<FilterDrawerProps>) {
   const { open, setOpen } = useFilterDrawer();
   const drawerRef = useRef<HTMLDivElement>(null);
   const [tags, setTags] = useQueryState("tags", {
-    shallow: false,
+    shallow: true,
     history: "push",
     defaultValue: [],
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
   const [pricing, setPricing] = useQueryState("pricing", {
-    shallow: false,
+    shallow: true,
     history: "push",
     defaultValue: "",
   });
   const [page, setPage] = useQueryState("page", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => parseInt(v),
   });

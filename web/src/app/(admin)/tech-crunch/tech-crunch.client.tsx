@@ -44,7 +44,7 @@ export function TechCrunchClientPage(props: TechCrunchClientPageProps) {
     api.techCrunch.getLatestIngestTimestamps.useQuery();
 
   const [page, setPage] = useQueryState("page", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => parseInt(v),
   });
