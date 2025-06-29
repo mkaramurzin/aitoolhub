@@ -61,6 +61,8 @@ python scraper/find_ai.py
 
 ## Clarifying Questions
 
+Search refinements update dynamically without reloading the page.
+
 The search interface now asks short clarifying questions when it is unsure about a query. If similarity confidence is below 50%, a question generated with OpenAI's GPT-4o model appears above the results. Answering it refines the search and improves the tools shown.
 
 ## Running Tests

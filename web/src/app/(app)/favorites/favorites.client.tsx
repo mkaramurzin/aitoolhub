@@ -10,7 +10,7 @@ const PAGE_SIZE = 18;
 
 export function FavoriteClientPage(props: FavoriteClientPageProps) {
   const [page, setPage] = useQueryState("page", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => parseInt(v),
     defaultValue: 1,
