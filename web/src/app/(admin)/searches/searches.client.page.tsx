@@ -29,7 +29,7 @@ export type SearchesClientPageProps = {};
 
 export function SearchesClientPage(props: SearchesClientPageProps) {
   const [page, setPage] = useQueryState("page", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => parseInt(v),
   });

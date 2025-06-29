@@ -73,7 +73,7 @@ export function ToolsClientPage({
 }: ToolsClientPageProps) {
   const router = useRouter();
   const [page, setPage] = useQueryState("page", {
-    shallow: false,
+    shallow: true,
     parse: (v) => parseInt(v),
   });
   const { data: userData } = authClient.useSession();
@@ -218,7 +218,6 @@ export function ToolsClientPage({
                 </a>
               </div>
             </div>
-            
           </div>
 
           {/* Actions */}

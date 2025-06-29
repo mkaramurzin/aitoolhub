@@ -13,7 +13,7 @@ export type CollectionsClientPageProps = {};
 
 function CollectionsClientPage({}: CollectionsClientPageProps) {
   const [page, setPage] = useQueryState("page", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => parseInt(v),
   });

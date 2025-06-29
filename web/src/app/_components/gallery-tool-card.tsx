@@ -26,12 +26,12 @@ function GalleryToolCard({
   const [isFavorited, setIsFavorited] = useState(isFavorite);
 
   const [filterTags, setFilterTags] = useQueryState("tags", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => v.split(",").filter((v) => v.length > 0),
   });
   const [page, setPage] = useQueryState("page", {
-    shallow: false,
+    shallow: true,
     history: "push",
     parse: (v) => parseInt(v),
   });

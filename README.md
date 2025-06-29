@@ -63,6 +63,10 @@ python scraper/find_ai.py
 
 The search interface now asks short clarifying questions when it is unsure about a query. If similarity confidence is below 50%, a question generated with OpenAI's GPT-4o model appears above the results. Answering it refines the search and improves the tools shown.
 
+## Real-Time Results
+
+Search and conversation flow without interruptions. Results now update live as you refine your query so the page never reloads while chatting with the AI assistant.
+
 ## Running Tests
 
 Vitest is used for server-side tests located under `web/src/server/api/routers/__tests__`.
