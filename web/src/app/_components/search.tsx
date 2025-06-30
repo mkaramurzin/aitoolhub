@@ -9,7 +9,7 @@ import { api } from "@/trpc/react";
 import { Tag } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { SearchBox } from "../(app)/search/_components/search-box";
 import { SearchHomePage } from "../(app)/search/_components/search-home";
 import { SearchOptions } from "../(app)/search/_components/search-options";
@@ -55,11 +55,6 @@ export function SearchResultsPage({
   // Use custom search hook for better state management
   const { query, setQuery, debouncedQuery, isSearching, hasQuery } = useSearch();
   
-  // Add state for conversation refinements that don't immediately update URL
-  const [conversationQuery, setConversationQuery] = useState<string>('');
-  const [shouldPreserveChat, setShouldPreserveChat] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
   // Query states for filters and pagination
   const [tags, setTags] = useQueryState("tags", {
     shallow: false,
@@ -84,19 +79,12 @@ export function SearchResultsPage({
     }
   }, [query, tags, pricing, setPage]);
 
-  // Initialize conversation query when main query changes (but not from conversation)
-  useEffect(() => {
-    if (!shouldPreserveChat && debouncedQuery) {
-      setConversationQuery(debouncedQuery);
-    }
-  }, [debouncedQuery, shouldPreserveChat]);
-
   const toolSkeletons = Array.from({ length: PAGE_SIZE }, (_, i) => (
     <ToolCard.Skeleton key={i} />
   ));
 
-  // Use conversation query for API calls when available, fall back to debounced query  
-  const effectiveQuery = conversationQuery || debouncedQuery;
+  // Use the debounced query for API calls, but pass the immediate query for display
+  const effectiveQuery = debouncedQuery;
 
   // Call the API with page number, query and tags
   const toolsQuery = api.tools.fetchAll.useQuery(
@@ -130,30 +118,16 @@ export function SearchResultsPage({
 
   // Handle conversation-driven search refinement
   const handleConversationRefine = useCallback((refinedQuery: string) => {
-    setShouldPreserveChat(true);
-    setConversationQuery(refinedQuery);
-    
-    // Clear any existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    
-    // Debounce URL update to prevent chat destruction
-    timeoutRef.current = setTimeout(() => {
+    // Check if this is a persist request (when chat exits with high confidence)
+    if (refinedQuery.endsWith('::persist')) {
+      const actualQuery = refinedQuery.replace('::persist', '');
+      setQuery(actualQuery);
+    } else {
+      // For conversation refinements, update the URL query directly
+      // This ensures the API refetch happens immediately and reliably
       setQuery(refinedQuery);
-      setShouldPreserveChat(false);
-      timeoutRef.current = null;
-    }, 1000);
+    }
   }, [setQuery]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
 
   return (
     <div className="flex w-full max-w-6xl flex-col items-center">
@@ -167,8 +141,9 @@ export function SearchResultsPage({
               suggestedRefinements={toolsQuery.data?.conversationRefinements || toolsQuery.data?.clarificationTags || []}
               confidence={toolsQuery.data?.confidence || 0}
               onRefine={handleConversationRefine}
-              currentQuery={conversationQuery || effectiveQuery || ''}
+              currentQuery={query || ''}
               toolCount={totalCount}
+              isLoading={isLoading}
             />
           </div>
           <SearchOptions />

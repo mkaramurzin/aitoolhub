@@ -7,7 +7,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { Mail, Star, TrendingUp } from "lucide-react";
+import { useFilterDrawer } from "@/store/useFilterDrawer";
+import { Filter, Mail, Star, TrendingUp } from "lucide-react";
 import { useQueryState } from "nuqs";
 
 export function SearchOptions() {
@@ -20,6 +21,12 @@ export function SearchOptions() {
     shallow: false,
     history: "push",
   });
+  const [tags, setTags] = useQueryState("tags", {
+    shallow: false,
+    history: "push", 
+    parse: (v) => v.split(",").filter((v) => v.length > 0),
+  });
+  const { setOpen: setFilterDrawerOpen, open: filterDrawerOpen } = useFilterDrawer();
   return (
     <div className="flex flex-wrap justify-center gap-4">
       {[
@@ -47,13 +54,21 @@ export function SearchOptions() {
             setOrderBy("trending");
           },
         },
-        // {
-        //   icon: {
-        //     component: Heart,
-        //     className: "text-red-500",
-        //   },
-        //   text: "Our Picks",
-        // },
+        {
+          id: "filters",
+          icon: {
+            component: Filter,
+            className: "text-purple-500",
+          },
+          text: "Filters",
+          onClick: () => {
+            if (!filterDrawerOpen) {
+              setFilterDrawerOpen(true);
+            }
+          },
+          hasNotification: tags && tags.length > 0,
+          notificationCount: tags?.length || 0,
+        },
         {
           id: "subscribe",
           icon: {
@@ -68,7 +83,7 @@ export function SearchOptions() {
           <Badge
             variant={"secondary"}
             className={cn(
-              "secondary flex cursor-pointer gap-2 rounded-full px-3 py-1",
+              "secondary relative flex cursor-pointer gap-2 rounded-full px-3 py-1",
             )}
             key={item.id}
             onClick={item.onClick}
@@ -84,6 +99,11 @@ export function SearchOptions() {
             >
               {item.text}
             </span>
+            {item.hasNotification && item.notificationCount > 0 && (
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
+                {item.notificationCount}
+              </span>
+            )}
           </Badge>
         );
         if (item.id === "subscribe") {

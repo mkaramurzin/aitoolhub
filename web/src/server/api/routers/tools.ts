@@ -207,7 +207,18 @@ Generate only the refined search query:`;
 
     // Fallback to original + key terms if AI response is invalid
     if (!refinedQuery || refinedQuery.length < 2 || refinedQuery.length > 50) {
-      return originalQuery;
+      // Create a simple fallback by combining original with key terms from message
+      const messageKeywords = userMessage.toLowerCase()
+        .split(/\s+/)
+        .filter(word => word.length > 2 && !['the', 'and', 'for', 'with', 'can', 'you', 'help', 'find', 'need', 'want', 'something'].includes(word))
+        .slice(0, 2)
+        .join(' ');
+      
+      const fallbackQuery = messageKeywords 
+        ? `${originalQuery} ${messageKeywords}`.trim()
+        : originalQuery;
+      
+      return fallbackQuery;
     }
 
     return refinedQuery;

@@ -1,8 +1,8 @@
 import { useQueryState } from "nuqs";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 export function useSearch() {
-  const [query, setQuery] = useQueryState("query", { shallow: false });
+  const [query, setQuery] = useQueryState("query", { shallow: true }); // Use shallow updates
   const [debouncedQuery, setDebouncedQuery] = useState(query);
   const [isSearching, setIsSearching] = useState(false);
 

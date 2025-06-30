@@ -2,10 +2,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { useFilterDrawer } from "@/store/useFilterDrawer";
 import { api } from "@/trpc/react";
-import { ChevronUp, Filter, Loader2, Send, WandSparkles, X } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Loader2, Send, WandSparkles, X } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useEffect, useState, useRef } from "react";
 
@@ -22,6 +20,7 @@ interface SearchBoxProps {
   onRefine?: (refinedQuery: string) => void;
   currentQuery?: string;
   toolCount?: number;
+  isLoading?: boolean;
 }
 
 const placeholders = [
@@ -36,10 +35,10 @@ export function SearchBox({
   confidence = 0,
   onRefine,
   currentQuery = '',
-  toolCount = 0
+  toolCount = 0,
+  isLoading = false
 }: SearchBoxProps = {}) {
   const [search, setSearch] = useState("");
-  const { setOpen: setFilterDrawerOpen, open: filterDrawerOpen } = useFilterDrawer();
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   
@@ -52,17 +51,11 @@ export function SearchBox({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const conversationInitialized = useRef(false);
 
-  const [tags, setTags] = useQueryState("tags", {
-    shallow: false,
-    history: "push",
-    parse: (v) => v.split(",").filter((v) => v.length > 0),
-  });
   const [page, setPage] = useQueryState("page", {
     shallow: false,
     history: "push",
     parse: (v) => parseInt(v),
   });
-  const router = useRouter();
   const [query, setQuery] = useQueryState("query", {
     shallow: true,
     defaultValue: "",
@@ -78,7 +71,9 @@ export function SearchBox({
         timestamp: new Date()
       }]);
       
-      if (data.searchSuggestion && data.searchSuggestion !== currentQuery && onRefine) {
+      // Always apply refinements if we have a search suggestion and onRefine callback
+      // Remove the equality check that was causing refinements to be skipped
+      if (data.searchSuggestion && onRefine) {
         onRefine(data.searchSuggestion);
       }
       
@@ -125,6 +120,12 @@ export function SearchBox({
           timestamp: new Date()
         };
         setConversation(prev => [...prev, exitMessage]);
+        
+        // Persist the final refined query to URL when exiting with high confidence
+        if (currentQuery !== query && onRefine) {
+          // We'll add a special flag to indicate this should be persisted
+          onRefine(currentQuery + '::persist');
+        }
       }
 
       // Delay exit to allow user to see the improved results
@@ -134,7 +135,7 @@ export function SearchBox({
 
       return () => clearTimeout(exitTimer);
     }
-  }, [confidence, conversationResponse, isChatMode, toolCount]);
+  }, [confidence, conversationResponse, isChatMode, toolCount, currentQuery, query, onRefine]);
 
   // Reset when query changes significantly
   useEffect(() => {
@@ -241,7 +242,7 @@ export function SearchBox({
   };
 
   return (
-    <div className="relative flex w-full items-center">
+    <div className="relative w-full">
       <div className="relative flex w-full flex-col items-center">
         {/* Main search/chat container - morphs dynamically */}
                   <div
@@ -260,7 +261,7 @@ export function SearchBox({
             <Input
               className={cn(
                 "relative w-full border-none outline-none focus-visible:ring-0 transition-all duration-300",
-                isChatMode ? "bg-transparent pl-12 pr-12 h-14" : "h-12 bg-secondary pl-12 pr-4"
+                isChatMode ? "bg-transparent pl-12 pr-20 sm:pr-32 h-14" : "h-12 bg-secondary pl-12 pr-4"
               )}
               value={isChatMode && isExpanded ? currentQuery : search}
               maxLength={100}
@@ -278,14 +279,15 @@ export function SearchBox({
 
             {/* Chat mode indicator */}
             {isChatMode && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                 <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span className="text-xs text-muted-foreground">AI Chat</span>
+                <span className="text-xs text-muted-foreground hidden sm:inline">Search Assistant</span>
+                <span className="text-xs text-muted-foreground sm:hidden">AI</span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={exitChatMode}
-                  className="h-6 w-6 p-0 hover:bg-destructive/10"
+                  className="h-5 w-5 p-0 hover:bg-destructive/10 ml-1"
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -310,13 +312,13 @@ export function SearchBox({
           {isChatMode && (
             <div 
               className={cn(
-                "transition-all duration-300 overflow-hidden",
-                isExpanded ? "opacity-100 max-h-[400px]" : "opacity-0 max-h-0"
+                "transition-all duration-300 overflow-hidden flex flex-col",
+                isExpanded ? "opacity-100 max-h-[450px]" : "opacity-0 max-h-0"
               )}
             >
               {/* AI info header */}
               {isExpanded && (
-                <div className="px-4 py-2 border-b bg-muted/20">
+                <div className="flex-shrink-0 px-4 py-2 border-b bg-muted/20">
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
@@ -326,17 +328,17 @@ export function SearchBox({
                     </div>
                     <span className={cn(
                       "text-muted-foreground",
-                      toolCount === 0 && "text-orange-600 font-medium"
+                      toolCount === 0 && !isLoading && "text-orange-600 font-medium"
                     )}>
-                      {toolCount === 0 ? "No tools found" : `${toolCount} tools found`}
+                      {isLoading ? "Searching..." : toolCount === 0 ? "No tools found" : `${toolCount} tools found`}
                     </span>
                   </div>
                 </div>
               )}
 
               {/* No tools found special message */}
-              {isExpanded && toolCount === 0 && (
-                <div className="px-4 py-3 bg-orange-50 border-l-4 border-orange-400">
+              {isExpanded && toolCount === 0 && !isLoading && (
+                <div className="flex-shrink-0 px-4 py-3 bg-orange-50 border-l-4 border-orange-400">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
                       <svg className="h-5 w-5 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
@@ -354,7 +356,7 @@ export function SearchBox({
 
               {/* Chat messages */}
               {isExpanded && (
-                <div className="max-h-64 overflow-y-auto p-4 space-y-3">
+                <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
                   {conversation.map((message, index) => (
                     <div
                       key={index}
@@ -403,16 +405,16 @@ export function SearchBox({
 
               {/* Suggested refinements */}
               {isExpanded && suggestedRefinements.length > 0 && (
-                <div className="px-4 pb-3 border-t bg-muted/10">
-                  <p className="text-xs font-medium text-muted-foreground mb-2 pt-2">Quick suggestions:</p>
-                  <div className="flex flex-wrap gap-1.5">
+                <div className="flex-shrink-0 px-4 py-2 border-t bg-muted/10">
+                  <p className="text-xs font-medium text-muted-foreground mb-1.5">Quick suggestions:</p>
+                  <div className="flex flex-wrap gap-1">
                     {suggestedRefinements.map((refinement) => (
-                      <Badge
-                        key={refinement}
-                        variant="outline"
-                        className="cursor-pointer transition-all hover:bg-primary/20 text-xs py-1 hover:scale-105"
-                        onClick={() => handleRefinementClick(refinement)}
-                      >
+                                              <Badge
+                          key={refinement}
+                          variant="outline"
+                          className="cursor-pointer transition-all hover:bg-primary/20 text-xs py-0.5 px-2 hover:scale-105"
+                          onClick={() => handleRefinementClick(refinement)}
+                        >
                         {refinement}
                       </Badge>
                     ))}
@@ -422,7 +424,7 @@ export function SearchBox({
 
               {/* Chat input - appears at bottom */}
               {isExpanded && (
-                <div className="border-t p-3 bg-card">
+                <div className="flex-shrink-0 border-t p-3 bg-card">
                   <div className="flex items-center gap-2">
                     <Input
                       placeholder="Continue the conversation..."
@@ -452,25 +454,7 @@ export function SearchBox({
         </div>
       </div>
 
-      {/* Filter Button - stays in same position */}
-      <Button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (filterDrawerOpen) return;
-          setFilterDrawerOpen(true);
-        }}
-        variant={"secondary"}
-        size="lg"
-        className="relative ml-4 flex h-12 w-14 p-0"
-      >
-        {tags && tags.length > 0 && (
-          <span className="absolute -right-2 -top-2 size-5 rounded-full bg-primary px-1">
-            {tags.length}
-          </span>
-        )}
-        <Filter />
-      </Button>
+
     </div>
   );
 }
