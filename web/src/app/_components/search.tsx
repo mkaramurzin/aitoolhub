@@ -18,7 +18,7 @@ import ToolCard from "./tool-card";
 
 export type SearchPageProps = {
   tags?: Tag[];
-  orderBy?: "trending" | "new";
+  orderBy?: "trending" | "new" | "views" | "name";
 };
 
 export function SearchPage(props: SearchPageProps) {
@@ -48,7 +48,7 @@ export function SearchResultsPage({
   orderBy,
 }: {
   showSearch?: boolean;
-  orderBy?: "trending" | "new";
+  orderBy?: "trending" | "new" | "views" | "name";
 }) {
   const PAGE_SIZE = 18;
   

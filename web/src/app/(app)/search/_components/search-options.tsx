@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useFilterDrawer } from "@/store/useFilterDrawer";
-import { Filter, Mail, Star, TrendingUp } from "lucide-react";
+import { Filter, Mail, Star, TrendingUp, Eye, SortAsc } from "lucide-react";
 import { useQueryState } from "nuqs";
 
 export function SearchOptions() {
@@ -48,10 +48,34 @@ export function SearchOptions() {
             component: TrendingUp,
             className: "text-emerald-500 fill-emerald-500",
           },
-          text: "Trending",
+          text: "Top Rated",
           onClick: () => {
             setPage(1);
             setOrderBy("trending");
+          },
+        },
+        {
+          id: "views",
+          icon: {
+            component: Eye,
+            className: "text-pink-500",
+          },
+          text: "Most Viewed",
+          onClick: () => {
+            setPage(1);
+            setOrderBy("views");
+          },
+        },
+        {
+          id: "name",
+          icon: {
+            component: SortAsc,
+            className: "text-sky-500",
+          },
+          text: "A-Z",
+          onClick: () => {
+            setPage(1);
+            setOrderBy("name");
           },
         },
         {

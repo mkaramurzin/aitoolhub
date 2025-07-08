@@ -63,6 +63,10 @@ python scraper/find_ai.py
 
 The search interface now asks short clarifying questions when it is unsure about a query. If similarity confidence is below 50%, a question generated with OpenAI's GPT-4o model appears above the results. Answering it refines the search and improves the tools shown.
 
+## Search Sorting
+
+Search results can be ordered to surface the best matches. Use the badges above the results to sort by newest tools, top rated tools, most viewed tools or alphabetically.
+
 ## Running Tests
 
 Vitest is used for server-side tests located under `web/src/server/api/routers/__tests__`.

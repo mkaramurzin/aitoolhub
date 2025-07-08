@@ -3,7 +3,7 @@ import { SearchClientPage } from "./search.client";
 
 type tSearchParams = Promise<{
   tags?: string;
-  orderBy?: "trending" | "new";
+  orderBy?: "trending" | "new" | "views" | "name";
 }>;
 
 export default async function Search(props: { searchParams: tSearchParams }) {
