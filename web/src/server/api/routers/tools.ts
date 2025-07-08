@@ -255,7 +255,7 @@ export const toolsRouter = createTRPCRouter({
         tags: z.array(z.string()).optional(),
         query: z.string().max(100).optional(),
         page: z.number().optional().default(1),
-        orderBy: z.enum(["trending", "new"]).optional(),
+        orderBy: z.enum(["trending", "new", "views", "name"]).optional(),
         pricing: z.string().optional(),
         take: z.number().max(50).optional().default(10),
         magicSearch: z.boolean().optional().default(false),
@@ -333,7 +333,7 @@ export const toolsRouter = createTRPCRouter({
         ]);
         const totalCount = countResult[0]?.count ?? 0;
 
-        const tools = await ctx.db.tool.findMany({
+        let tools = await ctx.db.tool.findMany({
           where: {
             id: { in: results.map((result) => result.id) },
           },
@@ -351,6 +351,21 @@ export const toolsRouter = createTRPCRouter({
             },
           },
         });
+
+        if (input.orderBy) {
+          tools = tools.sort((a: any, b: any) => {
+            if (input.orderBy === "trending") {
+              return (b.rating ?? 0) - (a.rating ?? 0);
+            }
+            if (input.orderBy === "new") {
+              return (b.createdAt as any) - (a.createdAt as any);
+            }
+            if (input.orderBy === "views") {
+              return (b.ToolAnalytics?.views ?? 0) - (a.ToolAnalytics?.views ?? 0);
+            }
+            return a.name.localeCompare(b.name);
+          });
+        }
 
         // Calculate confidence for display purposes
         const avgDistance = results.length > 0 ? results.reduce((sum, r) => sum + r.distance, 0) / results.length : 1;
@@ -469,7 +484,11 @@ export const toolsRouter = createTRPCRouter({
                   orderBy:
                     input.orderBy === "trending"
                       ? { rating: "desc" }
-                      : { createdAt: "desc" },
+                      : input.orderBy === "new"
+                        ? { createdAt: "desc" }
+                        : input.orderBy === "views"
+                          ? { ToolAnalytics: { views: "desc" } }
+                          : { name: "asc" },
                 }
               : {}),
           }),

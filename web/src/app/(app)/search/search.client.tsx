@@ -4,7 +4,7 @@ import { Tag } from "@prisma/client";
 
 export type SearchClientPageProps = {
   tags?: Tag[];
-  orderBy?: "trending" | "new";
+  orderBy?: "trending" | "new" | "views" | "name";
 };
 
 export function SearchClientPage(props: SearchClientPageProps) {
