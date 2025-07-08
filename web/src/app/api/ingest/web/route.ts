@@ -42,3 +42,33 @@ export async function POST(request: Request) {
   await api.ingest.web(result.data);
   return Response.json({});
 }
+
+export async function GET(request: Request) {
+    // debugging
+    console.log("Web GET function called!");
+
+    // get headers
+    const apiKey = request.headers.get("x-api-key");
+    if (!apiKey) {
+        return new Response("Missing API key", { status: 401 });
+    }
+
+    if (apiKey !== "123") {
+        return new Response("Invalid API key", { status: 401 });
+    }
+
+    try {
+        const webPosts = await api.ingest.webFetchAll();
+        return Response.json(webPosts);
+    } catch (err) {
+        console.error("Error in GET /api/ingest/web:", err);
+        return new Response(
+        JSON.stringify({
+            error: "Internal Server Error",
+            message: "Something went wrong while fetching web sources.",
+        }),
+        { status: 500 },
+        );
+    }
+
+}

@@ -50,9 +50,11 @@ import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  IngestRedditData,
   IngestXData,
   TechCrunch,
   TechCrunchBreakingNews,
+  TechCrunchIngestRedditData,
   TechCrunchIngestXData,
   TechCrunchSponsor,
   TechCrunchSummary,
@@ -76,12 +78,18 @@ export type TechCrunchSponsorWithRelations = TechCrunchSponsor & {
   Tool: Tool;
 };
 
+export type TechCrunchIngestRedditDataWithRelations =
+  TechCrunchIngestRedditData & {
+    IngestRedditData: IngestRedditData;
+  };
+
 export type TechCrunchWithRelations = TechCrunch & {
   TechCrunchSponsor: TechCrunchSponsorWithRelations[];
   TechCrunchSummary: TechCrunchSummary[];
   TechCrunchTool: TechCrunchTool[];
   TechCrunchBreakingNews: TechCrunchBreakingNews[];
   TechCrunchIngestXData: TechCrunchIngestXDataWithRelations[];
+  TechCrunchIngestRedditData: TechCrunchIngestRedditDataWithRelations[];
 };
 
 export type TechCrunchUpsertPageProps = {
@@ -137,6 +145,18 @@ const FormSchema = z.object({
       image: z.string().url().optional(),
     }),
   ),
+  redditPosts: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      permalink: z.string().url(),
+      subreddit: z.string(),
+      author: z.string(),
+      score: z.number(),
+      numComments: z.number(),
+      image: z.string().optional(),
+    }),
+  ),
 });
 
 export function TechCrunchUpsertPage({
@@ -164,6 +184,7 @@ export function TechCrunchUpsertPage({
   );
 
   const fetchTweetsQuery = api.ingest.fetchAll.useQuery();
+  const fetchRedditPostsQuery = api.ingest.redditFetchAll.useQuery();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -221,6 +242,18 @@ export function TechCrunchUpsertPage({
                 ? (tweet.extendedEntities as any).media[0].media_url_https
                 : undefined,
           })),
+          redditPosts: techCrunch.TechCrunchIngestRedditData.flatMap(
+            (post) => post.IngestRedditData,
+          ).map((post) => ({
+            id: post.id,
+            title: post.title,
+            permalink: post.permalink,
+            subreddit: post.subreddit,
+            author: post.author,
+            score: post.score,
+            numComments: post.numComments,
+            image: post.image ?? undefined,
+          })),
         }
       : {
           title: "",
@@ -231,6 +264,7 @@ export function TechCrunchUpsertPage({
           tools: [],
           breakingNews: [],
           tweets: [],
+          redditPosts: [],
         },
   });
 
@@ -267,6 +301,15 @@ export function TechCrunchUpsertPage({
     name: "tweets",
   });
 
+  const {
+    fields: redditFields,
+    append: addRedditPost,
+    remove: removeRedditPost,
+  } = useFieldArray<z.infer<typeof FormSchema>, "redditPosts">({
+    control: form.control,
+    name: "redditPosts",
+  });
+
   const submit = api.techCrunch.upsert.useMutation({
     onSuccess: () => {
       router.push("/tech-crunch");
@@ -286,6 +329,7 @@ export function TechCrunchUpsertPage({
         <MarketingEmail
           id={techCrunch?.id ?? ""}
           tweets={form.watch("tweets")}
+          redditPosts={form.watch("redditPosts")}
           baseUrl={env.NEXT_PUBLIC_BASE_URL}
           previewText={form.watch("subject")}
           title={form.watch("title")}
@@ -318,6 +362,7 @@ export function TechCrunchUpsertPage({
     form.watch("tools"),
     form.watch("breakingNews"),
     form.watch("tweets"),
+    form.watch("redditPosts"),
   ]);
 
   return (
@@ -348,6 +393,7 @@ export function TechCrunchUpsertPage({
                 <TabsTrigger value="tools">Tools</TabsTrigger>
                 <TabsTrigger value="breaking-news">Breaking News</TabsTrigger>
                 <TabsTrigger value="tweets">Tweets</TabsTrigger>
+                <TabsTrigger value="reddit-posts">Reddit Posts</TabsTrigger>
                 <TabsTrigger value="preview">Preview Email</TabsTrigger>
               </TabsList>
 
@@ -1150,6 +1196,126 @@ export function TechCrunchUpsertPage({
                               className="text-blue-500 hover:underline"
                             >
                               Read on X
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="reddit-posts" className="mt-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Reddit Posts</CardTitle>
+                    <CardDescription>
+                      Fetch and add Reddit posts for this TechCrunch article
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {fetchRedditPostsQuery.data &&
+                      fetchRedditPostsQuery.data.length > 0 && (
+                        <div className="flex w-full flex-col space-y-2 pt-4">
+                          <span className="text-muted-foreground">
+                            Fetched Reddit Posts (
+                            {fetchRedditPostsQuery.data.length})
+                          </span>
+                          {fetchRedditPostsQuery.data.map((post) => (
+                            <div
+                              key={post.id}
+                              className="flex flex-col space-y-4 rounded-md border p-4"
+                            >
+                              <div className="flex items-center justify-between">
+                                <h4 className="text-sm font-medium">
+                                  r/{post.subreddit} by u/{post.author}
+                                </h4>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={redditFields.some(
+                                    (field) => field.id === post.id,
+                                  )}
+                                  onClick={() => {
+                                    addRedditPost({
+                                      id: post.id,
+                                      title: post.title,
+                                      permalink: post.permalink,
+                                      subreddit: post.subreddit,
+                                      author: post.author,
+                                      score: post.score,
+                                      numComments: post.numComments,
+                                      image: post.image ?? undefined,
+                                    });
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <p className="text-sm text-muted-foreground font-bold">
+                                Title: {post.title}
+                              </p>
+
+                              <p className="text-sm text-muted-foreground">
+                                Text Body: {post.text ? post.text : "N/A"}
+                              </p>
+
+                              {post.image && (
+                                <img 
+                                  src={post.image}
+                                  alt="Post image"
+                                  className="size-20 rounded-md"
+                                />
+                              )}
+
+                              <a
+                                href={post.permalink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-500 hover:underline"
+                              >
+                                View Post
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                    {redditFields.length > 0 && (
+                      <div className="flex w-full flex-col space-y-2 pt-4">
+                        <span className="text-muted-foreground">
+                          Selected Reddit Posts ({redditFields.length})
+                        </span>
+                        {redditFields.map((field, index) => (
+                          <div
+                            key={field.id}
+                            className="flex flex-col space-y-4 rounded-md border p-4"
+                          >
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-medium">
+                                r/{field.subreddit} by u/{field.author}
+                              </h4>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  removeRedditPost(index);
+                                }}
+                              >
+                                <Trash className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {field.title}
+                            </p>
+                            <a
+                              href={field.permalink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-500 hover:underline"
+                            >
+                              View Post
                             </a>
                           </div>
                         ))}

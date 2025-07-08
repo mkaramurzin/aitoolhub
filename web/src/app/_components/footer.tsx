@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FeedbackDialog } from "@/components/ui/feedback-dialog";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -44,6 +45,11 @@ export function Footer() {
             >
               Submit Tool
             </Link>
+            <FeedbackDialog>
+              <button className="text-sm text-muted-foreground transition-colors hover:text-primary">
+                Feedback
+              </button>
+            </FeedbackDialog>
           </div>
         </div>
         <div className="flex flex-1 justify-between">

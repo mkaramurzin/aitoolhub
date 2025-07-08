@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
-import { Loader2, Send, WandSparkles, X } from "lucide-react";
+import { Loader2, Send, MessageCircle, ChevronDown, WandSparkles } from "lucide-react";
 import { useQueryState } from "nuqs";
 import { useEffect, useState, useRef } from "react";
 
@@ -14,13 +14,11 @@ interface ConversationMessage {
 }
 
 interface SearchBoxProps {
-  conversationResponse?: string;
-  suggestedRefinements?: string[];
-  confidence?: number;
   onRefine?: (refinedQuery: string) => void;
   currentQuery?: string;
   toolCount?: number;
   isLoading?: boolean;
+  showDialogueMode?: boolean;
 }
 
 const placeholders = [
@@ -30,17 +28,16 @@ const placeholders = [
 ];
 
 export function SearchBox({
-  conversationResponse,
-  suggestedRefinements = [],
-  confidence = 0,
   onRefine,
   currentQuery = '',
   toolCount = 0,
-  isLoading = false
+  isLoading = false,
+  showDialogueMode = true
 }: SearchBoxProps = {}) {
   const [search, setSearch] = useState("");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [confidence, setConfidence] = useState(0);
   
   // Chat functionality states
   const [isChatMode, setIsChatMode] = useState(false);
@@ -59,6 +56,14 @@ export function SearchBox({
   const [query, setQuery] = useQueryState("query", {
     shallow: true,
     defaultValue: "",
+  });
+  const [tags] = useQueryState("tags", {
+    shallow: false,
+    parse: (v) => v.split(",").filter((v) => v.length > 0),
+  });
+  const [pricing] = useQueryState("pricing", {
+    shallow: false,
+    parse: (v) => (["free", "paid", "free-paid"].includes(v) ? v : undefined),
   });
   const [showResults, setShowResults] = useState(false);
 
@@ -84,58 +89,60 @@ export function SearchBox({
     }
   });
 
-  // Initialize chat mode when AI responds
-  useEffect(() => {
-    if (conversationResponse && !conversationInitialized.current) {
-      setConversation([
+  // API for starting conversation manually
+  const startConversation = api.tools.startConversation.useMutation({
+    onSuccess: (data) => {
+      const initialConversation: ConversationMessage[] = [
         {
           role: 'user',
-          content: query || currentQuery,
+          content: currentQuery || search,
           timestamp: new Date()
         },
         {
-          role: 'assistant', 
-          content: conversationResponse,
+          role: 'assistant',
+          content: data.response,
           timestamp: new Date()
         }
-      ]);
-      conversationInitialized.current = true;
+      ];
+      
+      setConversation(initialConversation);
       setIsChatMode(true);
       
       // Auto-expand after a brief delay for smooth transition
       setTimeout(() => setIsExpanded(true), 300);
+    },
+    onError: () => {
+      // Handle error case
+      console.error('Failed to start conversation');
     }
-  }, [conversationResponse, query, currentQuery]);
+  });
 
-  // Auto-exit chat mode when confidence is high enough or no conversation response
+  // Auto-exit chat mode when confidence is high enough
   useEffect(() => {
-    const CONFIDENCE_THRESHOLD = 80; // Match the API threshold for regular search
+    const CONFIDENCE_THRESHOLD = 80;
     
-    if (isChatMode && (confidence >= CONFIDENCE_THRESHOLD || !conversationResponse)) {
+    if (isChatMode && confidence >= CONFIDENCE_THRESHOLD && toolCount > 0) {
       // Add a final message explaining the exit
-      if (confidence >= CONFIDENCE_THRESHOLD && toolCount > 0) {
-        const exitMessage: ConversationMessage = {
-          role: 'assistant',
-          content: `Great! I found ${toolCount} relevant tools with high confidence (${confidence}%). You can now browse the results below or start a new search.`,
-          timestamp: new Date()
-        };
-        setConversation(prev => [...prev, exitMessage]);
-        
-        // Persist the final refined query to URL when exiting with high confidence
-        if (currentQuery !== query && onRefine) {
-          // We'll add a special flag to indicate this should be persisted
-          onRefine(currentQuery + '::persist');
-        }
+      const exitMessage: ConversationMessage = {
+        role: 'assistant',
+        content: `Great! I found ${toolCount} relevant tools with high confidence (${confidence}%). You can now browse the results below or start a new search.`,
+        timestamp: new Date()
+      };
+      setConversation(prev => [...prev, exitMessage]);
+      
+      // Persist the final refined query to URL when exiting with high confidence
+      if (currentQuery !== query && onRefine) {
+        onRefine(currentQuery + '::persist');
       }
 
       // Delay exit to allow user to see the improved results
       const exitTimer = setTimeout(() => {
         exitChatMode();
-      }, 3000); // 3 second delay to show the final message
+      }, 3000);
 
       return () => clearTimeout(exitTimer);
     }
-  }, [confidence, conversationResponse, isChatMode, toolCount, currentQuery, query, onRefine]);
+  }, [confidence, isChatMode, toolCount, currentQuery, query, onRefine]);
 
   // Reset when query changes significantly
   useEffect(() => {
@@ -214,13 +221,6 @@ export function SearchBox({
     setNewMessage("");
   };
 
-  const handleRefinementClick = (refinement: string) => {
-    const refinedQuery = `${currentQuery} ${refinement}`.trim();
-    if (onRefine) {
-      onRefine(refinedQuery);
-    }
-  };
-
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -241,6 +241,16 @@ export function SearchBox({
     }, 300);
   };
 
+  const startChat = () => {
+    if (!currentQuery && !search) return;
+    
+    startConversation.mutate({
+      query: currentQuery || search,
+      tags: tags ?? undefined,
+      pricing: pricing ?? undefined
+    });
+  };
+
   return (
     <div className="relative w-full">
       <div className="relative flex w-full flex-col items-center">
@@ -256,12 +266,15 @@ export function SearchBox({
           {/* Original search input - stays visible but transforms */}
           <div className={cn(
             "relative transition-all duration-300",
-            isChatMode && isExpanded && "border-b bg-muted/30"
-          )}>
+            isChatMode && isExpanded && "border-b bg-muted/30 cursor-pointer hover:bg-muted/40"
+          )}
+          onClick={isChatMode && isExpanded ? exitChatMode : undefined}
+          >
             <Input
               className={cn(
                 "relative w-full border-none outline-none focus-visible:ring-0 transition-all duration-300",
-                isChatMode ? "bg-transparent pl-12 pr-20 sm:pr-32 h-14" : "h-12 bg-secondary pl-12 pr-4"
+                isChatMode ? "bg-transparent pl-12 pr-20 sm:pr-32 h-14" : "h-12 bg-secondary pl-12 pr-4",
+                isChatMode && isExpanded && "pointer-events-none"
               )}
               value={isChatMode && isExpanded ? currentQuery : search}
               maxLength={100}
@@ -277,21 +290,27 @@ export function SearchBox({
 
             <WandSparkles className="absolute left-4 top-1/2 size-5 -translate-y-1/2 transition-colors duration-300" />
 
-            {/* Chat mode indicator */}
-            {isChatMode && (
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <div className="h-2 w-2 rounded-full bg-green-500"></div>
-                <span className="text-xs text-muted-foreground hidden sm:inline">Search Assistant</span>
-                <span className="text-xs text-muted-foreground sm:hidden">AI</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={exitChatMode}
-                  className="h-5 w-5 p-0 hover:bg-destructive/10 ml-1"
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
+            {/* Get AI Help button - only show when not in chat mode and there's a query */}
+            {!isChatMode && showDialogueMode && (currentQuery || search) && (
+              <Button
+                onClick={startChat}
+                disabled={startConversation.isPending}
+                size="sm"
+                variant="ghost"
+                className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 h-8 text-xs text-muted-foreground hover:text-primary transition-colors"
+              >
+                {startConversation.isPending ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                    Let&apos;s refine your search with AI
+                  </>
+                ) : (
+                  <>
+                    <MessageCircle className="h-3 w-3 mr-1" />
+                    Dialogue Mode
+                  </>
+                )}
+              </Button>
             )}
 
             {/* Original placeholder - only show in normal mode */}
@@ -318,20 +337,25 @@ export function SearchBox({
             >
               {/* AI info header */}
               {isExpanded && (
-                <div className="flex-shrink-0 px-4 py-2 border-b bg-muted/20">
+                <div 
+                  className="flex-shrink-0 px-4 py-2 border-b bg-muted/20"
+                >
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
                         <span className="text-xs font-medium text-primary">AI</span>
                       </div>
-                      <span className="text-muted-foreground">Search Assistant • Confidence: {confidence}%</span>
+                      <span className="text-muted-foreground">This is an AI chat designed to pinpoint your ideal AI solution</span>
                     </div>
-                    <span className={cn(
-                      "text-muted-foreground",
-                      toolCount === 0 && !isLoading && "text-orange-600 font-medium"
-                    )}>
-                      {isLoading ? "Searching..." : toolCount === 0 ? "No tools found" : `${toolCount} tools found`}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "text-muted-foreground",
+                        toolCount === 0 && !isLoading && "text-orange-600 font-medium"
+                      )}>
+                        {isLoading ? "Searching..." : toolCount === 0 ? "No tools found" : `${toolCount} tools found`}
+                      </span>
+                      <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                    </div>
                   </div>
                 </div>
               )}
@@ -347,7 +371,7 @@ export function SearchBox({
                     </div>
                     <div className="ml-3">
                       <p className="text-sm text-orange-700">
-                        I couldn't find any tools matching your search. Let's try refining your request to get better results.
+                        I couldn&apos;t find any tools matching your search. Let&apos;s try refining your request to get better results.
                       </p>
                     </div>
                   </div>
@@ -403,31 +427,12 @@ export function SearchBox({
                 </div>
               )}
 
-              {/* Suggested refinements */}
-              {isExpanded && suggestedRefinements.length > 0 && (
-                <div className="flex-shrink-0 px-4 py-2 border-t bg-muted/10">
-                  <p className="text-xs font-medium text-muted-foreground mb-1.5">Quick suggestions:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {suggestedRefinements.map((refinement) => (
-                                              <Badge
-                          key={refinement}
-                          variant="outline"
-                          className="cursor-pointer transition-all hover:bg-primary/20 text-xs py-0.5 px-2 hover:scale-105"
-                          onClick={() => handleRefinementClick(refinement)}
-                        >
-                        {refinement}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Chat input - appears at bottom */}
               {isExpanded && (
                 <div className="flex-shrink-0 border-t p-3 bg-card">
                   <div className="flex items-center gap-2">
                     <Input
-                      placeholder="Continue the conversation..."
+                      placeholder="Describe what you're looking for..."
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       onKeyPress={handleKeyPress}

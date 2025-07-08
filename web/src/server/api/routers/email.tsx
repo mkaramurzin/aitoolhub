@@ -26,6 +26,11 @@ export const emailRouter = createTRPCRouter({
               IngestXData: true,
             },
           },
+          TechCrunchIngestRedditData: { 
+            include: { 
+              IngestRedditData: true 
+            } 
+          },
         },
       });
 
@@ -92,6 +97,18 @@ export const emailRouter = createTRPCRouter({
               logo: sponsor.Tool.image,
               url: sponsor.Tool.url,
             }))}
+            redditPosts={techCrunch.TechCrunchIngestRedditData.flatMap(
+              (post) => post.IngestRedditData,
+            ).map((post) => ({
+              id: post.id,
+              title: post.title,
+              image: post.image,
+              permalink: post.permalink,
+              subreddit: post.subreddit,
+              author: post.author,
+              score: post.score,
+              numComments: post.numComments,
+            }))}
             subject={techCrunch.subject}
             previewText={techCrunch.subject}
           />
@@ -154,6 +171,11 @@ export const emailRouter = createTRPCRouter({
               IngestXData: true,
             },
           },
+          TechCrunchIngestRedditData: {
+              include: {
+              IngestRedditData: true,
+            },
+          }
         },
       });
 
@@ -217,6 +239,18 @@ export const emailRouter = createTRPCRouter({
               name: sponsor.Tool.name,
               logo: sponsor.Tool.image,
               url: sponsor.Tool.url,
+            }))}
+            redditPosts={techCrunch.TechCrunchIngestRedditData.flatMap(
+              (post) => post.IngestRedditData,
+            ).map((post) => ({
+              id: post.id,
+              title: post.title,
+              image: post.image ?? undefined,
+              permalink: post.permalink,
+              subreddit: post.subreddit,
+              author: post.author,
+              score: post.score,
+              numComments: post.numComments,
             }))}
             subject={techCrunch.subject}
             previewText={techCrunch.subject}

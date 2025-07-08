@@ -32,6 +32,19 @@ export const ingestRouter = createTRPCRouter({
       });
       return {};
     }),
+    webFetchAll: publicProcedure.query(async ({ ctx }) => {
+    const twentyFourHoursAgo = subDays(new Date(), 1);
+
+    const webPosts = await ctx.db.ingestData.findMany({
+      where: {
+        createdAt: {
+          gte: twentyFourHoursAgo,
+        },
+      },
+    });
+
+    return webPosts;
+  }),
   x: publicProcedure
     .input(
       z.object({
@@ -117,4 +130,79 @@ export const ingestRouter = createTRPCRouter({
 
     return tweets;
   }),
+  reddit: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        image: z.string().nullable().optional(),
+        permalink: z.string(),
+        text: z.string().nullable().optional(),
+        subreddit: z.string(),
+        author: z.string(),
+        score: z.number(),
+        numComments: z.number(),
+        createdAt: z.date(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const existingIngestRedditData = await ctx.db.ingestRedditData.findUnique({
+        where: {
+          id: input.id,
+        },
+      });
+
+      if (existingIngestRedditData) return {};
+
+      await ctx.db.ingestRedditData.create({
+        data: {
+          id: input.id,
+          title: input.title,
+          image: input.image, 
+          permalink: input.permalink,
+          text: input.text,
+          subreddit: input.subreddit,
+          author: input.author,
+          score: input.score,
+          numComments: input.numComments,
+          createdAt: new Date(),
+        },
+      });
+      return {};
+    }),
+    redditFetchAll: publicProcedure.query(async ({ctx}) => {
+      const twentyFourHoursAgo = subDays(new Date(), 1);
+
+      // grab 20 or less ChatGPT subreddit posts (with most likes)
+      const chatGPTRedditPosts = await ctx.db.ingestRedditData.findMany({
+        where: {
+          createdAt: {
+            gte: twentyFourHoursAgo,
+          },
+          subreddit: "ChatGPT", 
+        },
+        orderBy: {
+          score: "desc",
+        },
+        take: 20,
+      })
+      const otherRedditPosts = await ctx.db.ingestRedditData.findMany({
+        where: {
+          createdAt: {
+            gte: twentyFourHoursAgo,
+          },
+          subreddit: {
+            in: ["ArtificialInteligence", "singularity"]
+          },
+        },
+        orderBy: {
+          score: "desc"
+        }
+      });
+
+      const combinedPosts = [...chatGPTRedditPosts, ...otherRedditPosts];
+
+      return combinedPosts;
+    }),
+
 });

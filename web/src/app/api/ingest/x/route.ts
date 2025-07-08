@@ -62,3 +62,33 @@ export async function POST(request: Request) {
   await api.ingest.x(result.data);
   return Response.json({});
 }
+
+export async function GET(request: Request) {
+    // debugging
+    // console.log("Twitter GET function called!");
+
+    // get headers
+    const apiKey = request.headers.get("x-api-key");
+    if (!apiKey) {
+        return new Response("Missing API key", { status: 401 });
+    }
+
+    if (apiKey !== "123") {
+        return new Response("Invalid API key", { status: 401 });
+    }
+
+    try {
+        const tweets = await api.ingest.fetchAll();
+        return Response.json(tweets);
+    } catch (err) {
+        console.error("Error in GET /api/ingest/x:", err);
+        return new Response(
+        JSON.stringify({
+            error: "Internal Server Error",
+            message: "Something went wrong while fetching tweets.",
+        }),
+        { status: 500 },
+        );
+    }
+
+}

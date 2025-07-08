@@ -137,13 +137,11 @@ export function SearchResultsPage({
           <div className="my-3"></div>
           <div className="mb-6 flex w-full max-w-xl flex-col gap-6 px-4">
             <SearchBox 
-              conversationResponse={toolsQuery.data?.conversationResponse || toolsQuery.data?.clarificationSuggestion || undefined}
-              suggestedRefinements={toolsQuery.data?.conversationRefinements || toolsQuery.data?.clarificationTags || []}
-              confidence={toolsQuery.data?.confidence || 0}
               onRefine={handleConversationRefine}
               currentQuery={query || ''}
               toolCount={totalCount}
               isLoading={isLoading}
+              showDialogueMode={true}
             />
           </div>
           <SearchOptions />
@@ -165,7 +163,7 @@ export function SearchResultsPage({
           <div className="mb-4 w-full px-4 text-sm text-muted-foreground">
             {totalCount} {totalCount === 1 ? 'tool' : 'tools'} found
             {effectiveQuery && (
-              <span> for "{effectiveQuery}"</span>
+              <span> for &quot;{effectiveQuery}&quot;</span>
             )}
           </div>
           

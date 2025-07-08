@@ -30,14 +30,14 @@ async function generateConversationalResponse(
 ): Promise<{ response: string; suggestedRefinements: string[] } | null> {
   // Handle no tools found case
   if (tools.length === 0) {
-    const systemPrompt = `You are a helpful AI assistant that helps users find AI tools. The user searched for "${query}" but no tools were found.
+    const systemPrompt = `You are a direct AI assistant for this AI tools directory. The user searched for "${query}" but no tools in our database match.
 
 Your role:
-- Be empathetic and acknowledge their search didn't return results
-- Ask clarifying questions to better understand what they need
-- Suggest they try different keywords, broader terms, or describe their specific use case
-- Keep it conversational and helpful (1-2 sentences max)
-- Don't just say "no results" - guide them toward a solution`;
+- Acknowledge no matching tools were found in our directory
+- Ask one specific question about their use case
+- Keep it brief (1 sentence max)
+- Only suggest refinements that might find actual tools in our database
+- Don't mention tools or categories that might not exist on our site`;
 
     try {
       const { text } = await generateText({
@@ -51,7 +51,7 @@ Your role:
         temperature: 0.7,
       });
 
-      // For no results, suggest common refinement categories
+      // Only suggest refinements from our actual tool categories
       const commonRefinements = [
         "automation", "design", "writing", "analytics", "productivity", 
         "development", "marketing", "image generation", "video editing"
@@ -64,13 +64,13 @@ Your role:
     } catch (error) {
       console.error('Error generating no-tools response:', error);
       return {
-        response: "I couldn't find any tools matching that search. Could you describe what you're trying to accomplish in more detail?",
+        response: "No tools found in our directory for that search. What specific task are you trying to accomplish?",
         suggestedRefinements: ["automation", "design", "writing", "analytics"]
       };
     }
   }
 
-  // Extract common themes from returned tools
+  // Extract actual categories from the found tools
   const allTags = tools.flatMap(tool => 
     tool.ToolTags.map((tt: any) => tt.Tag.name)
   );
@@ -79,37 +79,30 @@ Your role:
     return acc;
   }, {});
   
-  // Get top tool categories for context
-  const topCategories = Object.entries(tagCounts)
+  // Get actual categories from search results
+  const actualCategories = Object.entries(tagCounts)
     .sort(([,a], [,b]) => (b as number) - (a as number))
     .slice(0, 5)
     .map(([tag]) => tag);
 
-  // Get sample tool names for context
-  const sampleTools = tools.slice(0, 3).map(tool => tool.name);
+  // Get actual tool names from search results
+  const actualToolNames = tools.slice(0, 3).map(tool => tool.name);
 
   const isInitialMessage = conversationHistory.length === 0;
   
-  // Create context for the AI
-  const systemPrompt = `You are a helpful AI assistant that helps users find the perfect AI tools. You have access to a database of AI tools and their categories.
+  // Create context for the AI with actual data
+  const systemPrompt = `You are a direct AI assistant for an AI tools directory. You have ${tools.length} relevant tools available.
 
-Current search context:
-- User's query: "${query}"
-- Number of tools found: ${tools.length}
-- Top categories found: ${topCategories.join(', ')}
-- Sample tools: ${sampleTools.join(', ')}
+Available tools in our results:
+- Categories: ${actualCategories.join(', ')}
+- Example tools: ${actualToolNames.join(', ')}
 
 Your role:
-- Be conversational, friendly, and helpful
-- Keep responses concise (1-2 sentences max)
-- ${isInitialMessage ? 'Acknowledge their search intent and offer to help refine it' : 'Continue the conversation naturally'}
-- Suggest specific refinements when appropriate
-- Don't just list categories - engage in dialogue
-
-${isInitialMessage ? 
-  'This is the user\'s initial search. Acknowledge what they\'re looking for and offer to help them find more specific tools.' : 
-  'Continue the conversation based on the history provided.'
-}`;
+- Only reference the actual tools and categories shown above
+- ${isInitialMessage ? 'Ask one specific question to narrow their search within our available tools' : 'Respond based on our actual tool inventory'}
+- Keep responses short (1 sentence, 2 max)
+- Don't mention tools or categories not in our search results
+- Focus on helping them find the best match from available options`;
 
   try {
     const { text } = await generateText({
@@ -123,11 +116,11 @@ ${isInitialMessage ?
       temperature: 0.7,
     });
 
-    // Generate suggested refinements based on categories
+    // Only suggest refinements from actual categories found in results
     const normalizedQuery = query.toLowerCase().trim();
     const queryWords = normalizedQuery.split(/\s+/);
     
-    const suggestedRefinements = topCategories
+    const suggestedRefinements = actualCategories
       .filter(tag => {
         const normalizedTag = tag.toLowerCase();
         return !queryWords.some(word => 
@@ -164,26 +157,24 @@ async function generateRefinedSearchQuery(
     `${tool.name}: ${tool.ToolTags.map((tt: any) => tt.Tag.name).join(', ')}`
   ).join('; ');
 
-  const systemPrompt = `You are an AI search query optimizer. Your job is to analyze a conversation about AI tool discovery and generate an optimized search query that will find the most relevant tools.
+  const systemPrompt = `You are an AI search query optimizer. Generate an optimized search query based on the conversation.
 
 Context:
-- Original search query: "${originalQuery}"
-- User's latest message: "${userMessage}"
-- Available tool categories: ${uniqueTags.slice(0, 20).join(', ')}
+- Original query: "${originalQuery}"
+- User's message: "${userMessage}"
+- Available categories: ${uniqueTags.slice(0, 20).join(', ')}
 - Sample tools: ${toolContext}
 
 Instructions:
-1. Extract the core intent from the original query
-2. Identify specific requirements, features, or use cases mentioned in the conversation
-3. Remove conversational fluff (like "I want", "something that", "can you help me")
-4. Combine relevant keywords with category tags that match available tools
-5. Output only a clean, searchable query (2-8 words max)
-6. Focus on tool functionality and use cases, not conversational elements
+1. Extract core intent from original query and user message
+2. Remove conversational words ("I want", "something that", "can you help")
+3. Combine relevant keywords with matching categories
+4. Output clean, searchable query (2-8 words max)
+5. Focus on functionality, not conversation
 
 Examples:
-- Original: "build a website", User: "I need something for e-commerce" → "website builder e-commerce"
-- Original: "design tool", User: "specifically for logos and branding" → "logo design branding"
-- Original: "automate tasks", User: "for my accounting workflow" → "accounting automation workflow"
+- "build website" + "e-commerce" → "website builder e-commerce"
+- "design tool" + "logos and branding" → "logo design branding"
 
 Generate only the refined search query:`;
 
@@ -361,29 +352,20 @@ export const toolsRouter = createTRPCRouter({
           },
         });
 
-        // Calculate confidence and provide suggestions
+        // Calculate confidence for display purposes
         const avgDistance = results.length > 0 ? results.reduce((sum, r) => sum + r.distance, 0) / results.length : 1;
         const confidence = Math.max(0, 1 - avgDistance);
-        
-        // Determine if we should suggest clarification
-        // For no results or low confidence, always provide conversational guidance
-        const shouldSuggestClarification = 
-          tools.length === 0 || // Always help when no tools found
-          (confidence < 0.7 && tools.length > 0 && tools.length < 10 && !isExploratoryQuery(input.query));
-
-        const conversationalData = shouldSuggestClarification 
-          ? await generateConversationalResponse(input.query, tools)
-          : null;
 
         return { 
           tools, 
           count: totalCount, 
           confidence: Math.round(confidence * 100),
-          conversationResponse: conversationalData?.response || null,
-          conversationRefinements: conversationalData?.suggestedRefinements || null,
+          // Remove automatic conversation responses - AI chat will be manual only
+          conversationResponse: null,
+          conversationRefinements: null,
           // Keep legacy fields for backward compatibility during transition
-          clarificationSuggestion: conversationalData?.response || null,
-          clarificationTags: conversationalData?.suggestedRefinements || null
+          clarificationSuggestion: null,
+          clarificationTags: null
         };
       }
 
@@ -504,26 +486,96 @@ export const toolsRouter = createTRPCRouter({
           ? Math.min(95, Math.max(60, (tools.length / Math.max(1, totalCount * 0.1)) * 100))
           : 85; // High confidence for browsing/filtering
 
-        const shouldSuggestClarification = 
-          !!input.query && (
-            tools.length === 0 || // Always help when no tools found
-            (confidence < 80 && tools.length > 0 && tools.length < 15 && !isExploratoryQuery(input.query))
-          );
-
-        const conversationalData = shouldSuggestClarification && input.query
-          ? await generateConversationalResponse(input.query, tools)
-          : null;
-
         return { 
           tools, 
           count: totalCount, 
           confidence: Math.round(confidence),
-          conversationResponse: conversationalData?.response || null,
-          conversationRefinements: conversationalData?.suggestedRefinements || null,
+          // Remove automatic conversation responses - AI chat will be manual only
+          conversationResponse: null,
+          conversationRefinements: null,
           // Keep legacy fields for backward compatibility during transition
-          clarificationSuggestion: conversationalData?.response || null,
-          clarificationTags: conversationalData?.suggestedRefinements || null
+          clarificationSuggestion: null,
+          clarificationTags: null
         };
+    }),
+  startConversation: publicProcedure
+    .input(z.object({ 
+      query: z.string().max(100),
+      tags: z.array(z.string()).optional(),
+      pricing: z.string().optional()
+    }))
+    .mutation(async ({ input, ctx }) => {
+      // Get relevant tools for the conversation context using the same logic as fetchAll
+      let tools: any[] = [];
+      let confidence = 85;
+
+      if (input.query && input.query.trim().length > 2) {
+        // Use semantic vector search if available
+        const { embedding } = await embed({
+          model: openai.embedding("text-embedding-3-small"),
+          value: `With AI I want to ${input.query.trim()}`,
+        });
+
+        // Build filtering conditions
+        const pricingCondition = input.pricing
+          ? Prisma.sql`AND t.pricing = ${input.pricing}`
+          : Prisma.empty;
+        const tagsJoin =
+          input.tags && input.tags.length > 0
+            ? Prisma.sql`JOIN "ToolTags" tt ON t.id = tt."toolId" JOIN "Tag" tg ON tt."tag" = tg.name`
+            : Prisma.empty;
+        const tagsCondition =
+          input.tags && input.tags.length > 0
+            ? Prisma.sql`AND t.id IN (
+                  SELECT tt."toolId"
+                  FROM "ToolTags" tt
+                  JOIN "Tag" tg ON tt."tag" = tg.name
+                  WHERE tg.name IN (${Prisma.join(input.tags)})
+                  GROUP BY tt."toolId"
+                  HAVING COUNT(DISTINCT tg.name) = ${input.tags.length}
+                )`
+            : Prisma.empty;
+
+        const results = (await ctx.db.$queryRaw`
+          SELECT DISTINCT t.id, t.vector::text, t.vector <=> ${embedding}::vector as distance
+          FROM "Tool" t
+          ${tagsJoin}
+          WHERE t.vector IS NOT NULL
+            AND t.vector <=> ${embedding}::vector < 0.6
+            AND t."deletedAt" IS NULL
+            ${pricingCondition}
+            ${tagsCondition}
+          ORDER BY distance
+          LIMIT 20
+        `) as { id: string; vector: string; distance: number }[];
+
+        tools = await ctx.db.tool.findMany({
+          where: {
+            id: { in: results.map((result) => result.id) },
+          },
+          include: {
+            ToolTags: {
+              include: {
+                Tag: true,
+              },
+            },
+          },
+        });
+
+        // Calculate confidence based on search results
+        const avgDistance = results.length > 0 ? results.reduce((sum, r) => sum + r.distance, 0) / results.length : 1;
+        confidence = Math.max(0, Math.round((1 - avgDistance) * 100));
+      }
+
+      // Generate initial conversation response
+      const conversationalData = await generateConversationalResponse(input.query, tools);
+
+      return {
+        response: conversationalData?.response || "I'm here to help you find the perfect AI tools! What specific task are you trying to accomplish?",
+        suggestedRefinements: conversationalData?.suggestedRefinements || [],
+        confidence,
+        toolCount: tools.length
+      };
     }),
   continueConversation: publicProcedure
     .input(z.object({ 

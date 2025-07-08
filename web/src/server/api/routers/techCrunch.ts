@@ -35,6 +35,11 @@ export const techCrunchRouter = createTRPCRouter({
                 IngestXData: true,
               },
             },
+            TechCrunchIngestRedditData: {
+              include: {
+                IngestRedditData: true,
+              },
+            },
           },
           take: input.take,
           skip: (input.page - 1) * input.take,
@@ -70,6 +75,11 @@ export const techCrunchRouter = createTRPCRouter({
             include: {
               IngestXData: true,
             },
+          },
+          TechCrunchIngestRedditData: {
+              include: {
+                IngestRedditData: true,
+              },
           },
         },
       });
@@ -131,6 +141,11 @@ export const techCrunchRouter = createTRPCRouter({
             tweetId: z.string(),
           }),
         ),
+        redditPosts: z.array(
+          z.object({
+            id: z.string(),
+          })
+        )
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -224,6 +239,21 @@ export const techCrunchRouter = createTRPCRouter({
         }
       }
 
+      if (input.redditPosts) {
+        await ctx.db.techCrunchIngestRedditData.deleteMany({
+          where: { techCrunchId: techCrunch.id },
+        });
+
+        for (const post of input.redditPosts) {
+          await ctx.db.techCrunchIngestRedditData.create({
+            data: {
+              techCrunchId: techCrunch.id,
+              ingestRedditDataId: post.id,
+            },
+          });
+        }
+      } 
+
       return techCrunch;
     }),
   generate: authenticatedProcedure.mutation(async ({ ctx }) => {
@@ -246,6 +276,11 @@ export const techCrunchRouter = createTRPCRouter({
     const summariesPrompt = await ctx.db.keyValueStore.findUnique({
       where: { key: "summaries-prompt" },
     });
+
+    const redditPrompt = await ctx.db.keyValueStore.findUnique({
+      where: { key: "techCrunch_reddit_prompt" },
+    });
+
     console.log("✅ Prompts fetched successfully");
 
     if (!breakingNewsPrompt) {
@@ -273,6 +308,13 @@ export const techCrunchRouter = createTRPCRouter({
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Summaries prompt not found",
+      });
+    }
+
+    if (!redditPrompt) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Reddit prompt not found",
       });
     }
 
@@ -314,6 +356,33 @@ export const techCrunchRouter = createTRPCRouter({
     console.log(
       `✅ Fetched ${ingestData.length} ingest data points in ${Math.round(endIngestFetch - startIngestFetch)}ms`,
     );
+
+    // Fetching reddit data 
+    // Fetch Reddit posts
+    console.log("📥 Fetching recent Reddit posts (last 24h)");
+    const startRedditFetch = performance.now();
+    const redditPosts = await ctx.db.ingestRedditData.findMany({
+      where: {
+        createdAt: {
+          gte: subDays(new Date(), 1),
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        image: true,
+        permalink: true,
+        subreddit: true,
+        author: true,
+        score: true,
+        numComments: true,
+      },
+    });
+    const endRedditFetch = performance.now();
+    console.log(
+      `✅ Fetched ${redditPosts.length} Reddit posts in ${Math.round(endRedditFetch - startRedditFetch)}ms`,
+    );
+
 
     // Generate Breaking News
     console.log("🧠 Generating breaking news content");
@@ -374,6 +443,40 @@ export const techCrunchRouter = createTRPCRouter({
     );
     console.log(
       `📊 Selected ${selectedPosts.length} posts from ${twitterPosts.length} available posts`,
+    );
+
+    // Generate Relevant Posts on Reddit
+    console.log("🧠 Identifying trending Reddit posts");
+    const startTrendingReddit = performance.now();
+    const { object: trendingRedditIdsObject } = await generateObject({
+      model: openai("gpt-4o-mini"),
+      maxRetries: 3,
+      mode: "json",
+      schema: z.object({
+        ids: z
+          .array(z.string().describe("Post ID"))
+          .min(1)
+          .max(5)
+          .refine(
+            (ids) =>
+              ids.every((id) => redditPosts.some((post) => post.id === id)),
+            {
+              message: "ID must be one of the trending Reddit posts",
+            }
+          )
+          .describe("A list of IDs of trending posts on Reddit"),
+      }),
+      prompt: `${redditPrompt.value} Here are some recent Reddit posts ${JSON.stringify(redditPosts)}`,
+    });
+    const endTrendingReddit = performance.now();
+    console.log(
+      `✅ Identified ${trendingRedditIdsObject.ids.length} trending Reddit posts in ${Math.round(endTrendingReddit - startTrendingReddit)}ms`
+    );
+    const selectedRedditPosts = redditPosts.filter((post) =>
+      trendingRedditIdsObject.ids.includes(post.id)
+    );
+    console.log(
+      `📊 Selected ${selectedRedditPosts.length} posts from ${redditPosts.length} available Reddit posts`
     );
 
     // Generate Recap metadata
@@ -480,6 +583,16 @@ export const techCrunchRouter = createTRPCRouter({
     });
     console.log(`✅ Created ${selectedPosts.length} X post entries`);
 
+    console.log("💾 Creating Reddit post entries");
+    await ctx.db.techCrunchIngestRedditData.createMany({
+      data: selectedRedditPosts.map((post) => ({
+        techCrunchId: techCrunch.id,
+        ingestRedditDataId: post.id,
+      })),
+    });
+    console.log(`✅ Created ${selectedRedditPosts.length} Reddit post entries`);
+
+
     console.log(`🎉 TechCrunch generation complete! ID: ${techCrunch.id}`);
     return techCrunch;
   }),
@@ -495,10 +608,16 @@ export const techCrunchRouter = createTRPCRouter({
         updatedAt: "desc",
       },
     });
+    const latestIngestRedditData = await ctx.db.ingestRedditData.findFirst({
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
 
     return {
       latestIngestDataUpdatedAt: latestIngestData?.updatedAt,
       latestIngestXDataUpdatedAt: latestIngestXData?.updatedAt,
+      latestIngestRedditDataUpdatedAt: latestIngestRedditData?.updatedAt,
     };
   }),
   delete: authenticatedProcedure

@@ -79,7 +79,7 @@ export function UnsubscribePage() {
           </form>
         </Form>
       ) : (
-        <span>You've been unsubscribed!</span>
+        <span>{`You've been unsubscribed!`}</span>
       )}
     </div>
   );

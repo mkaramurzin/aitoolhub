@@ -28,7 +28,7 @@ export function SearchHomePage(props: { tags?: Tag[] }) {
       <div className="flex w-full flex-col items-center justify-center gap-8 px-6">
         <SearchTitle />
         <div className="flex w-full max-w-xl gap-6">
-          <SearchBox />
+          <SearchBox showDialogueMode={false} />
         </div>
         <SearchOptions />
       </div>

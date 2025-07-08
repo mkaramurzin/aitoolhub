@@ -1,6 +1,6 @@
 import { FullScreenSignIn } from "@/components/sign-in";
 import { api } from "@/trpc/server";
-import { TechCrunchUpsertPage } from "../../upsert.tech-crunch.client";
+import { TechCrunchUpsertPage, TechCrunchWithRelations } from "../../upsert.tech-crunch.client";
 
 type tParams = Promise<{
   id: string;
@@ -16,5 +16,5 @@ export default async function TechCrunchUpdatePage(props: { params: tParams }) {
 
   const { techCrunch } = await api.techCrunch.fetch({ id });
 
-  return <TechCrunchUpsertPage techCrunch={techCrunch} />;
+  return <TechCrunchUpsertPage techCrunch={techCrunch as TechCrunchWithRelations} />;
 }

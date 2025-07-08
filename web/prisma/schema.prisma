@@ -33,6 +33,7 @@ model User {
   banExpires       DateTime?
   SearchHistory    SearchHistory[]
   UserToolFavorite UserToolFavorite[]
+  Feedback         Feedback[]
 
   @@unique([email])
   @@map("user")
@@ -306,11 +307,12 @@ model TechCrunch {
   createdAt DateTime         @default(now()) @db.Timestamptz
   updatedAt DateTime         @default(now()) @updatedAt @db.Timestamptz
 
-  TechCrunchSponsor      TechCrunchSponsor[]
-  TechCrunchSummary      TechCrunchSummary[]
-  TechCrunchTool         TechCrunchTool[]
-  TechCrunchBreakingNews TechCrunchBreakingNews[]
-  TechCrunchIngestXData  TechCrunchIngestXData[]
+  TechCrunchSponsor           TechCrunchSponsor[]
+  TechCrunchSummary           TechCrunchSummary[]
+  TechCrunchTool              TechCrunchTool[]
+  TechCrunchBreakingNews      TechCrunchBreakingNews[]
+  TechCrunchIngestXData       TechCrunchIngestXData[]
+  TechCrunchIngestRedditData  TechCrunchIngestRedditData[] 
 }
 
 model TechCrunchBreakingNews {
@@ -367,6 +369,18 @@ model TechCrunchIngestXData {
   @@id([ingestXDataId, techCrunchId])
 }
 
+model TechCrunchIngestRedditData {
+  ingestRedditDataId      String
+  techCrunchId            String
+  createdAt               DateTime  @default(now()) @db.Timestamptz
+  updatedAt               DateTime  @default(now()) @updatedAt @db.Timestamptz
+
+  IngestRedditData IngestRedditData @relation(fields: [ingestRedditDataId], references: [id], onDelete: Cascade)
+  TechCrunch       TechCrunch       @relation(fields: [techCrunchId], references: [id], onDelete: Cascade)
+
+  @@id([ingestRedditDataId, techCrunchId])
+}
+
 model IngestData {
   id     String   @id @default(uuid())
   postId String?
@@ -411,10 +425,38 @@ model IngestXData {
   TechCrunchIngestXData TechCrunchIngestXData[]
 }
 
+model IngestRedditData {
+  id               String   @id
+  title            String
+  image            String?
+  permalink        String
+  text             String?
+  subreddit        String
+  author           String          // Username
+  score            Int
+  numComments      Int
+  createdAt        DateTime
+
+  updatedAt        DateTime @default(now()) @updatedAt @db.Timestamptz
+  TechCrunchIngestRedditData TechCrunchIngestRedditData[]
+}
+
 model KeyValueStore {
   id        String   @id @default(uuid())
   key       String   @unique
   value     String
   createdAt DateTime @default(now()) @db.Timestamptz
   updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  userId    String?
+  email     String?
+  message   String
+  rating    Int?
+  category  String?
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+  User      User?    @relation(fields: [userId], references: [id])
 }

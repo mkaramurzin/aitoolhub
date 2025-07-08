@@ -11,7 +11,7 @@ function generateSlug(name: string): string {
 }
 
 async function populateTools() {
-  const toolsToProcess = tools.slice(0, 100);
+  const toolsToProcess = tools.slice(0, 2000);
   console.log(`Starting to populate ${toolsToProcess.length} tools (limited from ${tools.length} total)...`);
   
   let successCount = 0;

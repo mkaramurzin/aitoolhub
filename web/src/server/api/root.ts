@@ -3,6 +3,7 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import { contactUsRouter } from "./routers/contact-us";
 import { emailRouter } from "./routers/email";
 import { emailReviewRouter } from "./routers/emailReviewRouter";
+import { feedbackRouter } from "./routers/feedback";
 import { imagesRouter } from "./routers/images";
 import { ingestRouter } from "./routers/ingestRouter";
 import { keyValueRouter } from "./routers/keyValueStore";
@@ -25,6 +26,7 @@ export const appRouter = createTRPCRouter({
   reviews: reviewsRouter,
   waitlist: waitlistRouter,
   contactUs: contactUsRouter,
+  feedback: feedbackRouter,
   images: imagesRouter,
   groomer: parserRouter,
   emails: emailRouter,

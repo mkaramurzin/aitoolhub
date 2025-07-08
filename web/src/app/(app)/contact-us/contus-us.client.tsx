@@ -100,8 +100,8 @@ export function ContactUsForm() {
                 <span className="text-2xl font-semibold">Contact Us</span>
 
                 <span className="text-muted-foreground">
-                  Please fill out the form below and we'll get back to you
-                  shortly.
+                  {`Please fill out the form below and we'll get back to you
+                  shortly.`}
                 </span>
               </div>
             </div>

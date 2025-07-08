@@ -18,6 +18,7 @@ export const env = createEnv({
     AWS_SECRET_ACCESS_KEY: z.string(),
     OPENAI_API_KEY: z.string(),
     RESEND_API_KEY: z.string(),
+    ZAPIER_FEEDBACK_WEBHOOK_URL: z.string().url().optional(),
   },
 
   /**
@@ -53,6 +54,7 @@ export const env = createEnv({
     NEXT_PUBLIC_S3_BUCKET_NAME: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
     NEXT_PUBLIC_S3_BUCKET_ENDPOINT: process.env.NEXT_PUBLIC_S3_BUCKET_ENDPOINT,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
+    ZAPIER_FEEDBACK_WEBHOOK_URL: process.env.ZAPIER_FEEDBACK_WEBHOOK_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
